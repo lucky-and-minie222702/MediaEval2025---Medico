@@ -9,6 +9,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 import nltk
 import re
+from transformers import AutoTokenizer
+from tqdm import tqdm
 
 
 class MyTyping:
@@ -31,55 +33,59 @@ class MyText:
         if not keep_num:
             text = re.sub(r"\d+", "", text)
 
-        text = text.split()
-        if not text[-1].isalnum():
-            text.pop()
-        text = " ".join(text)
+        text = " ".join(text.split())
         return text
-
-
-    # to deep learning format (remove stopwords + lemmatize)
-    def to_deep_learning(text):
-        def get_wordnet_pos(treebank_tag):
-            if treebank_tag.startswith('J'):
-                return 'a'
-            elif treebank_tag.startswith('V'):
-                return 'v'
-            elif treebank_tag.startswith('N'):
-                return 'n'
-            elif treebank_tag.startswith('R'):
-                return 'r'
-            else:
-                return 'n' 
-        
-        stop_words = set(stopwords.words("english"))
-        white_list = ["what", "when", "where", "why", "any", "how", "if", "more"]
-        stop_words.difference_update(white_list)
-        
-        words = re.findall(r"\w+(?:-\w+)*|[.,!?;:]", text)
-        words = [w for w in words if w not in stop_words]
-        pos_tags = nltk.pos_tag(words)
-        
-        lemmatizer = WordNetLemmatizer()
-        words = [lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags]
-        
-        return " ".join(words)
 
     class Tokenizer:
         # get <vocab_size> most occur words
-        def __init__(self, vocab_size, max_length):
+        def __init__(self, vocab_size, max_length, tokenizer_name = "dmis-lab/biobert-base-cased-v1.1"):
             self.vocab_size = vocab_size
             self.max_length = max_length
             self.vocab_map = dict({})
             self.sep_vocab = []
+            
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
             
             self.cls_id = None
             self.sep_id = None
             self.unknown_id = None
             self.pad_id = 0
             
-        def fit(self, data):
-            tokens = list(map(lambda s: s.split(), data))
+        def tokenize(self, data):
+            tokens = [self.tokenizer.tokenize(s) for s in tqdm(data)]
+            return tokens
+        
+        def to_deep_learning(self, words):
+            def get_wordnet_pos(treebank_tag):
+                if treebank_tag.startswith('J'):
+                    return 'a'
+                elif treebank_tag.startswith('V'):
+                    return 'v'
+                elif treebank_tag.startswith('N'):
+                    return 'n'
+                elif treebank_tag.startswith('R'):
+                    return 'r'
+                else:
+                    return 'n' 
+            
+            stop_words = set(stopwords.words("english"))
+            white_list = ["what", "when", "where", "why", "any", "how", "if", "more"]
+            stop_words.difference_update(white_list)
+            
+            words = [w for w in words if w not in stop_words]
+            pos_tags = nltk.pos_tag(words)
+            
+            lemmatizer = WordNetLemmatizer()
+            words = [lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags]
+            
+            return words
+        
+        def preprocess(self, data):
+            tokens = self.tokenize(data)
+            tokens = [self.to_deep_learning(words) for words in tqdm(tokens)]
+            return tokens
+            
+        def fit(self, tokens):
             word_counts = dict({})
             
             for sentence in tokens:
@@ -103,8 +109,7 @@ class MyText:
             
         # pre_ids: extend in the beginning
         # post_ids: extend in the end
-        def transform(self, data, adaptive_max_length = False, post_ids = [], pre_ids = []):
-            tokens = list(map(lambda s: s.split(), data))
+        def transform(self, tokens, adaptive_max_length = False, post_ids = [], pre_ids = []):
             ids = []
             
             for sentence in tokens:
