@@ -2,37 +2,32 @@ from vision_modules import *
 from text_modules import *
 
 
-class ImageWordCoAttention(nn.Module):
-    def __init__(self, vocab_size, max_length, padding_idx, embedding_dim, out_channels, feed_forward_dim, num_lstm_layers, num_att_heads, pre_encoder_patch = None, dropout = 0.0):
+class TextImageEncoder(nn.Module):
+    def __init__(self, vocab_size, max_length, padding_idx, embedding_dim, feed_forward_dim, num_att_heads, dropout = 0.0, attention_dropout = 0.0):
         super().__init__()
         
-        self.patch_embed = PatchEmbedding(
-            3, embedding_dim,
-            pre_encoder_patch = pre_encoder_patch, 
-            dropout = dropout,
-        )
+        self.img_encode = ImageEncoder(embedding_dim)
         
         self.word_embed = WordEmbedding(
             vocab_size, embedding_dim, 
             max_length = max_length, 
             padding_idx = padding_idx, 
-            dropout = dropout
         )
         
-        self.word_encode = WordEncoder(
-            embedding_dim, embedding_dim, embedding_dim,
-            num_layers = num_lstm_layers
+        self.ngram_encode = ngramEncoder(
+            embedding_dim, embedding_dim,
+            dropout = dropout,
         )
         
         self.attention = nn.MultiheadAttention(
             embedding_dim,
             num_heads = num_att_heads,
             batch_first = True,
-            dropout = dropout
+            dropout = attention_dropout
         )
         
-        self.norm1 = nn.LayerNorm(embedding_dim)
-        self.norm2 = nn.LayerNorm(embedding_dim)
+        self.norm1 = nn.LayerNorm(embedding_dim)  # after attention
+        self.norm2 = nn.LayerNorm(embedding_dim)  # after feed forward
         
         self.feed_forward = nn.Sequential(
             nn.Linear(embedding_dim, feed_forward_dim),
@@ -41,32 +36,84 @@ class ImageWordCoAttention(nn.Module):
         )
         
     def forward(self, image, words, word_padding_mask):
-        img_embed = self.patch_embed(image)
         word_embed = self.word_embed(words)
+        ngram_feats = self.ngram_encode(word_embed)  # (B, embedding_dim, text_len)
         
-        ngrams, sentence = self.word_encode(word_embed)
-        # ngrams: (B, embedding_dim, seq_len)
-        # sentence: (B, embedding_dim)
+        img_spatial_feats = self.img_encode(image)  # (B, embedding_dim, 7 * 7)
         
-        cross_attention = self.attention(
-            query = ngrams,
-            key = img_embed,
-            query = img_embed,
-            
+        cross_attention_feats = self.attention(
+            query = ngram_feats,
+            key = img_spatial_feats,
+            query = img_spatial_feats,
             need_weights = False,
         )
         
-        cross_attention = cross_attention * word_padding_mask.unsqueeze(-1)
-        cross_attention = self.norm1(cross_attention + ngrams)  # (B, embedding_dim, word_len)
+        cross_attention_feats = cross_attention_feats * word_padding_mask.unsqueeze(-1)
+        cross_attention_feats = self.norm1(cross_attention_feats + ngram_feats)  # (B, embedding_dim, text_len)
         
-        out = self.feed_forward(cross_attention)
-        out = self.norm2(out + cross_attention)   # (B, embedding_dim, word_len)
-        
-        return cross_attention, sentence
+        out = self.feed_forward(cross_attention_feats)
+        out = self.norm2(out + cross_attention_feats)   # (B, embedding_dim, text_len)
+
+        return out
+
     
-    
-class AnswerGenerator(nn.Module):
-    def __init__(self):
+class AnswerDecoder(nn.Module):
+    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, num_layers = 1, dropout = 0.0, rnn_dropout = 0.0):
         super().__init__()
         
+        self.rnn = nn.LSTM(
+            in_channels,
+            embedding_dim,
+            num_layers = num_layers,
+            dropout = rnn_dropout,
+            batch_first = True,
+        )
+        
+        self.classifier = nn.Sequential(
+            nn.Linear(embedding_dim, classifier_dim),
+            nn.SiLU(),
+            nn.Dropout(dropout),
+            nn.Linear(classifier_dim, num_classes),
+        )
+        
+        self.dropout1d = nn.Dropout1d(dropout)
+        
+        self.norm1 = nn.LayerNorm(embedding_dim)  # for img_text_feats
+        self.norm2 = nn.LayerNorm(embedding_dim)
+        
+        
+    def forward(self, cross_attention_feats, max_length, answer_tokens = None, teacher_forcing_ratio = 0.5):
+        bos_feats, (hidden, cell) = self.rnn(cross_attention_feats)
+        # bos_token: (B, embedding_dim, text_len) = beginning of sequence
+        # hidden: (B, embedding_dim)
+        # cell: (B, embedding_dim)
+        
+        # init first output
+        input_token = self.classifier(bos_feats)  # (B, vocab_size)
+        input_token = torch.argmax(input_token, dim = 1, keepdim = True) # (B, 1)
+        
+        outputs = []
+
+        for t in range(max_length):
+            token_emb = self.answer_embedding(input_token).squeeze(1)  # (B, embed_dim)
+            token_emb = token_emb.unsqueeze(1)  # (B, 1, embed_dim)  for lstm input
+            
+            output, (hidden, cell) = self.rnn(token_emb, hidden, cell) 
+            # output: (B, 1, embedding_dim)
+            # hidden: (B, embedding_dim)
+            # cell: (B, embedding_dim)
+
+            output = output.squeeze(1)  # (B, embedding_dim)
+            logits = self.classifier()  # (B, vocab_size)
+            
+            outputs.append(logits.unsqueeze(1))  # (B,)
+            
+            if answer_tokens is not None and torch.rand(1).item() < teacher_forcing_ratio:
+                # teacher forcing
+                input_token = answer_tokens[::, t]  # (B,)
+                input_token = input_token.unsqueeze(1)  # (B, 1)
+            else:
+                input_token = logits.argmax(dim = 1, keepdim = True)  # (B, 1)
+                
+        outputs = torch.cat(outputs, dim = 1)  # (B, max_length)
         
