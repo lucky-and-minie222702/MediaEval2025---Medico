@@ -44,7 +44,7 @@ class TextImageEncoder(nn.Module):
         cross_attention_feats = self.attention(
             query = ngram_feats,
             key = img_spatial_feats,
-            query = img_spatial_feats,
+            value = img_spatial_feats,
             need_weights = False,
         )
         
@@ -111,4 +111,3 @@ class AnswerDecoder(nn.Module):
                 input_token = logits.argmax(dim = 1, keepdim = True)  # (B, 1)
                 
         outputs = torch.cat(outputs, dim = 1)  # (B, max_length)
-        
