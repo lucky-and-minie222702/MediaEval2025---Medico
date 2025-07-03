@@ -22,4 +22,4 @@ ds = load_dataset("SimulaMet-HOST/Kvasir-VQA")
 
 df = ds['raw'].select_columns(['source', 'question', 'answer', 'img_id']).to_pandas()
 for i, row in df.groupby('img_id').nth(0).iterrows():
-  image = ds['raw'][i]['image'].save(f"data/images/{row['img_id']}.jpg")
+    image = ds['raw'][i]['image'].save(f"data/images/{row['img_id']}.jpg")
