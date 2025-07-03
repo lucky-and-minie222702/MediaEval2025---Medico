@@ -58,8 +58,10 @@ class TextImageEncoder(nn.Module):
 
     
 class AnswerDecoder(nn.Module):
-    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, num_layers = 1, dropout = 0.0, rnn_dropout = 0.0):
+    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, num_layers = 1, dropout = 0.0, rnn_dropout = 0.0):
         super().__init__()
+        
+        self.word_embed = word_embedding
         
         self.rnn = nn.LSTM(
             in_channels,
@@ -76,12 +78,6 @@ class AnswerDecoder(nn.Module):
             nn.Linear(classifier_dim, num_classes),
         )
         
-        self.dropout1d = nn.Dropout1d(dropout)
-        
-        self.norm1 = nn.LayerNorm(embedding_dim)  # for img_text_feats
-        self.norm2 = nn.LayerNorm(embedding_dim)
-        
-        
     def forward(self, cross_attention_feats, max_length, answer_tokens = None, teacher_forcing_ratio = 0.5):
         bos_feats, (hidden, cell) = self.rnn(cross_attention_feats)
         # bos_token: (B, embedding_dim, text_len) = beginning of sequence
@@ -95,8 +91,7 @@ class AnswerDecoder(nn.Module):
         outputs = []
 
         for t in range(max_length):
-            token_emb = self.answer_embedding(input_token).squeeze(1)  # (B, embed_dim)
-            token_emb = token_emb.unsqueeze(1)  # (B, 1, embed_dim)  for lstm input
+            token_emb = self.word_embed(input_token)  # (B, 1, embed_dim)
             
             output, (hidden, cell) = self.rnn(token_emb, hidden, cell) 
             # output: (B, 1, embedding_dim)
