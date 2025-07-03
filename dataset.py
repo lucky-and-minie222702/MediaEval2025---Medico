@@ -5,14 +5,17 @@ from PIL import Image
 import pandas as pd
 from tqdm import tqdm
 from custom_obj import *
+import os
+from os import path
 
 # resnet like norm
 # mean = [0.485, 0.456, 0.406]
 # std = [0.229, 0.224, 0.225]
 
 
-def get_img_dict(data = "train"):
-    file_ids = pd.read_csv(f"data/{data}.csv")["img_id"].unique().tolist()
+def get_img_dict():
+    file_ids = os.listdir("data/images")
+    file_ids = [path.splitext(s)[0] for s in file_ids if s[-4::] == ".jpg"]
     file_paths = [f"data/images/{s}.jpg" for s in file_ids]
 
     images = {}
@@ -25,13 +28,7 @@ def get_img_dict(data = "train"):
     return images
 
 
-MY_TRANSFORM = transforms.Compose([
-    transforms.ColorJitter(
-        brightness = 0.2,
-        contrast = 0.2,
-        saturation = 0.1,
-    ),
-    transforms.RandomAffine(36),
+BASE_TRANSFORM = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(
         mean = [0.485, 0.456, 0.406], 
@@ -39,9 +36,23 @@ MY_TRANSFORM = transforms.Compose([
     ),
 ])
 
+TRAIN_TRANSFORM = transforms.Compose([
+    transforms.ColorJitter(
+        brightness = 0.2,
+        contrast = 0.2,
+        saturation = 0.1,
+    ),
+    transforms.RandomAffine(36),
+    BASE_TRANSFORM.transforms,
+])
+
+
+def to_text_data(df):
+    return df[["img_id", "question", "answer"]].to_numpy().tolist()
+
 
 class MyDataset(Dataset):
-    def __init__(self, img_dict, text_data, transform = MY_TRANSFORM):
+    def __init__(self, img_dict, text_data, transform = None):
         super().__init__()
         self.img_dict = img_dict
         self.text_data = text_data

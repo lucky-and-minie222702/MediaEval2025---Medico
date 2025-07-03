@@ -45,6 +45,8 @@ class ImageWordCoAttention(nn.Module):
         word_embed = self.word_embed(words)
         
         ngrams, sentence = self.word_encode(word_embed)
+        # ngrams: (B, embedding_dim, seq_len)
+        # sentence: (B, embedding_dim)
         
         cross_attention = self.attention(
             query = ngrams,
@@ -60,4 +62,11 @@ class ImageWordCoAttention(nn.Module):
         out = self.feed_forward(cross_attention)
         out = self.norm2(out + cross_attention)   # (B, embedding_dim, word_len)
         
-        return cross_attention
+        return cross_attention, sentence
+    
+    
+class AnswerGenerator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        

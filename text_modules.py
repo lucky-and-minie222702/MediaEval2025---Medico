@@ -1,6 +1,8 @@
 from torch import nn
 import torch
 
+
+# postional embedding made for left padded
 class WordEmbedding(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, max_length, padding_idx, dropout = 0.0):
         super().__init__()
@@ -22,9 +24,10 @@ class WordEmbedding(nn.Module):
     def forward(self, x):
         B, L = x.shape[1]
 
-        pos = torch.arange(0, L, device = x.device)  # (L,)
-        pos = pos.unsqueeze(0)  # (1, L)
-        pos = pos.expand((B, -1))  # (B, L)
+        pos = torch.zeros((B, L), dtype = torch.long, device = x.device)
+
+        for i, length in enumerate(L):
+            pos[i, -length:] = torch.arange(1, length + 1)
 
         p_e = self.pos_embed(pos)
         w_e = self.word_embed(x)

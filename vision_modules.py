@@ -30,10 +30,10 @@ class SEBlock(nn.Module):
         )
 
     def forward(self, x):
-        batch_size, channels, height, width = x.shape
+        B, C = x.shape[:2:]
         
-        squeeze = self.squeeze(x).view(batch_size, channels)
-        excitation = self.excitation(squeeze).view(batch_size, channels, 1, 1)
+        squeeze = self.squeeze(x).view(B, C)
+        excitation = self.excitation(squeeze).view(B, C, 1, 1)
 
         return x * excitation
 
@@ -68,73 +68,3 @@ class EfficientNetBlock(nn.Module):
         out = out + shortcut
         out = self.dropout(out)
         return out
-
-    
-# encoder should be lambda x: EncoderModel() if multiple encoder are used
-class PatchEncoder(nn.Module):
-    def __init__(self, in_channels, encoder, grid_size, multiple_encoder = False, dropout = 0.0):
-        super().__init__()
-        
-        self.grid_rows = grid_size[0]
-        self.grid_cols = grid_size[1]
-        
-        self.multipl_encoder = multiple_encoder
-        if self.multipl_encoder:
-            self.blocks = [
-                [encoder for _ in self.grid_cols]
-                    for _ in self.grid_rows
-            ]
-        else:
-            self.block = encoder
-        
-        self.dropout = nn.Dropout(dropout)
-        
-    def forward(self, patches):
-        for r in self.grid_rows:
-            for c in self.grid_cols:
-                patch = patches[:, r, c, :, :, :]
-                shortcut = patch
-                
-                if self.multipl_encoder:
-                    encoded = self.blocks[r][c](patch)
-                else:
-                    encoded = self.blocks(patch)
-
-                patch = encoded + shortcut
-                patch = self.dropout(patch)
-        
-        return patches
-
-
-class PatchEmbedding(nn.Module):
-    def __init__(self, in_channels, out_channels, grid_size, img_size, pre_encoder_patch = None, dropout = 0.0):
-        super().__init__()
-        
-        self.grid_rows = grid_size[0]
-        self.grid_cols = grid_size[1]
-
-        self.patch_H = img_size[0] // self.grid_rows
-        self.patch_W = img_size[1] // self.grid_cols
-        self.n_patches = self.grid_rows * self.grid_cols
-
-        self.proj = nn.Linear(self.patch_H * self.patch_W * in_channels, out_channels)
-        
-        self.p_encode = pre_encoder_patch
-            
-        self.dropout = nn.Dropout(dropout)
-        
-    def forward(self, x):
-        B, C, H, W = x.shape
-
-        patches = x.unfold(2, self.patch_H, self.patch_H).unfold(3, self.patch_W, self.patch_W)  # (B, in_channels, grid_rows, grid_cols, patch_H, patch_W)
-        patches = patches.contiguous().permute(0, 2, 3, 1, 4, 5)  # (B, grid_rows, grid_cols, patch_H, patch_W, in_channels)
-
-        if self.p_encode is not None:
-            patches = self.p_encode(patches)
-
-        patches = patches.reshape(B, self.patch_H * self.patch_W, C * self.patch_H * self.patch_W)  # (B, N_patches, in_channels * patch_H * patch_W)
-
-        embeddings = self.proj(patches)  # (B, N_patches, embed_dim)
-        embeddings = self.dropout(embeddings)
-
-        return embeddings
