@@ -1,4 +1,3 @@
-from curses.ascii import isalnum
 import numpy 
 import numpy as np
 import pandas as pd
@@ -9,9 +8,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 import nltk
 import re
-from transformers import AutoTokenizer
 from tqdm import tqdm
-from os import path
+from nltk.tokenize import word_tokenize
 
 
 class MyTyping:
@@ -23,85 +21,92 @@ def download_nltk():
     nltk.download('wordnet')
     nltk.download("punkt")
     nltk.download('averaged_perceptron_tagger_eng')
-    
-download_nltk()
 
 
 class MyText:
-    lemmatizer = WordNetLemmatizer()
-
-    def norm_text(text, keep_num = True):
-        text = text.lower()
-        
-        text = text.replace("/", " ")
-        text = text.replace("?", "")
-        
-        if not text[-1].isalnum():
-            text = text[:-1:]
-        
-        if not keep_num:
-            text = re.sub(r"\d+", "", text)
-            
-        text = re.sub(r'([^a-zA-Z])', r' \1 ', text)
-
-        text = " ".join(text.split())
-        return text
-    
-    def remove_stopwords(words):
-        stop_words = set(stopwords.words("english"))
-        white_list = ["what", "when", "where", "why", "any", "how", "if", "more"]
-        stop_words.difference_update(white_list)
-        
-        words = [w for w in words if w not in stop_words]
-        return words
-    
-    def to_deep_learning(words):
-        def get_wordnet_pos(treebank_tag):
-            if treebank_tag.startswith('J'):
-                return 'a'
-            elif treebank_tag.startswith('V'):
-                return 'v'
-            elif treebank_tag.startswith('N'):
-                return 'n'
-            elif treebank_tag.startswith('R'):
-                return 'r'
-            else:
-                return 'n' 
-
-        pos_tags = nltk.pos_tag(words)
-        
-        words = [MyText.lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags]
-        
-        return words
-
     class MyTokenizer:
         # get <vocab_size> most occur words
-        def __init__(self, vocab_size, max_length, tokenizer_name = "dmis-lab/biobert-base-cased-v1.1"):
+        def __init__(self, vocab_size, max_length):
             self.vocab_size = vocab_size
             self.max_length = max_length
             self.vocab_map = dict({})
             self.sep_vocab = []
             
-            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-            
             self.unknown_id = None
             self.pad_id = 0
             
+            self.lemmatizer = WordNetLemmatizer()
+            
+            self.stop_words = set(stopwords.words("english"))
+            stop_words_white_list = ["what", "when", "where", "why", "any", "how", "if", "more"]
+            self.stop_words.difference_update(stop_words_white_list)
+            
+        def norm_text_(self, text, keep_num = True):
+                text = text.lower()
+                
+                text = text.replace("/", " ")
+                text = text.replace("?", "")
+                
+                if not text[-1].isalnum():
+                    text = text[:-1:]
+                
+                if not keep_num:
+                    text = re.sub(r"\d+", "", text)
+                    
+                text = re.sub(r'([^a-zA-Z])', r' \1 ', text)
+
+                text = " ".join(text.split())
+                return text
+        
+        def remove_stopwords_(self, words):
+            words = [w for w in words if w not in self.stop_words]
+            return words
+        
+        def to_deep_learning_(self, words):
+            def get_wordnet_pos(treebank_tag):
+                if treebank_tag.startswith('J'):
+                    return 'a'
+                elif treebank_tag.startswith('V'):
+                    return 'v'
+                elif treebank_tag.startswith('N'):
+                    return 'n'
+                elif treebank_tag.startswith('R'):
+                    return 'r'
+                else:
+                    return 'n' 
+
+            pos_tags = nltk.pos_tag(words)
+
+            words = [self.lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags if word.isalpha()]
+            
+            return words
+            
         def norm_text(self, data, keep_num = True):
-            out = [MyText.norm_text(t, keep_num = keep_num) for t in tqdm(data, desc = "Normalize text")]
+            out = [self.norm_text_(t, keep_num = keep_num) for t in tqdm(data, desc = "Normalize text")]
             return out
             
         def tokenize(self, data):
-            tokens = [self.tokenizer.tokenize(s) for s in tqdm(data, desc = "Tokenize")]
+            tokens = [word_tokenize(s) for s in tqdm(data, desc = "Tokenize")]
             return tokens
         
         def remove_stopwords(self, data):
-            out = [" ".join(MyText.remove_stopwords(t.split())) for t in tqdm(data, desc = "Remove stop words")]
+            out = [self.remove_stopwords_(t) for t in tqdm(data, desc = "Remove stop words")]
             return out
         
-        def preprocess(self, data):
-            tokens = self.tokenize(data)
-            tokens = [MyText.to_deep_learning(words) for words in tqdm(tokens, desc = "To deep learning format")]
+        def to_deep_learning(self, data):
+            out = [self.to_deep_learning_(t) for t in tqdm(data, desc = "To deep learning format")]
+            return out
+        
+        def preprocess(self, data, remove_stopwords = True, to_deep_learning = True):
+            norm_data = self.norm_text(data)
+            tokens = self.tokenize(norm_data)
+            
+            if remove_stopwords:
+                tokens = self.remove_stopwords(tokens)
+
+            if to_deep_learning:
+                tokens = self.to_deep_learning(tokens)
+
             return tokens
             
         def fit(self, tokens):

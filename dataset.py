@@ -47,7 +47,7 @@ TRAIN_TRANSFORM = transforms.Compose([
         saturation = 0.1,
     ),
     transforms.RandomAffine(36),
-    BASE_TRANSFORM.transforms,
+    *BASE_TRANSFORM.transforms,
 ])
 
 
@@ -58,17 +58,15 @@ def to_text_data(df):
 def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = True, question_max_length = None, answer_max_length = None):
     tokenizer = current_tokenizer
 
-
+    print("Preprocessing questions:")
     ques_texts = df["question"].tolist()
-    ques_texts = tokenizer.norm_text(ques_texts)
-    ques_texts = tokenizer.remove_stopwords(ques_texts)
-    sep = len(ques_texts)
-    
+    ques_tokens = tokenizer.preprocess(ques_texts)
+    sep = len(ques_tokens)
+
+    print("Preprocessing answers:")
     ans_texts = df["answer"].tolist()
-    ans_texts = tokenizer.norm_text(ans_texts)
-    merge_texts = ques_texts + ans_texts
-    
-    merge_tokens = tokenizer.preprocess(merge_texts)
+    ans_tokens = tokenizer.preprocess(ans_texts, remove_stopwords = False)
+    merge_tokens = ques_tokens + ans_tokens
 
     if init_tokenizer:
         tokenizer.fit(merge_tokens)
@@ -106,18 +104,19 @@ def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = T
 
 
 class MyDataset(Dataset):
-    def __init__(self, img_dict, ques_ids, ans_ids, transform = None):
+    def __init__(self, img_dict, img_ids, ques_ids, ans_ids, transform = None):
         super().__init__()
         self.img_dict = img_dict
         self.ques_ids = ques_ids
         self.ans_ids = ans_ids
+        self.img_ids = img_ids
         self.transform = transform
         
     def __len__(self):
         return len(self.ques_ids)
     
     def __getitem__(self, index):
-        img = self.img_dict[self.ids[index][0]]
+        img = self.img_dict[self.img_ids[index]]
         question = self.ques_ids[index]
         answer = self.ans_ids[index]
         
