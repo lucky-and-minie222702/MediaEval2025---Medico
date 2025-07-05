@@ -37,7 +37,7 @@ class TextImageEncoder(nn.Module):
             padding_idx = padding_idx, 
         )
         
-        self.ngram_encode = ngramEncoder(
+        self.ngram_encode = NgramEncoder(
             embedding_dim, embedding_dim,
             dropout = dropout,
         )
@@ -82,18 +82,18 @@ class TextImageEncoder(nn.Module):
 
         return out
 
-    
-class AnswerLSTMDecoder(nn.Module):
-    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, num_lstm_layers = 1, dropout = 0.0, lstm_dropout = 0.0):
+
+class AnswerGRUDecoder(nn.Module):
+    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, num_gru_layers = 1, dropout = 0.0, gru_dropout = 0.0):
         super().__init__()
         
         self.word_embed = word_embedding
         
-        self.lstm = nn.LSTM(
+        self.gru = nn.GRU(
             in_channels,
             embedding_dim,
-            num_layers = num_lstm_layers,
-            dropout = lstm_dropout,
+            num_layers = num_gru_layers,
+            dropout = gru_dropout,
             batch_first = True,
         )
         
@@ -105,10 +105,8 @@ class AnswerLSTMDecoder(nn.Module):
         )
         
     def forward(self, cross_attention_feats, max_length, answer_tokens = None, teacher_forcing_ratio = 0.5):
-        bos_feats, (hidden, cell) = self.lstm(cross_attention_feats)
+        bos_feats, hidden = self.gru(cross_attention_feats)
         # bos_token: (B, embedding_dim, text_len) = beginning of sequence
-        # hidden: (B, embedding_dim)
-        # cell: (B, embedding_dim)
         
         # init first output
         input_token = self.classifier(bos_feats)  # (B, vocab_size)
@@ -119,10 +117,9 @@ class AnswerLSTMDecoder(nn.Module):
         for t in range(max_length):
             token_emb = self.word_embed(input_token)  # (B, 1, embed_dim)
             
-            output, (hidden, cell) = self.lstm(token_emb, hidden, cell) 
+            output, hidden = self.gru(token_emb, hidden) 
             # output: (B, 1, embedding_dim)
             # hidden: (B, embedding_dim)
-            # cell: (B, embedding_dim)
 
             output = output.squeeze(1)  # (B, embedding_dim)
             logits = self.classifier()  # (B, vocab_size)

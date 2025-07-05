@@ -35,20 +35,19 @@ class WordEmbedding(nn.Module):
         return w_e + p_e
     
     
-class ngramEncoder(nn.Module):
-    def __init__(self, in_channels, proj_channels, dropout = 0.0):
+class NgramEncoder(nn.Module):
+    def __init__(self, in_channels, proj_dim, dropout = 0.0):
         super().__init__()
         
-        self.dropout1d = nn.Dropout1d(dropout)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout1d(dropout)
         
-        self.ngram1_batchnorm = nn.BatchNorm1d(proj_channels)
-        self.ngram2_batchnorm = nn.BatchNorm1d(proj_channels)
-        self.ngram3_batchnorm = nn.BatchNorm1d(proj_channels)
+        self.ngram1_batchnorm = nn.BatchNorm1d(proj_dim)
+        self.ngram2_batchnorm = nn.BatchNorm1d(proj_dim)
+        self.ngram3_batchnorm = nn.BatchNorm1d(proj_dim)
         
         self.ngram1 = nn.Conv1d(
             in_channels,
-            proj_channels,
+            proj_dim,
             kernel_size = 1,
             bias = False,
             padding = (0, 0)
@@ -56,7 +55,7 @@ class ngramEncoder(nn.Module):
         
         self.ngram2 = nn.Conv1d(
             in_channels,
-            proj_channels,
+            proj_dim,
             kernel_size = 2,
             bias = False,
             padding = (1, 0)
@@ -64,7 +63,7 @@ class ngramEncoder(nn.Module):
         
         self.ngram3 = nn.Conv1d(
             in_channels,
-            proj_channels,
+            proj_dim,
             kernel_size = 3,
             bias = False,
             padding = (1, 1)
@@ -77,21 +76,17 @@ class ngramEncoder(nn.Module):
         # (B, in_channels, text_len)
         ngram1 = self.ngram2(x)
         ngram1 = self.ngram1_batchnorm(ngram1)
-        ngram1 = self.tanh(ngram1)
-        ngram1 = self.dropout1d(ngram1)
         
         ngram2 = self.ngram2(x)
         ngram2 = self.ngram1_batchnorm(ngram2)
-        ngram2 = self.tanh(ngram2)
-        ngram2 = self.dropout1d(ngram2)
         
         ngram3 = self.ngram3(x)
         ngram3 = self.ngram1_batchnorm(ngram3)
-        ngram3 = self.tanh(ngram3)
-        ngram3 = self.dropout1d(ngram3)
         
         ngram_feats = torch.stack([ngram1, ngram2, ngram3], dim = 1)  # (B, 3, in_channels, text_len)
         ngram_feats = torch.max(ngram_feats, dim = 1)  # (B, in_channels, text_len)
+        ngram_feats = self.tanh(ngram_feats)
+        ngram_feats = self.dropout(ngram_feats)
         
         return ngram_feats
     
