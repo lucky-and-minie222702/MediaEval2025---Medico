@@ -28,7 +28,7 @@ def load_and_save_data():
     print("Loading train data")
     train_ques_ids, train_ans_ids, tokenizer = get_ids(train_df, current_tokenizer = tokenizer, init_tokenizer = True, question_max_length = 35, answer_max_length = 50)
     
-    print("\nLoading test data")
+    print("Loading test data")
     test_ques_ids, test_ans_ids = get_ids(test_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = 35, answer_max_length = 50)
     
     print("Loading val data")
