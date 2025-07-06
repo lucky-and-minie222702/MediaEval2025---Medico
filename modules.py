@@ -26,19 +26,19 @@ class SEBlock(nn.Module):
 
 
 class TextImageEncoder(nn.Module):
-    def __init__(self, vocab_size, max_length, padding_idx, embedding_dim, feed_forward_dim, num_att_heads, word_embedding_dim = None,dropout = 0.0, attention_dropout = 0.0):
+    def __init__(self, vocab_size, max_answer_length, padding_idx, embedding_dim, word_embedding_dim, feed_forward_dim, num_att_heads,dropout = 0.0, attention_dropout = 0.0):
         super().__init__()
-        
-        self.img_encode = ImageEncoder(embedding_dim if word_embedding_dim is None else word_embedding_dim)
+
+        self.img_encode = ImageEncoder(embedding_dim)
         
         self.word_embed = WordEmbedding(
-            vocab_size, embedding_dim, 
-            max_length = max_length, 
+            vocab_size, word_embedding_dim, 
+            max_length = max_answer_length, 
             padding_idx = padding_idx, 
         )
         
         self.ngram_encode = NgramEncoder(
-            embedding_dim, embedding_dim,
+            word_embedding_dim, embedding_dim,
             dropout = dropout,
         )
         
@@ -63,13 +63,16 @@ class TextImageEncoder(nn.Module):
         ngram_feats = self.ngram_encode(word_embed)  # (B, embedding_dim, text_len)
         
         img_spatial_feats = self.img_encode(image)  # (B, embedding_dim, H * W)
-        
-        cross_attention_feats = self.attention(
+
+        ngram_feats = ngram_feats.contiguous().permute(0, 2, 1)  # (B, text_len, embedding_dim)
+        img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
+
+        cross_attention_feats, _ = self.attention(
             query = ngram_feats,
             key = img_spatial_feats,
             value = img_spatial_feats,
             need_weights = False,
-        )  # (B, embedding_dim, text_len)
+        )  # (B, text_len, embedding_dim)
         
         if word_padding_masks is not None:
             # word_padding_masks: (B, text_len)
@@ -78,16 +81,17 @@ class TextImageEncoder(nn.Module):
         cross_attention_feats = self.norm1(cross_attention_feats + ngram_feats)  # (B, embedding_dim, text_len)
         
         out = self.feed_forward(cross_attention_feats)
-        out = self.norm2(out + cross_attention_feats)   # (B, embedding_dim, text_len)
+        out = self.norm2(out + cross_attention_feats)   # (B, text_len, embedding_dim)
 
         return out
 
 
 class AnswerGRUDecoder(nn.Module):
-    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, num_gru_layers = 1, dropout = 0.0, gru_dropout = 0.0):
+    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, ngram_encoder, num_gru_layers = 1, dropout = 0.0, gru_dropout = 0.0):
         super().__init__()
         
         self.word_embed = word_embedding
+        self.ngram_encoder = ngram_encoder
         
         self.gru = nn.GRU(
             in_channels,
@@ -104,34 +108,43 @@ class AnswerGRUDecoder(nn.Module):
             nn.Linear(classifier_dim, num_classes),
         )
         
-    def forward(self, cross_attention_feats, max_length, answer_tokens = None, teacher_forcing_ratio = 0.5):
+        self.dropout = nn.Dropout1d(dropout)
+        
+    def forward(self, cross_attention_feats, max_answer_length, answers = None, teacher_forcing_ratio = 0.5):
         bos_feats, hidden = self.gru(cross_attention_feats)
-        # bos_token: (B, embedding_dim, text_len) = beginning of sequence
+        # bos_token: (B, text_len, embedding_dim)
+        bos_feats = bos_feats[::, -1, ::]  # (B, embedding_dim)
         
         # init first output
         input_token = self.classifier(bos_feats)  # (B, vocab_size)
-        input_token = torch.argmax(input_token, dim = 1, keepdim = True) # (B, 1)
+        input_token = torch.argmax(input_token, dim = 1, keepdim = True) # (B,)
         
         outputs = []
 
-        for t in range(max_length):
-            token_emb = self.word_embed(input_token)  # (B, 1, embed_dim)
+        for t in range(max_answer_length):
+            token_embed = self.word_embed(input_token)  # (B, 1, embedding_dim)
             
-            output, hidden = self.gru(token_emb, hidden) 
+            token_embed = token_embed.contiguous().permute(0, 2, 1)  # (B, embedding_dim, 1)
+            token_embed = self.ngram_encoder.ngram1(token_embed)
+            token_embed = self.ngram_encoder.ngram1_batchnorm(token_embed)
+            token_embed = self.dropout(token_embed)
+            token_embed = token_embed.contiguous().permute(0, 2, 1)  # (B, 1, embedding_dim)
+            
+            output, hidden = self.gru(token_embed, hidden) 
             # output: (B, 1, embedding_dim)
             # hidden: (B, embedding_dim)
 
             output = output.squeeze(1)  # (B, embedding_dim)
-            logits = self.classifier()  # (B, vocab_size)
+            logits = self.classifier(output)  # (B, vocab_size)
             
-            outputs.append(logits.unsqueeze(1))  # (B,)
+            outputs.append(logits)
             
-            if answer_tokens is not None and torch.rand(1).item() < teacher_forcing_ratio:
+            if answers is not None and torch.rand(1).item() < teacher_forcing_ratio:
                 # teacher forcing
-                input_token = answer_tokens[::, t]  # (B,)
+                input_token = answers[::, t]  # (B,)
                 input_token = input_token.unsqueeze(1)  # (B, 1)
             else:
-                input_token = logits.argmax(dim = 1, keepdim = True)  # (B, 1)
+                input_token = torch.argmax(outputs[-1], dim = 1, keepdim = True) # (B, 1)
                 
-        outputs = torch.cat(outputs, dim = 1)  # (B, max_length)
+        outputs = torch.stack(outputs, dim = 1)  # (B, max_answer_length, vocab_size)
         return outputs

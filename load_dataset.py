@@ -6,15 +6,28 @@ from modules import *
 from torch.utils.data import DataLoader
 
 
+# Tu nhien co tieng Trung
+def invalid_char(texts):
+    not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
+    invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
+    return invalid_idx
+
+def drop_invalid_char_df(df):
+    df.drop(index = invalid_char(df["question"].tolist()), inplace = True)
+    df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
+
+
 def load_and_save_data():
     os.makedirs("data/save", exist_ok = True)
     
     # load df
     train_df = pd.read_csv("data/train.csv")
+    drop_invalid_char_df(train_df)
     train_size = int(len(train_df) * 0.8)
     val_df = train_df.iloc[train_size::]
     train_df = train_df.iloc[:train_size:]
     test_df = pd.read_csv("data/test.csv")
+    drop_invalid_char_df(test_df)
 
 
     print("Loading images")
@@ -33,6 +46,16 @@ def load_and_save_data():
     
     print("Loading val data")
     val_ques_ids, val_ans_ids = get_ids(val_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = 35, answer_max_length = 50)
+    
+    
+    train_ques_ids = torch.tensor(train_ques_ids, dtype = torch.long)
+    train_ans_ids = torch.tensor(train_ans_ids, dtype = torch.long)
+    
+    test_ques_ids = torch.tensor(test_ques_ids, dtype = torch.long)
+    test_ans_ids = torch.tensor(test_ans_ids, dtype = torch.long)
+    
+    val_ques_ids = torch.tensor(val_ques_ids, dtype = torch.long)
+    val_ans_ids = torch.tensor(val_ans_ids, dtype = torch.long)
 
 
     train_ds = MyDataset(img_dict, train_df["img_id"].tolist(), train_ques_ids, train_ans_ids, transform = TRAIN_TRANSFORM)
@@ -49,10 +72,13 @@ def load_and_save_data():
 
 
 def load_saved_data(batch_size):
+    """
+    return train, test, val, tokenizer
+    """
     train_ds = joblib.load("data/save/train_ds.joblib")
     test_ds = joblib.load("data/save/test_ds.joblib")
     val_ds = joblib.load("data/save/val_ds.joblib")
-    tokenizer = joblib.load("data/save/tokenizer.joblib")
+    tokenizer: MyText.MyTokenizer = joblib.load("data/save/tokenizer.joblib")
     
     train_dl = DataLoader(train_ds, batch_size = batch_size, shuffle = True)
     test_dl = DataLoader(test_ds, batch_size = batch_size, shuffle = False)

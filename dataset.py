@@ -55,7 +55,7 @@ def to_text_data(df):
     return df[["img_id", "question", "answer"]].to_numpy().tolist()
 
 
-def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = True, question_max_length = None, answer_max_length = None):
+def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = False, question_max_length = None, answer_max_length = None):
     tokenizer = current_tokenizer
 
     print("Preprocessing questions:")
@@ -66,6 +66,7 @@ def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = T
     print("Preprocessing answers:")
     ans_texts = df["answer"].tolist()
     ans_tokens = tokenizer.preprocess(ans_texts, remove_stopwords = False)
+    
     merge_tokens = ques_tokens + ans_tokens
 
     if init_tokenizer:

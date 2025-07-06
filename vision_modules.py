@@ -10,24 +10,20 @@ class ImageEncoder(nn.Module):
         
         self.proj_dim = proj_dim
         
-        self.spatial_feats = backbone
-        self.pooled_feats = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Flatten(),
-        )
+        self.feats = backbone
         
-        self.spatial_proj = nn.Conv2d(back_bone_dim, proj_dim, kernel_size = 1)
-        self.spatial_dropout = nn.Dropout2d(dropout)
+        self.proj = nn.Conv2d(back_bone_dim, proj_dim, kernel_size = 1)
+        self.dropout = nn.Dropout1d(dropout)
         self.tanh = nn.Tanh()
         
     def forward(self, x):
         B = x.shape[0]
-        spatial_feats = self.spatial_feats(x)
+        feats = self.feats(x)
         
-        spatial_feats = self.spatial_proj(spatial_feats)  # (B, proj_dim, H, W)
-        spatial_feats = spatial_feats.contigous().reshape(B, self.proj_dim, -1)  # (B, proj_dim, H * W)
-        spatial_feats = self.tanh(spatial_feats)
+        feats = self.proj(feats)  # (B, proj_dim, H, W)
+        feats = feats.contiguous().reshape(B, self.proj_dim, -1)  # (B, proj_dim, H * W)
+        feats = self.tanh(feats)
         
-        spatial_feats = self.spatial_dropout(spatial_feats)
+        feats = self.dropout(feats)
         
-        return spatial_feats
+        return feats

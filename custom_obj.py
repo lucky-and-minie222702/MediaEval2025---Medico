@@ -10,6 +10,7 @@ import nltk
 import re
 from tqdm import tqdm
 from nltk.tokenize import word_tokenize
+from nltk.translate.bleu_score import sentence_bleu, corpus_bleu, SmoothingFunction
 
 
 class MyTyping:
@@ -31,12 +32,13 @@ class MyText:
             self.vocab_size = vocab_size
             self.max_length = max_length
             self.vocab_map = dict({})
-            self.sep_vocab = []
             
             self.unknown_id = None
             self.pad_id = 0
             
             self.lemmatizer = WordNetLemmatizer()
+            self.stemmer = PorterStemmer()
+            self.stem_to_orignal = dict({})
             
             self.stop_words = set(stopwords.words("english"))
             stop_words_white_list = ["what", "when", "where", "why", "any", "how", "if", "more"]
@@ -60,8 +62,8 @@ class MyText:
                 return text
         
         def remove_stopwords_(self, words):
-            words = [w for w in words if w not in self.stop_words]
-            return words
+            out = [w for w in words if w not in self.stop_words]
+            return out
         
         def to_deep_learning_(self, words):
             def get_wordnet_pos(treebank_tag):
@@ -76,11 +78,18 @@ class MyText:
                 else:
                     return 'n' 
 
-            pos_tags = nltk.pos_tag(words)
+            out = [w.strip() for w in words]
 
-            words = [self.lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags if word.isalpha()]
+            pos_tags = nltk.pos_tag(out)
             
-            return words
+            out = [self.lemmatizer.lemmatize(word, get_wordnet_pos(tag)) for word, tag in pos_tags]
+            for i, word in enumerate(out):
+                original = out [i]
+                stem = self.stemmer.stem(word)
+                out[i] = stem
+                self.stem_to_orignal[stem] = original
+
+            return out
             
         def norm_text(self, data, keep_num = True):
             out = [self.norm_text_(t, keep_num = keep_num) for t in tqdm(data, desc = "Normalize text")]
@@ -115,8 +124,7 @@ class MyText:
             
             for sentence in tokens:
                 for word in sentence:
-                    if word not in self.sep_vocab:
-                        word_counts[word] = word_counts.get(word, 0) + 1
+                    word_counts[word] = word_counts.get(word, 0) + 1
 
             word_counts = MyTyping.sort_dict(word_counts)
             vocab = list(word_counts.keys())[:self.vocab_size:]
@@ -137,13 +145,11 @@ class MyText:
                 tmp.extend(pre_ids)
                 
                 for word in sentence:
-                    if word in self.sep_vocab:
-                        id = self.sep_id
-                    else:
-                        id = self.vocab_map.get(word, self.unknown_id)
+                    id = self.vocab_map.get(word, self.unknown_id)
                     tmp.append(id)
                 
                 tmp.extend(post_ids)
+                
                 ids.append(tmp)
                 
             if adaptive_max_length:
@@ -184,6 +190,14 @@ class MyText:
                 return True
             return False
         
+        def decode_sentence(self, ids):
+            out = []
+            for i in ids:
+                vocab = self.get_vocab(i)
+                vocab = self.stem_to_orignal.get(vocab, vocab)
+                out.append(vocab)
+            return " ".join(out)
+        
         @property
         def all_vocab_size(self):
             return self.vocab_size + 2
@@ -196,11 +210,15 @@ class MyText:
             id_map[self.unknown_id] = "<UKN>"
             
             return id_map
+        
+    def BLEU_score(reference, candidate):
+        smoothie = SmoothingFunction().method4
+        score = sentence_bleu([reference], candidate, smoothing_function = smoothie)
+        return score
     
 
 class MyImage:
     def change_size(img: ImageFile, target_size, fill_color = (0, 0, 0)):
-
         target_h, target_w = target_size
         img_h, img_w = img.size
         img = img.resize((target_w * img_w // img_h, target_h), resample = Image.BICUBIC)
