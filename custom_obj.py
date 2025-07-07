@@ -56,7 +56,7 @@ class MyText:
                 if not keep_num:
                     text = re.sub(r"\d+", "", text)
                     
-                text = re.sub(r'([^a-zA-Z])', r' \1 ', text)
+                text = re.sub(r'([^a-zA-Z0-9])', r' \1 ', text)
 
                 text = " ".join(text.split())
                 return text
