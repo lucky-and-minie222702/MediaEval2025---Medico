@@ -49,6 +49,8 @@ class MyText:
                 
                 text = text.replace("/", " ")
                 text = text.replace("?", "")
+                text = text.replace(".", ",")
+                text = text.replace(";", ",")
                 
                 if not text[-1].isalnum():
                     text = text[:-1:]
