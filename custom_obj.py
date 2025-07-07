@@ -193,10 +193,11 @@ class MyText:
         def decode_sentence(self, ids):
             out = []
             for i in ids:
-                vocab = self.get_vocab(i)
-                vocab = self.stem_to_orignal.get(vocab, vocab)
-                out.append(vocab)
-            return " ".join(out)
+                if i != self.pad_id:
+                    vocab = self.get_vocab(i)
+                    vocab = self.stem_to_orignal.get(vocab, vocab)
+                    out.append(vocab)
+            return out
         
         @property
         def all_vocab_size(self):
@@ -211,7 +212,7 @@ class MyText:
             
             return id_map
         
-    def BLEU_score(reference, candidate):
+    def BLEU_score(reference, candidate, smooth = False):
         smoothie = SmoothingFunction().method4
         score = sentence_bleu([reference], candidate, smoothing_function = smoothie)
         return score

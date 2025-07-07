@@ -1,19 +1,47 @@
 from load_dataset import *
 from models import *
+from torch import optim
+from torch.optim import lr_scheduler
 
-train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = 16)
+epochs = 100
+batch_size = 16
+
+train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = batch_size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = MyGRUModel(tokenizer.all_vocab_size + 1)
+
+vocab_size = tokenizer.all_vocab_size + 1
+model = MyGRUModel(vocab_size)
+
+criterion = nn.CrossEntropyLoss(ignore_index = 0)  # ignore padding
+optimizer = optim.Adam(model.parameters(), lr = 0.0008)
+scheduler = lr_scheduler.ReduceLROnPlateau(
+    optimizer, 
+    mode = "min",
+    factor = 0.1,
+    patience = 10,
+    min_lr = 1e-5,
+)
 
 # TRAIN
+
+model.to(device)
+
+overall_val_losses = []
+overall_train_losses = []
 
 
 get_padding_mask = lambda x: torch.clamp(x, max = 1)
 
-with torch.no_grad():
-    model.eval()
+for e in range(epochs):
+    print(f"Epoch {e + 1} / {epochs}")
+    
+    model.train()
     for img, ques_ids, ans_ids in train_dl:
-        out = model(
+        img = img.to(device)
+        ques_ids = ques_ids.to(device)
+        ans_ids = ans_ids.to
+        
+        prediction = model(
             image = img,
             questions = ques_ids,
             max_answer_length = 50,
@@ -21,8 +49,13 @@ with torch.no_grad():
             answers = ans_ids,
             teacher_forcing_ratio = 0.5,
         )  # (B, 50, vocab_size)
-        example = torch.argmax(out[1, ::, ::], dim = -1).numpy()
-        print(tokenizer.decode_sentence(example))
+        
+        prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
+        ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
+        
+        loss = criterion(prediction, ans_ids)
+        print(loss.item())
+        
         break
 
 
