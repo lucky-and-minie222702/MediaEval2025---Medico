@@ -14,7 +14,7 @@ import joblib
 # std = [0.229, 0.224, 0.225]
 
 
-def get_img_dict():
+def get_img_dict(save_path = None):
     file_ids = os.listdir("data/images")
     file_ids = [path.splitext(s)[0] for s in file_ids if s[-4::] == ".jpg"]
     file_paths = [f"data/images/{s}.jpg" for s in file_ids]
@@ -25,6 +25,9 @@ def get_img_dict():
         img = Image.open(file_path)
         img = MyImage.change_size(img, (224, 224))
         images[file_id] = img
+        
+    if save_path is not None:
+        joblib.dump(images, save_path)
         
     return images
 
