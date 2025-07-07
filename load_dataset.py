@@ -77,7 +77,7 @@ def load_saved_data(batch_size):
     """
     
     img_dict = joblib.load("data/save/img_dict.joblib")
-
+    
     
     train_ds: MyDataset = joblib.load("data/save/train_ds.joblib")
     test_ds: MyDataset = joblib.load("data/save/test_ds.joblib")

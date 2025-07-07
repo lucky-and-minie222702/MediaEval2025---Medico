@@ -22,6 +22,35 @@ scheduler = lr_scheduler.ReduceLROnPlateau(
     min_lr = 1e-5,
 )
 
+
+get_padding_mask = lambda x: torch.clamp(x, max = 1)
+
+def test_before_train():
+    with torch.no_grad():
+        model.eval()
+        for img, ques_ids, ans_ids in train_dl:
+            img = img.to(device)
+            ques_ids = ques_ids.to(device)
+            ans_ids = ans_ids.to(device)
+            
+            prediction = model(
+                image = img,
+                questions = ques_ids,
+                max_answer_length = 50,
+                question_padding_masks = get_padding_mask(ques_ids),
+                answers = ans_ids,
+                teacher_forcing_ratio = 0.5,
+            )  # (B, 50, vocab_size)
+            
+            prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
+            ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
+            
+            loss = criterion(prediction, ans_ids)
+            break
+
+    torch.cuda.empty_cache()
+    print("Test passed!")
+
 # TRAIN
 
 model.to(device)
@@ -29,34 +58,7 @@ model.to(device)
 overall_val_losses = []
 overall_train_losses = []
 
-
-get_padding_mask = lambda x: torch.clamp(x, max = 1)
-
-for e in range(epochs):
-    print(f"Epoch {e + 1} / {epochs}")
-    
-    model.train()
-    for img, ques_ids, ans_ids in train_dl:
-        img = img.to(device)
-        ques_ids = ques_ids.to(device)
-        ans_ids = ans_ids.to
-        
-        prediction = model(
-            image = img,
-            questions = ques_ids,
-            max_answer_length = 50,
-            question_padding_masks = get_padding_mask(ques_ids),
-            answers = ans_ids,
-            teacher_forcing_ratio = 0.5,
-        )  # (B, 50, vocab_size)
-        
-        prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-        ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
-        
-        loss = criterion(prediction, ans_ids)
-        print(loss.item())
-        
-        break
+test_before_train()
 
 
 # DONE
