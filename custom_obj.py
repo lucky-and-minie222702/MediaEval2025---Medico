@@ -190,13 +190,17 @@ class MyText:
                 return True
             return False
         
-        def decode_sentence(self, ids):
+        def decode_sentence_(self, ids):
             out = []
             for i in ids:
                 if i != self.pad_id:
                     vocab = self.get_vocab(i)
                     vocab = self.stem_to_orignal.get(vocab, vocab)
                     out.append(vocab)
+            return out
+        
+        def decode_sentence(self, data):
+            out = [self.decode_sentence_(s) for s in data]
             return out
         
         @property
