@@ -31,7 +31,7 @@ def load_and_save_data():
 
 
     print("Loading images")
-    img_dict = get_img_dict("data/save/img_dict.joblib")
+    img_dict = get_img_dict()
 
     tokenizer = MyText.MyTokenizer(
         1000,
