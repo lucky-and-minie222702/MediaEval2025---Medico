@@ -58,9 +58,9 @@ def load_and_save_data():
     val_ans_ids = torch.tensor(val_ans_ids, dtype = torch.long)
 
 
-    train_ds = MyDataset(img_dict, train_df["img_id"].tolist(), train_ques_ids, train_ans_ids, transform = TRAIN_TRANSFORM)
-    test_ds = MyDataset(img_dict, test_df["img_id"].tolist(), test_ques_ids, test_ans_ids, transform = BASE_TRANSFORM)
-    val_ds= MyDataset(img_dict, val_df["img_id"].tolist(), val_ques_ids, val_ans_ids, transform = BASE_TRANSFORM)
+    train_ds = MyDataset(train_df["img_id"].tolist(), train_ques_ids, train_ans_ids, transform = TRAIN_TRANSFORM)
+    test_ds = MyDataset(test_df["img_id"].tolist(), test_ques_ids, test_ans_ids, transform = BASE_TRANSFORM)
+    val_ds= MyDataset(val_df["img_id"].tolist(), val_ques_ids, val_ans_ids, transform = BASE_TRANSFORM)
     
     
     joblib.dump(train_ds, "data/save/train_ds.joblib")
@@ -75,9 +75,19 @@ def load_saved_data(batch_size):
     """
     return train, test, val, tokenizer
     """
-    train_ds = joblib.load("data/save/train_ds.joblib")
-    test_ds = joblib.load("data/save/test_ds.joblib")
-    val_ds = joblib.load("data/save/val_ds.joblib")
+    
+    img_dict = joblib.load("data/save/img_dict.joblib")
+
+    
+    train_ds: MyDataset = joblib.load("data/save/train_ds.joblib")
+    test_ds: MyDataset = joblib.load("data/save/test_ds.joblib")
+    val_ds: MyDataset = joblib.load("data/save/val_ds.joblib")
+    
+    train_ds.set_img_dict(img_dict)
+    test_ds.set_img_dict(img_dict)
+    val_ds.set_img_dict(img_dict)
+    
+    
     tokenizer: MyText.MyTokenizer = joblib.load("data/save/tokenizer.joblib")
     
     train_dl = DataLoader(train_ds, batch_size = batch_size, shuffle = True)

@@ -106,13 +106,16 @@ def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = F
 
 
 class MyDataset(Dataset):
-    def __init__(self, img_dict, img_ids, ques_ids, ans_ids, transform = None):
+    def __init__(self, img_ids, ques_ids, ans_ids, img_dict = None, transform = None):
         super().__init__()
         self.img_dict = img_dict
         self.ques_ids = ques_ids
         self.ans_ids = ans_ids
         self.img_ids = img_ids
         self.transform = transform
+        
+    def set_img_dict(self, img_dict):
+        self.img_dict = img_dict
         
     def __len__(self):
         return len(self.ques_ids)
