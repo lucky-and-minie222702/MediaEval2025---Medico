@@ -71,13 +71,14 @@ def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = F
 
     if init_tokenizer:
         tokenizer.fit(merge_tokens)
-        tokenizer.add_vocab("<EOS>")
+        tokenizer.add_vocab("<EOQ>")  # end of question
+        tokenizer.add_vocab("<EOA>")  # end of answer
 
 
     # question
     ques_tokens = merge_tokens[:sep:]
     
-    ques_ids = tokenizer.transform(ques_tokens, post_ids = [tokenizer.get_id("<EOS>")])
+    ques_ids = tokenizer.transform(ques_tokens, post_ids = [tokenizer.get_id("<EOQ>")])
     ques_ids = tokenizer.pad_or_trunc(
         ques_ids, 
         max_length = question_max_length,
@@ -89,7 +90,7 @@ def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = F
     # answer
     ans_tokens = merge_tokens[sep::]
     
-    ans_ids = tokenizer.transform(ans_tokens, post_ids = [tokenizer.get_id("<EOS>")])
+    ans_ids = tokenizer.transform(ans_tokens, post_ids = [tokenizer.get_id("<EOA>")])
     ans_ids = tokenizer.pad_or_trunc(
         ans_ids, 
         max_length = answer_max_length,
