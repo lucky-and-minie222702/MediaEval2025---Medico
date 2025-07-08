@@ -228,7 +228,7 @@ class MyText:
             MyText.bleu_score(
                 tokenizer.decode_sentence(r), 
                 tokenizer.decode_sentence(c), 
-                smooth
+                smooth,
             ) for r, c in zip(reference, candidate)]
         return np.mean(scores)
     

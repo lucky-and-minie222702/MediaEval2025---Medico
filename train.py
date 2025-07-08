@@ -18,7 +18,7 @@ def get_arg(name, default = None):
 answer_max_length = 50
 
 epochs = int(get_arg("epochs", 100))
-batch_size = int(get_arg("batch_size", 15))
+batch_size = int(get_arg("batch_size", 32))
 
 train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = batch_size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -72,7 +72,7 @@ def test_before_train():
                 ans_ids.contiguous().view(-1),  # (B * text_len) 
             )
             
-            bleu_score = MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1)))
+            bleu_score = MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1)))
 
             break
 
@@ -125,7 +125,7 @@ for e in range(epochs):
         optimizer.step()
         
         train_losses.append(loss.item())
-        train_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
+        train_bleu_scores.append(MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
         
         pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
         
@@ -158,7 +158,7 @@ for e in range(epochs):
             )
             
             val_losses.append(loss.item())
-            val_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
+            val_bleu_scores.append(MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
             
             pbar.set_postfix(loss = np.mean(val_losses), bleu = np.mean(val_bleu_scores))
             
