@@ -39,6 +39,7 @@ scheduler = lr_scheduler.ReduceLROnPlateau(
 
 
 get_padding_mask = lambda x: torch.clamp(x, max = 1)
+torch_to_list = lambda t: t.cpu().detach().numpy().tolist()
 
 def test_before_train():
     with torch.no_grad():
@@ -70,6 +71,8 @@ def test_before_train():
                 prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
                 ans_ids.contiguous().view(-1),  # (B * text_len) 
             )
+            
+            bleu_score = MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1)))
 
             break
 
@@ -86,8 +89,6 @@ overall_train_losses = []
 
 overall_train_bleu_scores = []
 overall_val_bleu_scores = []
-
-torch_to_list = lambda t: t.cpu().detach().numpy().tolist()
 
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
