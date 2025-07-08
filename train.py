@@ -121,7 +121,7 @@ for e in range(epochs):
         optimizer.step()
         
         train_losses.append(loss.item())
-        train_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().numpy(), prediction.cpu().numpy()))
+        train_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().detach().numpy(), prediction.cpu().detach().numpy()))
         
         pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
         
@@ -154,7 +154,7 @@ for e in range(epochs):
             loss = criterion(prediction, ans_ids)
             
             val_losses.append(loss.item())
-            val_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().numpy(), prediction.cpu().numpy()))
+            val_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().detach().numpy(), prediction.cpu().detach().numpy()))
             
             pbar.set_postfix(loss = np.mean(val_losses), bleu = np.mean(val_bleu_scores))
             
