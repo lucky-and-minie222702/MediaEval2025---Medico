@@ -4,6 +4,8 @@ from torch import optim
 from torch.optim import lr_scheduler
 import sys
 
+os.makedirs("models", exist_ok = True)
+
 def get_arg(name, default = None):
     if name in sys.argv:
         i = sys.argv.index(name)
