@@ -48,9 +48,9 @@ def process(prediction, ans_ids):
     
     loss = criterion(prediction, ans_ids)
     
-    prediction = prediction.contiguous().view(batch_size, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
+    prediction = prediction.contiguous().view(-1, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
     prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
-    ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
+    ans_ids = ans_ids.contiguous().view(-1, answer_max_length)  # (B, text_len) 
     
     prediction = torch_to_list(prediction)
     ans_ids = torch_to_list(ans_ids)
