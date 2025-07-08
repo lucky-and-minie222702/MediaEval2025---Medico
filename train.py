@@ -17,7 +17,7 @@ def get_arg(name, default = None):
             return default
     return default
 
-answer_max_length = 50
+answer_max_length = 40
 
 epochs = int(get_arg("epochs", 100))
 batch_size = int(get_arg("batch_size", 64))
