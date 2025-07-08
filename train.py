@@ -102,6 +102,7 @@ def test_before_train():
 # TRAIN
 
 test_before_train()
+print(f"Model is on: {next(model.parameters()).device}")
 
 # epoch level metrics
 overall_val_losses = []
