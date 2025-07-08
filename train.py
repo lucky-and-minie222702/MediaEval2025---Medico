@@ -28,8 +28,8 @@ optimizer = optim.Adam(model.parameters(), lr = 0.0008)
 scheduler = lr_scheduler.ReduceLROnPlateau(
     optimizer, 
     mode = "min",
-    factor = 0.1,
-    patience = 10,
+    factor = 0.2,
+    patience = 5,
     min_lr = 1e-5,
 )
 
@@ -158,6 +158,15 @@ for e in range(epochs):
             
     overall_train_losses.append(np.mean(val_losses))
     overall_train_bleu_scores.append(np.mean(val_bleu_scores))
+    
+    lr_scheduler.step(overall_val_losses)
+    
+    # early stopping
+    patience = 12
+    if len(overall_val_losses) > 12:
+        if min(overall_val_losses[:-patience:]) < min(overall_val_losses[-patience::]):
+            print("Early stopping triggered!")
+            break
 
 
 torch.save(model.state_dict(), "models/baseline_weights.pth")
