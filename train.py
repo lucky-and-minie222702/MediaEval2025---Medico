@@ -67,6 +67,10 @@ def test_before_train():
                 # teacher_forcing_ratio = 0.5,
             )  # (B, answer_max_length, vocab_size)
             
+            print(prediction.shape, ans_ids.shape)
+            assert len(prediction.shape) == 3
+            assert len(ans_ids.shape) == 2
+            
             loss = criterion(
                 prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
                 ans_ids.contiguous().view(-1),  # (B * text_len) 
