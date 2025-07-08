@@ -68,7 +68,7 @@ def test_before_train():
             
             loss = criterion(
                 prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
-                ans_ids,  # (B * text_len) 
+                ans_ids.contiguous().view(-1),  # (B * text_len) 
             )
 
             break
@@ -117,7 +117,7 @@ for e in range(epochs):
         
         loss = criterion(
             prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
-            ans_ids,  # (B * text_len) 
+            ans_ids.contiguous().view(-1),  # (B * text_len) 
         )
         
         loss.backward()
@@ -153,7 +153,7 @@ for e in range(epochs):
             
             loss = criterion(
                 prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
-                ans_ids,  # (B * text_len) 
+                ans_ids.contiguous().view(-1),  # (B * text_len) 
             )
             
             val_losses.append(loss.item())
