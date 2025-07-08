@@ -86,6 +86,8 @@ overall_train_losses = []
 overall_train_bleu_scores = []
 overall_val_bleu_scores = []
 
+torch_to_list = lambda t: t.cpu().detach().numpy().tolist()
+
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
     
@@ -121,7 +123,7 @@ for e in range(epochs):
         optimizer.step()
         
         train_losses.append(loss.item())
-        train_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().detach().numpy(), prediction.cpu().detach().numpy()))
+        train_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction)))
         
         pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
         
@@ -154,7 +156,7 @@ for e in range(epochs):
             loss = criterion(prediction, ans_ids)
             
             val_losses.append(loss.item())
-            val_bleu_scores.append(MyText.bleu_score_batch(ans_ids.cpu().detach().numpy(), prediction.cpu().detach().numpy()))
+            val_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction)))
             
             pbar.set_postfix(loss = np.mean(val_losses), bleu = np.mean(val_bleu_scores))
             
