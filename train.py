@@ -82,6 +82,8 @@ def test_before_train():
             prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
             ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
             
+            print(prediction.shape, ans_ids.shape)
+            
             bleu_score = MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction))
 
             break
