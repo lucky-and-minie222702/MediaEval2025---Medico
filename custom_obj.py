@@ -223,8 +223,13 @@ class MyText:
         score = sentence_bleu([reference], candidate, smoothing_function = smoothie if smooth else None)
         return score
     
-    def bleu_score_batch(reference, candidate, smooth = True):
-        scores = [MyText.bleu_score(r, c, smooth) for r, c in zip(reference, candidate)]
+    def bleu_score_batch(tokenizer, reference, candidate, smooth = True):
+        scores = [
+            MyText.bleu_score(
+                tokenizer.decode_sentence(r), 
+                tokenizer.decode_sentence(c), 
+                smooth
+            ) for r, c in zip(reference, candidate)]
         return np.mean(scores)
     
 
