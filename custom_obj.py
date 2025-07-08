@@ -225,12 +225,11 @@ class MyText:
         return score
     
     @staticmethod
-    def bleu_score_batch(tokenizer, reference, candidate, smooth = True):
-        print(reference[0], candidate[0])
+    def bleu_score_batch(reference, candidate, smooth = True):
         scores = [
             MyText.bleu_score(
-                tokenizer.decode_sentence_(r), 
-                tokenizer.decode_sentence_(c), 
+                r, 
+                c, 
                 smooth,
             ) for r, c in zip(reference, candidate)]
         return np.mean(scores)

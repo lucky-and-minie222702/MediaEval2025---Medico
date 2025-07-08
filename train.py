@@ -37,9 +37,28 @@ scheduler = lr_scheduler.ReduceLROnPlateau(
     min_lr = 1e-5,
 )
 
-
 get_padding_mask = lambda x: torch.clamp(x, max = 1)
 torch_to_list = lambda t: t.cpu().detach().numpy().tolist()
+
+def process(prediction, ans_ids):
+    prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
+    ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len) 
+    
+    loss = criterion(prediction, ans_ids)
+    
+    prediction = prediction.contiguous().view(batch_size, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
+    prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
+    ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
+    
+    prediction = torch_to_list(prediction)
+    ans_ids = torch_to_list(ans_ids)
+    
+    prediction = tokenizer.decode_sentence(prediction)
+    ans_ids = tokenizer.decode_sentence(ans_ids)
+    
+    bleu_score = MyText.bleu_score_batch(tokenizer, ans_ids, prediction)
+    
+    return loss, bleu_score
 
 def test_before_train():
     with torch.no_grad():
@@ -73,16 +92,7 @@ def test_before_train():
             assert len(prediction.shape) == 3
             assert len(ans_ids.shape) == 2
             
-            prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-            ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len) 
-            
-            loss = criterion(prediction, ans_ids)
-            
-            prediction = prediction.contiguous().view(batch_size, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
-            prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
-            ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
-            
-            bleu_score = MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction))
+            loss, bleu_score = process(prediction, ans_ids)
 
             break
 
@@ -126,22 +136,10 @@ for e in range(epochs):
             teacher_forcing_ratio = 0.5,
         )  # (B, answer_max_length, vocab_size)
 
-        
-        prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-        ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len) 
-        
-        loss = criterion(prediction, ans_ids)
-        
-        prediction = prediction.contiguous().view(batch_size, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
-        prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
-        ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
-        
-        bleu_score = MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction))
-
+        loss, bleu_score = process(prediction, ans_ids)
         
         loss.backward()
-        optimizer.step()
-        
+        optimizer.step()        
 
         train_losses.append(loss.item())
         train_bleu_scores.append(bleu_score)
@@ -170,18 +168,8 @@ for e in range(epochs):
                 # answers = ans_ids,
                 # teacher_forcing_ratio = 0.5,
             )  # (B, answer_max_length, vocab_size)
-            
-            prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-            ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len) 
-            
-            loss = criterion(prediction, ans_ids)
-            
-            prediction = prediction.contiguous().view(batch_size, answer_max_length, vocab_size)  # (B, text_len, vocab_size)
-            prediction = prediction.contiguous().argmax(dim = -1)  # (B, text_len)
-            ans_ids = ans_ids.contiguous().view(batch_size, -1)  # (B, text_len) 
-            
-            bleu_score = MyText.bleu_score_batch(tokenizer, torch_to_list(ans_ids), torch_to_list(prediction))
-            
+
+            loss, bleu_score = process(prediction, ans_ids)
             
             val_losses.append(loss.item())
             val_bleu_scores.append(bleu_score)
