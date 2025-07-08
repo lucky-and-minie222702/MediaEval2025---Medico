@@ -26,6 +26,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vocab_size = tokenizer.all_vocab_size + 1
 model = MyGRUModel(vocab_size)
 model.to(device)
+model.compile()
 
 criterion = nn.CrossEntropyLoss(ignore_index = 0)  # ignore padding
 optimizer = optim.Adam(model.parameters(), lr = 0.0008)
