@@ -229,8 +229,8 @@ class MyText:
         print(reference[0], candidate[0])
         scores = [
             MyText.bleu_score(
-                tokenizer.decode_sentence(r), 
-                tokenizer.decode_sentence(c), 
+                tokenizer.decode_sentence_(r), 
+                tokenizer.decode_sentence_(c), 
                 smooth,
             ) for r, c in zip(reference, candidate)]
         return np.mean(scores)
