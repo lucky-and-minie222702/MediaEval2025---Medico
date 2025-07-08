@@ -11,8 +11,8 @@ class MyGRUModel(nn.Module):
             vocab_size = vocab_size,
             max_answer_length = 50,
             padding_idx = 0,
-            embedding_dim = 512,
-            feed_forward_dim = 512,
+            embedding_dim = 256,
+            feed_forward_dim = 256,
             word_embedding_dim = 64,
             num_att_heads = 8,
             dropout = 0.1,
@@ -20,10 +20,10 @@ class MyGRUModel(nn.Module):
         )
         
         self.decoder = AnswerGRUDecoder(
-            in_channels = 512,
-            embedding_dim = 128,
+            in_channels = 256,
+            embedding_dim = 64,
             num_classes = vocab_size,
-            classifier_dim = 512,
+            classifier_dim = 256,
             num_gru_layers = 1,
             word_embedding = self.encoder.word_embed,
             ngram_encoder = self.encoder.ngram_encode,

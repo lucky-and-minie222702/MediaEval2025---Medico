@@ -4,6 +4,8 @@ from torch import optim
 from torch.optim import lr_scheduler
 import sys
 
+torch.set_float32_matmul_precision("high")
+
 os.makedirs("models", exist_ok = True)
 
 def get_arg(name, default = None):

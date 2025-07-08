@@ -90,8 +90,8 @@ def load_saved_data(batch_size):
     
     tokenizer: MyText.MyTokenizer = joblib.load("data/save/tokenizer.joblib")
     
-    train_dl = DataLoader(train_ds, batch_size = batch_size, shuffle = True)
-    test_dl = DataLoader(test_ds, batch_size = batch_size, shuffle = False)
-    val_dl = DataLoader(val_ds, batch_size = batch_size, shuffle = False)
+    train_dl = DataLoader(train_ds, batch_size = batch_size, shuffle = True, pin_memory = True, num_workers = 4)
+    test_dl = DataLoader(test_ds, batch_size = batch_size, shuffle = False, pin_memory = True, num_workers = 4)
+    val_dl = DataLoader(val_ds, batch_size = batch_size, shuffle = False, pin_memory = True, num_workers = 4)
     
     return train_dl, test_dl, val_dl, tokenizer
