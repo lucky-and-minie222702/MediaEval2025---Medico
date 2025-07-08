@@ -66,10 +66,11 @@ def test_before_train():
                 # teacher_forcing_ratio = 0.5,
             )  # (B, answer_max_length, vocab_size)
             
-            prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-            ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
-            
-            loss = criterion(prediction, ans_ids)
+            loss = criterion(
+                prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
+                ans_ids,  # (B * text_len) 
+            )
+
             break
 
     torch.cuda.empty_cache()
@@ -114,16 +115,16 @@ for e in range(epochs):
             teacher_forcing_ratio = 0.5,
         )  # (B, answer_max_length, vocab_size)
         
-        prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-        ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
-        
-        loss = criterion(prediction, ans_ids)
+        loss = criterion(
+            prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
+            ans_ids,  # (B * text_len) 
+        )
         
         loss.backward()
         optimizer.step()
         
         train_losses.append(loss.item())
-        train_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction)))
+        train_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
         
         pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
         
@@ -150,13 +151,13 @@ for e in range(epochs):
                 # teacher_forcing_ratio = 0.5,
             )  # (B, answer_max_length, vocab_size)
             
-            prediction = prediction.contiguous().view(-1, vocab_size)  # (B * text_len, vocab_size)
-            ans_ids = ans_ids.contiguous().view(-1)  # (B * text_len,)
-            
-            loss = criterion(prediction, ans_ids)
+            loss = criterion(
+                prediction.contiguous().view(-1, vocab_size),  # (B * text_len, vocab_size)
+                ans_ids,  # (B * text_len) 
+            )
             
             val_losses.append(loss.item())
-            val_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction)))
+            val_bleu_scores.append(MyText.bleu_score_batch(torch_to_list(ans_ids), torch_to_list(prediction.argmax(dim = -1))))
             
             pbar.set_postfix(loss = np.mean(val_losses), bleu = np.mean(val_bleu_scores))
             
