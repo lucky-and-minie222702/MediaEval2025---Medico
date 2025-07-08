@@ -20,7 +20,7 @@ def get_arg(name, default = None):
 answer_max_length = 50
 
 epochs = int(get_arg("epochs", 100))
-batch_size = int(get_arg("batch_size", 32))
+batch_size = int(get_arg("batch_size", 64))
 
 train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = batch_size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

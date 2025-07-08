@@ -17,7 +17,7 @@ def drop_invalid_char_df(df):
     df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
 
 
-def load_and_save_data():
+def load_and_save_data(question_max_length, answer_max_length):
     os.makedirs("data/save", exist_ok = True)
     
     # load df
@@ -39,13 +39,13 @@ def load_and_save_data():
     )
     
     print("Loading train data")
-    train_ques_ids, train_ans_ids, tokenizer = get_ids(train_df, current_tokenizer = tokenizer, init_tokenizer = True, question_max_length = 35, answer_max_length = 50)
+    train_ques_ids, train_ans_ids, tokenizer = get_ids(train_df, current_tokenizer = tokenizer, init_tokenizer = True, question_max_length = question_max_length, answer_max_length = answer_max_length)
     
     print("Loading test data")
-    test_ques_ids, test_ans_ids = get_ids(test_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = 35, answer_max_length = 50)
+    test_ques_ids, test_ans_ids = get_ids(test_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = question_max_length, answer_max_length = answer_max_length)
     
     print("Loading val data")
-    val_ques_ids, val_ans_ids = get_ids(val_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = 35, answer_max_length = 50)
+    val_ques_ids, val_ans_ids = get_ids(val_df, current_tokenizer = tokenizer, init_tokenizer = False, question_max_length = question_max_length, answer_max_length = answer_max_length)
     
     
     train_ques_ids = torch.tensor(train_ques_ids, dtype = torch.long)
