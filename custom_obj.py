@@ -218,10 +218,14 @@ class MyText:
             
             return id_map
         
-    def BLEU_score(reference, candidate, smooth = False):
+    def bleu_score(reference, candidate, smooth = True):
         smoothie = SmoothingFunction().method4
-        score = sentence_bleu([reference], candidate, smoothing_function = smoothie)
+        score = sentence_bleu([reference], candidate, smoothing_function = smoothie if smooth else None)
         return score
+    
+    def bleu_score_batch(reference, candidate, smooth = True):
+        scores = [MyText.bleu_score(r, c, smooth) for r, c in zip(reference, candidate)]
+        return np.mean(scores)
     
 
 class MyImage:
