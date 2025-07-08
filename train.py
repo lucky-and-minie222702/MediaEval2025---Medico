@@ -123,34 +123,34 @@ for e in range(epochs):
     val_bleu_scores = []
     
     # train
-    # model.train()
-    # pbar = tqdm(train_dl, desc = " Train")
-    # for img, ques_ids, ans_ids in pbar:
-    #     img = img.to(device)
-    #     ques_ids = ques_ids.to(device)
-    #     ans_ids = ans_ids.to(device)
+    model.train()
+    pbar = tqdm(train_dl, desc = " Train")
+    for img, ques_ids, ans_ids in pbar:
+        img = img.to(device)
+        ques_ids = ques_ids.to(device)
+        ans_ids = ans_ids.to(device)
         
-    #     prediction = model(
-    #         image = img,
-    #         questions = ques_ids,
-    #         max_answer_length = answer_max_length,
-    #         question_padding_masks = get_padding_mask(ques_ids),
-    #         answers = ans_ids,
-    #         teacher_forcing_ratio = 0.5,
-    #     )  # (B, answer_max_length, vocab_size)
+        prediction = model(
+            image = img,
+            questions = ques_ids,
+            max_answer_length = answer_max_length,
+            question_padding_masks = get_padding_mask(ques_ids),
+            answers = ans_ids,
+            teacher_forcing_ratio = 0.5,
+        )  # (B, answer_max_length, vocab_size)
 
-    #     loss, bleu_score = process(prediction, ans_ids)
+        loss, bleu_score = process(prediction, ans_ids)
         
-    #     loss.backward()
-    #     optimizer.step()        
+        loss.backward()
+        optimizer.step()        
 
-    #     train_losses.append(loss.item())
-    #     train_bleu_scores.append(bleu_score)
+        train_losses.append(loss.item())
+        train_bleu_scores.append(bleu_score)
         
-    #     pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
+        pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
         
-    # overall_train_losses.append(np.mean(train_losses))
-    # overall_train_bleu_scores.append(np.mean(train_bleu_scores))
+    overall_train_losses.append(np.mean(train_losses))
+    overall_train_bleu_scores.append(np.mean(train_bleu_scores))
 
 	
     # val
@@ -171,8 +171,6 @@ for e in range(epochs):
                 # answers = ans_ids,
                 # teacher_forcing_ratio = 0.5,
             )  # (B, answer_max_length, vocab_size)
-            
-            print(prediction.shape, ans_ids.shape)
 
             loss, bleu_score = process(prediction, ans_ids)
             
