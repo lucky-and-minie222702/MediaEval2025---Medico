@@ -56,7 +56,7 @@ def process(prediction, ans_ids):
     prediction = tokenizer.decode_sentence(prediction)
     ans_ids = tokenizer.decode_sentence(ans_ids)
     
-    bleu_score = MyText.bleu_score_batch(tokenizer, ans_ids, prediction)
+    bleu_score = MyText.bleu_score_batch(ans_ids, prediction)
     
     return loss, bleu_score
 
