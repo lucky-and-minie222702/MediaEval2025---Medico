@@ -218,12 +218,15 @@ class MyText:
             
             return id_map
         
+    @staticmethod
     def bleu_score(reference, candidate, smooth = True):
         smoothie = SmoothingFunction().method4
         score = sentence_bleu([reference], candidate, smoothing_function = smoothie if smooth else None)
         return score
     
+    @staticmethod
     def bleu_score_batch(tokenizer, reference, candidate, smooth = True):
+        print(reference[0], candidate[0])
         scores = [
             MyText.bleu_score(
                 tokenizer.decode_sentence(r), 
