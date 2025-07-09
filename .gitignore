@@ -5,3 +5,4 @@ models
 *.ipynb
 *__pycache__*
 slurm_output
+*_temp*
