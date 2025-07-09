@@ -196,10 +196,10 @@ for e in range(epochs):
     scheduler.step(current_val_loss)
     
     if not use_tqdm:
-        print("Train loss:", round(current_train_loss, 4))
-        print("Val   loss:", round(current_val_loss, 4))
-        print("Train bleu:", round(current_train_bleu_scores, 4))
-        print("Val   bleu:", round(current_val_bleu_scores, 4))
+        print(" Train loss:", round(current_train_loss, 4))
+        print(" Val   loss:", round(current_val_loss, 4))
+        print(" Train bleu:", round(current_train_bleu_scores, 4))
+        print(" Val   bleu:", round(current_val_bleu_scores, 4))
     
     # early stopping
     patience = 12
