@@ -23,7 +23,7 @@ def load_and_save_data(question_max_length, answer_max_length):
     # load df
     train_df = pd.read_csv("data/train.csv")
     drop_invalid_char_df(train_df)
-    train_size = int(len(train_df) * 0.8)
+    train_size = int(len(train_df) * 0.9)
     val_df = train_df.iloc[train_size::]
     train_df = train_df.iloc[:train_size:]
     test_df = pd.read_csv("data/test.csv")

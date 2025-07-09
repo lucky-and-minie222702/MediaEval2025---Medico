@@ -124,7 +124,7 @@ for e in range(epochs):
     
     # train
     model.train()
-    pbar = tqdm(train_dl, desc = " Train")
+    pbar = tqdm(train_dl, desc = " Train", ncols = 75)
     for img, ques_ids, ans_ids in pbar:
         img = img.to(device)
         ques_ids = ques_ids.to(device)
@@ -155,7 +155,7 @@ for e in range(epochs):
 	
     # val
     with torch.no_grad():
-        pbar = tqdm(val_dl, desc = " Val  ")
+        pbar = tqdm(val_dl, desc = " Val  ", ncols = 75)
         
         model.eval()
         for img, ques_ids, ans_ids in pbar:
