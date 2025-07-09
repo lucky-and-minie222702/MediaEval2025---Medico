@@ -114,7 +114,8 @@ overall_train_bleu_scores = []
 overall_val_bleu_scores = []
 
 n_tqdm_cols = 100
-tqdm_wrapper = lambda dl, desc: tqdm(dl, desc = desc, ncols = n_tqdm_cols)
+use_tqdm = "tqdm" in sys.argv
+tqdm_wrapper = lambda dl, desc: tqdm(dl, desc = desc, ncols = n_tqdm_cols, disable = use_tqdm)
 
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
@@ -128,11 +129,8 @@ for e in range(epochs):
     # train
     model.train()
     pbar = tqdm_wrapper(train_dl, " Train")
-    i = 0
+
     for img, ques_ids, ans_ids in pbar:
-        i +=1
-        if i == 3:
-            exit()
         img = img.to(device)
         ques_ids = ques_ids.to(device)
         ans_ids = ans_ids.to(device)
@@ -196,6 +194,12 @@ for e in range(epochs):
     overall_train_bleu_scores.append(np.mean(val_bleu_scores))
     
     scheduler.step(current_val_loss)
+    
+    if not use_tqdm:
+        print("Train loss:", round(current_train_loss, 4))
+        print("Val   loss:", round(current_val_loss, 4))
+        print("Train bleu:", round(current_train_bleu_scores, 4))
+        print("Val   bleu:", round(current_val_bleu_scores, 4))
     
     # early stopping
     patience = 12
