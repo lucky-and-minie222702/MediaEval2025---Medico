@@ -113,6 +113,8 @@ overall_train_losses = []
 overall_train_bleu_scores = []
 overall_val_bleu_scores = []
 
+n_tqdm_cols = 100
+
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
     
@@ -124,7 +126,7 @@ for e in range(epochs):
     
     # train
     model.train()
-    pbar = tqdm(train_dl, desc = " Train", ncols = 75)
+    pbar = tqdm(train_dl, desc = " Train", ncols = n_tqdm_cols)
     for img, ques_ids, ans_ids in pbar:
         img = img.to(device)
         ques_ids = ques_ids.to(device)
@@ -158,7 +160,7 @@ for e in range(epochs):
 	
     # val
     with torch.no_grad():
-        pbar = tqdm(val_dl, desc = " Val  ", ncols = 75)
+        pbar = tqdm(val_dl, desc = " Val  ", ncols = n_tqdm_cols)
         
         model.eval()
         for img, ques_ids, ans_ids in pbar:
