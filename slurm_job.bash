@@ -8,6 +8,6 @@
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:1 
 
-
+source ~/.bashrc
 conda activate triet_ptnk
 python train.py epochs 50
