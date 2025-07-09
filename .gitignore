@@ -4,3 +4,4 @@ data
 models
 *.ipynb
 *__pycache__*
+slurm_output
