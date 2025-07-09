@@ -147,7 +147,10 @@ for e in range(epochs):
         train_losses.append(loss.item())
         train_bleu_scores.append(bleu_score)
         
-        pbar.set_postfix(loss = np.mean(train_losses), bleu = np.mean(train_bleu_scores))
+        current_train_loss = np.mean(train_losses)
+        current_train_bleu_scores = np.mean(train_bleu_scores)
+            
+        pbar.set_postfix(loss = round(current_train_loss, 4), bleu = round(current_train_bleu_scores, 4))
         
     overall_train_losses.append(np.mean(train_losses))
     overall_train_bleu_scores.append(np.mean(train_bleu_scores))
@@ -177,12 +180,15 @@ for e in range(epochs):
             val_losses.append(loss.item())
             val_bleu_scores.append(bleu_score)
             
-            pbar.set_postfix(loss = np.mean(val_losses), bleu = np.mean(val_bleu_scores))
+            current_val_loss = np.mean(val_losses)
+            current_val_bleu_scores = np.mean(val_bleu_scores)
+            
+            pbar.set_postfix(loss = round(current_val_loss, 4), bleu = round(current_val_bleu_scores, 4))
             
     overall_train_losses.append(np.mean(val_losses))
     overall_train_bleu_scores.append(np.mean(val_bleu_scores))
     
-    scheduler.step(overall_val_losses)
+    scheduler.step(current_val_loss)
     
     # early stopping
     patience = 12
