@@ -182,7 +182,7 @@ for e in range(epochs):
     overall_train_losses.append(np.mean(val_losses))
     overall_train_bleu_scores.append(np.mean(val_bleu_scores))
     
-    lr_scheduler.step(overall_val_losses)
+    scheduler.step(overall_val_losses)
     
     # early stopping
     patience = 12
