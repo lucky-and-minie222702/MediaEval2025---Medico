@@ -58,7 +58,7 @@ def norm_text(text):
 def preprocess(processor, d, include_answer = True, transform = None):
     img_dict = get_img_dict()
     image = Image.open(img_dict[d["img_id"]]).convert("RGB")
-    image = MyImage.change_size(image)
+    image = MyImage.change_size(image, (224, 224))
     if transform is not None:
         image = transform(image)
     
