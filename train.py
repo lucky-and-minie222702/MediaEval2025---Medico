@@ -26,7 +26,7 @@ train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = batch_size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 vocab_size = tokenizer.all_vocab_size + 1
-model = MyModel(vocab_size, device)
+model = MyModel(vocab_size)
 model.to(device)
 
 criterion = nn.CrossEntropyLoss(ignore_index = 0)  # ignore padding

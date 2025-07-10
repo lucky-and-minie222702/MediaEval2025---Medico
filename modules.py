@@ -60,9 +60,13 @@ class TextImageEncoderLayer(nn.Module):
 
         cross_attention_feats = self.norm1(cross_attention_feats + ngram_feats)  # (B, embedding_dim, text_len)
         
+        print(cross_attention_feats.device)
+        
         out = self.feed_forward(cross_attention_feats)
         out = self.norm2(out + cross_attention_feats)   # (B, text_len, embedding_dim)
 
+        print(out.device)
+        
         return out
 
 
@@ -95,7 +99,7 @@ class TextImageEncoder(nn.Module):
         ngram_feats = ngram_feats.contiguous().permute(0, 2, 1)  # (B, text_len, embedding_dim)
         img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
         
-        for i, encoder in enumerate(self.encoders):
+        for t, encoder in enumerate(self.encoders):
             ngram_feats = encoder(ngram_feats, img_spatial_feats, word_padding_masks)
             
         return ngram_feats
