@@ -57,7 +57,7 @@ def norm_text(text):
 
 def preprocess(processor, d, include_answer = True, transform = None):
     img_dict = get_img_dict()
-    image = Image.open(img_dict[d["image_id"]]).convert("RGB")
+    image = Image.open(img_dict[d["img_id"]]).convert("RGB")
     image = MyImage.change_size(image)
     if transform is not None:
         image = transform(image)
@@ -74,7 +74,7 @@ class MyDataset(Dataset):
     def __init__(self, df, processor):
         super().__init__()
 
-        self.data = df.to_dict(orient='records')
+        self.data = df.to_dict(orient = 'records')
         self.data = list(map(lambda d: preprocess(processor, d), self.data))
         
     def __len__(self):
