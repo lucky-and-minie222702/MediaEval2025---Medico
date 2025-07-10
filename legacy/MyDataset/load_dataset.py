@@ -1,9 +1,7 @@
-from custom_obj import *
-from dataset import *
-from text_modules import *
-from vision_modules import *
-from modules import *
+from ..custom_obj import *
+from my_dataset import *
 from torch.utils.data import DataLoader
+import torch
 
 
 # Tu nhien co tieng Trung
@@ -31,7 +29,7 @@ def load_and_save_data(question_max_length, answer_max_length):
 
 
     print("Loading images")
-    img_dict = get_img_dict("data/save/img_dict.joblib")
+    _ = get_img_dict("data/save/img_dict.joblib")
 
     tokenizer = MyText.MyTokenizer(
         1000,

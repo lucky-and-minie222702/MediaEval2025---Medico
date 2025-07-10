@@ -4,7 +4,7 @@ import torch.utils.data as t_data
 from PIL import Image
 import pandas as pd
 from tqdm import tqdm
-from custom_obj import *
+from ..custom_obj import *
 import os
 from os import path
 import joblib
