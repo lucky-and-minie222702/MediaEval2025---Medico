@@ -60,13 +60,9 @@ class TextImageEncoderLayer(nn.Module):
 
         cross_attention_feats = self.norm1(cross_attention_feats + ngram_feats)  # (B, embedding_dim, text_len)
         
-        print(cross_attention_feats.device)
-        
         out = self.feed_forward(cross_attention_feats)
         out = self.norm2(out + cross_attention_feats)   # (B, text_len, embedding_dim)
 
-        print(out.device)
-        
         return out
 
 
@@ -101,6 +97,7 @@ class TextImageEncoder(nn.Module):
         
         for t, encoder in enumerate(self.encoders):
             ngram_feats = encoder(ngram_feats, img_spatial_feats, word_padding_masks)
+            print(f"{t} encode succeed")
             
         return ngram_feats
     
