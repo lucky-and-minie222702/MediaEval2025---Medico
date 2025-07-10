@@ -84,7 +84,7 @@ class TextImageEncoder(nn.Module):
             dropout = dropout,
         )
         
-        self.encoders = [encoder_spawn() for _ in range(num_layers)]
+        self.encoders = nn.ModuleList([encoder_spawn() for _ in range(num_layers)])
         
     def forward(self, image, words, word_padding_masks = None):
         word_embed = self.word_embed(words)
