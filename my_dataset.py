@@ -19,7 +19,7 @@ def get_img_dict():
 
     images = dict({})
 
-    for file_path, file_id in tqdm(zip(file_paths, file_ids), total = len(file_ids), desc = "Load image"):
+    for file_path, file_id in zip(file_paths, file_ids):
         images[file_id] = file_path
         
     return images
@@ -55,8 +55,9 @@ def norm_text(text):
     return out
 
 
-def preprocess(processor, d, include_answer = True, transform = None):
-    img_dict = get_img_dict()
+def preprocess(processor, d, include_answer = True, img_dict = None, transform = None):
+    if img_dict is None:
+        img_dict = get_img_dict()
     image = Image.open(img_dict[d["img_id"]]).convert("RGB")
     image = MyImage.change_size(image, (224, 224))
     if transform is not None:
@@ -75,7 +76,8 @@ class MyDataset(Dataset):
         super().__init__()
 
         self.data = df.to_dict(orient = 'records')
-        self.data = list(map(lambda d: preprocess(processor, d), self.data))
+        img_dict = get_img_dict()
+        self.data = list(map(lambda d: preprocess(processor, d, img_dict = img_dict), self.data))
         
     def __len__(self):
         return len(self.data)
