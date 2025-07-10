@@ -20,7 +20,7 @@ class MyGRUModel(nn.Module):
             padding_idx = 0,
             embedding_dim = 512,
             word_embedding_dim = 128,
-            encoder_layer = encoder_spawn,
+            encoder_spawn = encoder_spawn,
             num_layers = 2,
             dropout = 0.1,
         )

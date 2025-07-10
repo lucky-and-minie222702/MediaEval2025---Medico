@@ -68,7 +68,7 @@ class TextImageEncoderLayer(nn.Module):
 
 # encoder layer should be lambda: TextImageEncoderLayer(...)
 class TextImageEncoder(nn.Module):
-    def __init__(self, vocab_size, max_answer_length, padding_idx, embedding_dim, word_embedding_dim, encoder_layer, num_layers = 1, dropout = 0.0):
+    def __init__(self, vocab_size, max_answer_length, padding_idx, embedding_dim, word_embedding_dim, encoder_spawn, num_layers = 1, dropout = 0.0):
         super().__init__()
 
         self.img_encode = ImageEncoder(embedding_dim)
@@ -84,7 +84,7 @@ class TextImageEncoder(nn.Module):
             dropout = dropout,
         )
         
-        self.encoders = [encoder_layer() for _ in num_layers]
+        self.encoders = [encoder_spawn() for _ in range(num_layers)]
         
     def forward(self, image, words, word_padding_masks = None):
         word_embed = self.word_embed(words)
