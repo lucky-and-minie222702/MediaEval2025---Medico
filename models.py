@@ -4,7 +4,7 @@ from modules import *
 
 
 class MyModel(nn.Module):
-    def __init__(self, vocab_size):
+    def __init__(self, vocab_size, device):
         super().__init__()
         
         encoder_spawn = lambda: TextImageEncoderLayer(
@@ -12,7 +12,7 @@ class MyModel(nn.Module):
             feed_forward_dim = 512,
             num_att_heads = 4,
             dropout = 0.1,
-        )
+        ).to(device)
         
         self.encoder = TextImageEncoder(
             vocab_size = vocab_size,

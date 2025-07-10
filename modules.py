@@ -96,7 +96,6 @@ class TextImageEncoder(nn.Module):
         img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
         
         for i, encoder in enumerate(self.encoders):
-            print(i)
             ngram_feats = encoder(ngram_feats, img_spatial_feats, word_padding_masks)
             
         return ngram_feats
