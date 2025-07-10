@@ -1,4 +1,4 @@
-from MyDataset.load_dataset import *
+from load_dataset import *
 from custom_obj import *
 
 download_nltk()

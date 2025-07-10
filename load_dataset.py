@@ -1,4 +1,4 @@
-from ..custom_obj import *
+from custom_obj import *
 from my_dataset import *
 from torch.utils.data import DataLoader
 import torch

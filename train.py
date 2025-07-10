@@ -1,4 +1,4 @@
-from MyDataset.load_dataset import *
+from load_dataset import *
 from CustomModules.models import *
 from torch import optim
 from torch.optim import lr_scheduler
