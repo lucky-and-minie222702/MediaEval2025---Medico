@@ -95,7 +95,8 @@ class TextImageEncoder(nn.Module):
         ngram_feats = ngram_feats.contiguous().permute(0, 2, 1)  # (B, text_len, embedding_dim)
         img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
         
-        for encoder in self.encoders:
+        for i, encoder in enumerate(self.encoders):
+            print(i)
             ngram_feats = encoder(ngram_feats, img_spatial_feats, word_padding_masks)
             
         return ngram_feats
@@ -147,7 +148,6 @@ class AnswerLSTMDecoder(nn.Module):
             
             output, (hidden, cell) = self.lstm(token_embed, (hidden, cell)) 
             # output: (B, 1, embedding_dim)
-            # hidden: (B, embedding_dim)
 
             output = output.squeeze(1)  # (B, embedding_dim)
             logits = self.classifier(output)  # (B, vocab_size)

@@ -3,7 +3,7 @@ from text_modules import *
 from modules import *
 
 
-class MyGRUModel(nn.Module):
+class MyModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         

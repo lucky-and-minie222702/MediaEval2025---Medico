@@ -26,7 +26,7 @@ train_dl, test_dl, val_dl, tokenizer = load_saved_data(batch_size = batch_size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 vocab_size = tokenizer.all_vocab_size + 1
-model = MyGRUModel(vocab_size)
+model = MyModel(vocab_size)
 model.to(device)
 
 criterion = nn.CrossEntropyLoss(ignore_index = 0)  # ignore padding
@@ -103,8 +103,9 @@ def test_before_train():
 
 # TRAIN
 
+print(f"Model is on: {next(model.parameters()).device}") 
 test_before_train()
-print(f"Model is on: {next(model.parameters()).device}")
+
 
 # epoch level metrics
 overall_val_losses = []
