@@ -25,22 +25,9 @@ class SEBlock(nn.Module):
         return x * excitation
 
 
-class TextImageEncoder(nn.Module):
-    def __init__(self, vocab_size, max_answer_length, padding_idx, embedding_dim, word_embedding_dim, feed_forward_dim, num_att_heads,dropout = 0.0, attention_dropout = 0.0):
+class TextImageEncoderLayer(nn.Module):
+    def __init__(self, embedding_dim, feed_forward_dim, num_att_heads, dropout = 0.0, attention_dropout = 0.0):
         super().__init__()
-
-        self.img_encode = ImageEncoder(embedding_dim)
-        
-        self.word_embed = WordEmbedding(
-            vocab_size, word_embedding_dim, 
-            max_length = max_answer_length, 
-            padding_idx = padding_idx, 
-        )
-        
-        self.ngram_encode = NgramEncoder(
-            word_embedding_dim, embedding_dim,
-            dropout = dropout,
-        )
         
         self.attention = nn.MultiheadAttention(
             embedding_dim,
@@ -55,18 +42,11 @@ class TextImageEncoder(nn.Module):
         self.feed_forward = nn.Sequential(
             nn.Linear(embedding_dim, feed_forward_dim),
             nn.SiLU(),
+            nn.Dropout(dropout),
             nn.Linear(feed_forward_dim, embedding_dim, bias = False)
         )
         
-    def forward(self, image, words, word_padding_masks = None):
-        word_embed = self.word_embed(words)
-        ngram_feats = self.ngram_encode(word_embed)  # (B, embedding_dim, text_len)
-        
-        img_spatial_feats = self.img_encode(image)  # (B, embedding_dim, H * W)
-
-        ngram_feats = ngram_feats.contiguous().permute(0, 2, 1)  # (B, text_len, embedding_dim)
-        img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
-
+    def forward(self, ngram_feats, img_spatial_feats, word_padding_masks = None):
         cross_attention_feats, _ = self.attention(
             query = ngram_feats,
             key = img_spatial_feats,
@@ -86,18 +66,53 @@ class TextImageEncoder(nn.Module):
         return out
 
 
-class AnswerGRUDecoder(nn.Module):
-    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, ngram_encoder, num_gru_layers = 1, dropout = 0.0, gru_dropout = 0.0):
+# encoder layer should be lambda: TextImageEncoderLayer(...)
+class TextImageEncoder(nn.Module):
+    def __init__(self, vocab_size, max_answer_length, padding_idx, embedding_dim, word_embedding_dim, encoder_layer, num_layers = 1, dropout = 0.0):
+        super().__init__()
+
+        self.img_encode = ImageEncoder(embedding_dim)
+        
+        self.word_embed = WordEmbedding(
+            vocab_size, word_embedding_dim, 
+            max_length = max_answer_length, 
+            padding_idx = padding_idx, 
+        )
+        
+        self.ngram_encode = NgramEncoder(
+            word_embedding_dim, embedding_dim,
+            dropout = dropout,
+        )
+        
+        self.encoders = [encoder_layer() for _ in num_layers]
+        
+    def forward(self, image, words, word_padding_masks = None):
+        word_embed = self.word_embed(words)
+        ngram_feats = self.ngram_encode(word_embed)  # (B, embedding_dim, text_len)
+        
+        img_spatial_feats = self.img_encode(image)  # (B, embedding_dim, H * W)
+
+        ngram_feats = ngram_feats.contiguous().permute(0, 2, 1)  # (B, text_len, embedding_dim)
+        img_spatial_feats = img_spatial_feats.contiguous().permute(0, 2, 1)  # (B, H * W, embedding_dim)
+        
+        for encoder in self.encoders:
+            ngram_feats = encoder(ngram_feats, img_spatial_feats, word_padding_masks)
+            
+        return ngram_feats
+    
+    
+class AnswerLSTMDecoder(nn.Module):
+    def __init__(self, in_channels, embedding_dim, num_classes, classifier_dim, word_embedding, ngram_encoder, num_gru_layers = 1, dropout = 0.0, lstm_dropout = 0.0):
         super().__init__()
         
         self.word_embed = word_embedding
         self.ngram_encoder = ngram_encoder
         
-        self.gru = nn.GRU(
+        self.lstm = nn.LSTM(
             in_channels,
             embedding_dim,
             num_layers = num_gru_layers,
-            dropout = gru_dropout,
+            dropout = lstm_dropout,
             batch_first = True,
         )
         
@@ -111,7 +126,7 @@ class AnswerGRUDecoder(nn.Module):
         self.dropout = nn.Dropout1d(dropout)
         
     def forward(self, cross_attention_feats, max_answer_length, answers = None, teacher_forcing_ratio = 0.5):
-        bos_feats, hidden = self.gru(cross_attention_feats)
+        bos_feats, (hidden, cell) = self.lstm(cross_attention_feats)
         # bos_token: (B, text_len, embedding_dim)
         bos_feats = bos_feats[::, -1, ::]  # (B, embedding_dim)
         
@@ -130,7 +145,7 @@ class AnswerGRUDecoder(nn.Module):
             token_embed = self.dropout(token_embed)
             token_embed = token_embed.contiguous().permute(0, 2, 1)  # (B, 1, embedding_dim)
             
-            output, hidden = self.gru(token_embed, hidden) 
+            output, (hidden, cell) = self.lstm(token_embed, (hidden, cell)) 
             # output: (B, 1, embedding_dim)
             # hidden: (B, embedding_dim)
 

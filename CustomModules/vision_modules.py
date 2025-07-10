@@ -3,9 +3,9 @@ from torch import nn
 import torchvision.models as v_models
     
 
-# using resnet18 backbone (512, 7, 7)
+# using resnet34 backbone (512, 7, 7)
 class ImageEncoder(nn.Module):
-    def __init__(self, proj_dim, backbone =  nn.Sequential(*list(v_models.resnet18(weights = v_models.ResNet18_Weights.DEFAULT).children())[:-2]), back_bone_dim = 512, dropout = 0.0):
+    def __init__(self, proj_dim, backbone =  nn.Sequential(*list(v_models.resnet34(weights = v_models.ResNet34_Weights.DEFAULT).children())[:-2]), back_bone_dim = 512, dropout = 0.0):
         super().__init__()
         
         self.proj_dim = proj_dim
