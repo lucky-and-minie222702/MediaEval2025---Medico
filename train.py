@@ -1,3 +1,4 @@
+import joblib
 from custom_obj import *
 from my_dataset import *
 from transformers import BlipForQuestionAnswering, BlipProcessor
@@ -99,4 +100,6 @@ for e in range(epochs):
             print("Early stop triggered!")
             break
 
-torch.save(model, "data/save/model.torch")
+torch.save(model, "models/model.torch")
+joblib.dump(overall_train_losses, "models/train_loss.joblib")
+joblib.dump(overall_val_losses, "models/val_loss.joblib")
