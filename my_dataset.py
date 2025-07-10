@@ -62,10 +62,10 @@ def preprocess(processor, d, include_answer = True, transform = None):
     if transform is not None:
         image = transform(image)
     
-    inputs = processor(image, d["question"].apply(norm_text), return_tensors = "pt")
+    inputs = processor(image, norm_text(d["question"]), return_tensors = "pt")
     
     if include_answer:
-        inputs["labels"] = processor.tokenizer(d["answer"].apply(norm_text), return_tensors = "pt")["input_ids"]
+        inputs["labels"] = processor.tokenizer(norm_text(d["answer"]), return_tensors = "pt")["input_ids"]
     
     return {k: v.squeeze(0) for k, v in inputs.items()}
 
