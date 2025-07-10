@@ -1,33 +1,26 @@
 from torchvision import transforms
-from torch.utils.data import Dataset
-import torch.utils.data as t_data
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import pandas as pd
 from tqdm import tqdm
 from custom_obj import *
 import os
 from os import path
-import joblib
 
 # resnet like norm
 # mean = [0.485, 0.456, 0.406]
 # std = [0.229, 0.224, 0.225]
 
 
-def get_img_dict(save_path = None):
+def get_img_dict():
     file_ids = os.listdir("data/images")
     file_ids = [path.splitext(s)[0] for s in file_ids if s[-4::] == ".jpg"]
     file_paths = [f"data/images/{s}.jpg" for s in file_ids]
 
-    images = {}
+    images = dict({})
 
     for file_path, file_id in tqdm(zip(file_paths, file_ids), total = len(file_ids), desc = "Load image"):
-        img = Image.open(file_path)
-        img = MyImage.change_size(img, (224, 224))
-        images[file_id] = img
-        
-    if save_path is not None:
-        joblib.dump(images, save_path)
+        images[file_id] = file_path
         
     return images
 
@@ -51,81 +44,74 @@ TRAIN_TRANSFORM = transforms.Compose([
 ])
 
 
-def to_text_data(df):
-    return df[["img_id", "question", "answer"]].to_numpy().tolist()
+def norm_text(text):
+    out = text.lower()
+    
+    out = out.replace("?", "")
+    out = out.replace("/", " ")
+    out = out.replace(".", ",")
+    out = out.replace(";", ",")
+    
+    return out
 
 
-def get_ids(df, current_tokenizer: MyText.MyTokenizer = None, init_tokenizer = False, question_max_length = None, answer_max_length = None):
-    tokenizer = current_tokenizer
-
-    print("Preprocessing questions:")
-    ques_texts = df["question"].tolist()
-    ques_tokens = tokenizer.preprocess(ques_texts)
-    sep = len(ques_tokens)
-
-    print("Preprocessing answers:")
-    ans_texts = df["answer"].tolist()
-    ans_tokens = tokenizer.preprocess(ans_texts, remove_stopwords = False)
+def preprocess(processor, d, include_answer = True, transform = None):
+    img_dict = get_img_dict()
+    image = Image.open(img_dict[d["image_id"]]).convert("RGB")
+    image = MyImage.change_size(image)
+    if transform is not None:
+        image = transform(image)
     
-    merge_tokens = ques_tokens + ans_tokens
-
-    if init_tokenizer:
-        tokenizer.fit(merge_tokens)
-        tokenizer.add_vocab("<EOQ>")  # end of question
-        tokenizer.add_vocab("<EOA>")  # end of answer
-
-
-    # question
-    ques_tokens = merge_tokens[:sep:]
+    inputs = processor(image, d["question"].apply(norm_text), return_tensors = "pt")
     
-    ques_ids = tokenizer.transform(ques_tokens, post_ids = [tokenizer.get_id("<EOQ>")])
-    ques_ids = tokenizer.pad_or_trunc(
-        ques_ids, 
-        max_length = question_max_length,
-        padding = "pre",
-        truncation = "post"
-    )
+    if include_answer:
+        inputs["labels"] = processor.tokenizer(d["answer"].apply(norm_text), return_tensors = "pt")["input_ids"]
     
-    
-    # answer
-    ans_tokens = merge_tokens[sep::]
-    
-    ans_ids = tokenizer.transform(ans_tokens, post_ids = [tokenizer.get_id("<EOA>")])
-    ans_ids = tokenizer.pad_or_trunc(
-        ans_ids, 
-        max_length = answer_max_length,
-        padding = "post",
-        truncation = "post"
-    )
-    
-    if init_tokenizer:
-        return ques_ids, ans_ids, tokenizer
-    else:
-        return ques_ids, ans_ids
-    
+    return {k: v.squeeze(0) for k, v in inputs.items()}
 
 
 class MyDataset(Dataset):
-    def __init__(self, img_ids, ques_ids, ans_ids, img_dict = None, transform = None):
+    def __init__(self, df, processor):
         super().__init__()
-        self.img_dict = img_dict
-        self.ques_ids = ques_ids
-        self.ans_ids = ans_ids
-        self.img_ids = img_ids
-        self.transform = transform
-        
-    def set_img_dict(self, img_dict):
-        self.img_dict = img_dict
+
+        self.data = df.to_dict(orient='records')
+        self.data = list(map(lambda d: preprocess(processor, d), self.data))
         
     def __len__(self):
-        return len(self.ques_ids)
-    
-    def __getitem__(self, index):
-        img = self.img_dict[self.img_ids[index]]
-        question = self.ques_ids[index]
-        answer = self.ans_ids[index]
+        return len(self.data)
         
-        if self.transform is not None:
-            img = self.transform(img)
-            
-        return img, question, answer
+    def __getitem__(self, index):
+        return self.data[index]
+    
+    
+def load_data(processor, batch_size = 32):
+    # Tu nhien co tieng Trung
+    def invalid_char(texts):
+        not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
+        invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
+        return invalid_idx
+
+    def drop_invalid_char_df(df):
+        df.drop(index = invalid_char(df["question"].tolist()), inplace = True)
+        df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
+
+    # load df
+    train_df = pd.read_csv("data/train.csv")
+    drop_invalid_char_df(train_df)
+    train_size = int(len(train_df) * 0.9)
+    val_df = train_df.iloc[train_size::]
+    train_df = train_df.iloc[:train_size:]
+    test_df = pd.read_csv("data/test.csv")
+    drop_invalid_char_df(test_df)
+
+
+    train_ds = MyDataset(train_df, processor)
+    val_ds = MyDataset(val_df, processor)
+    test_ds = MyDataset(test_df, processor)
+
+    
+    train_dl = DataLoader(train_ds, batch_size = batch_size , shuffle = True, pin_memory = True, num_workers = 4)
+    val_dl = DataLoader(val_ds, batch_size = batch_size , shuffle = False, pin_memory = True, num_workers = 4)
+    test_dl = DataLoader(test_ds, batch_size = batch_size , shuffle = False, pin_memory = True, num_workers = 4)
+    
+    return train_dl, val_dl, test_dl
