@@ -20,8 +20,8 @@ print(f"Train on: {device}")
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
 optimizer = Adam(model.parameters(), lr = 1e-4)
-lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = 0.2, patience = 3)
-early_stopping_patience = 5
+lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = 0.5, patience = 2)
+early_stopping_patience = 3
 
 train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
@@ -99,12 +99,17 @@ for e in range(epochs):
 
     train_loss = np.mean(train_losses)
     val_loss = np.mean(val_losses)
+    
+    train_bleu = np.mean(train_bleus)
+    val_bleu = np.mean(val_bleus)
 
     lr_scheduler.step(val_loss)
             
     if not use_tqdm:
         print(f" Train loss : {train_loss}")
         print(f" Val loss   : {val_loss}")
+        print(f" Train bleu : {train_loss}")
+        print(f" Val bleu   : {val_loss}")
         
     # early stopping:
     if len(overall_val_losses) > early_stopping_patience:
