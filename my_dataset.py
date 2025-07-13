@@ -108,7 +108,7 @@ class MyDataset(Dataset):
 # train: 114_868
 # question_max_length = 20,  # 114_729 in train
 # answer_max_length = 40,  # 113_865 in train
-def load_data(processor, batch_size = 32, max_question_length = 20,  max_answer_length = 40):
+def load_data(processor, batch_size = 32, max_question_length = 40,  max_answer_length = 40):
     # Tu nhien co tieng Trung
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
