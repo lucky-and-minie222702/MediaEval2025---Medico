@@ -27,14 +27,33 @@ train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 100, disable = use_tqdm)
 
+def get_bleu_score(label, pred):
+    label = label.detach().numpy().tolist()
+    pred = pred.detach().numpy().tolist()
+    
+    label = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)    
+    pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
+    
+    label = list(map(lambda s: s.plit(), label))
+    pred = list(map(lambda s: s.plit(), pred))
+    
+    return MyText.bleu_score_batch(label, pred)
+
+
 overall_train_losses = []
 overall_val_losses = []
+
+overall_train_bleus = []
+overall_val_bleus = []
 
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
     
     train_losses = []
     val_losses = []
+    
+    train_bleus = []
+    val_bleus = []
     
     # train
     model.train()
@@ -44,14 +63,19 @@ for e in range(epochs):
         outputs = model(**batch)
 
         loss = outputs.loss
+        prediction = torch.argmax(outputs.logits, dim = -1)
         loss.backward()
         
         optimizer.step()
         optimizer.zero_grad()
 
         train_losses.append(loss.item())
+        train_bleus.append(get_bleu_score(batch["labels"], prediction))
         
-        pbar.set_postfix(cur_loss = train_losses[-1], avg_loss = np.mean(train_losses))
+        pbar.set_postfix(
+            cur_loss = train_losses[-1], avg_loss = np.mean(train_losses),
+            cur_bleu = train_bleus[-1], avg_bleu = np.mean(train_bleus)
+        )
 
     # val
     with torch.no_grad():
@@ -62,10 +86,16 @@ for e in range(epochs):
             outputs = model(**batch)
 
             loss = outputs.loss
-
-            val_losses.append(loss.item())
+            prediction = torch.argmax(outputs.logits, dim = -1)
             
-            pbar.set_postfix(cur_loss = val_losses[-1], avg_loss = np.mean(val_losses))
+            val_losses.append(loss.item())
+            val_bleus.append(get_bleu_score(batch["labels"], prediction))
+            
+            pbar.set_postfix(
+                cur_loss = val_losses[-1], avg_loss = np.mean(val_losses),
+                cur_bleu = val_bleus[-1], avg_bleu = np.mean(val_bleus)
+            )
+
 
     train_loss = np.mean(train_losses)
     val_loss = np.mean(val_losses)
