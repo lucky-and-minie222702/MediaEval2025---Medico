@@ -28,8 +28,8 @@ train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 100, disable = use_tqdm)
 
 def get_bleu_score(label, pred):
-    label = label.detach().numpy().tolist()
-    pred = pred.detach().numpy().tolist()
+    label = label.detach().cpu().numpy().tolist()
+    pred = pred.detach().cpu().numpy().tolist()
     
     label = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)    
     pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
