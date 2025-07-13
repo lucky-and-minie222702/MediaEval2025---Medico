@@ -11,7 +11,7 @@ torch.set_float32_matmul_precision("high")
 
 
 batch_size = MyCLI.get_arg("batch_size", 16)
-epochs = MyCLI.get_arg("batch_size", 20)
+epochs = MyCLI.get_arg("epochs", 20)
 use_tqdm = "tqdm" in sys.argv
 
 
