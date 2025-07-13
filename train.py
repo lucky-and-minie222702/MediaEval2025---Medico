@@ -60,6 +60,7 @@ for e in range(epochs):
     pbar = tqdm_wrapper(train_dl, " Train")
     for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
+        print(batch["labels"].shape)
         outputs = model(**batch)
 
         loss = outputs.loss

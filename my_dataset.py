@@ -82,6 +82,7 @@ def preprocess(processor, d, max_length, include_answer = True, img_dict = None,
             padding = "max_length",
             truncation = True,
         )["input_ids"]
+        inputs["labels"][inputs["labels"] == processor.tokenizer.pad_token_id] = -100
     
     return {k: v.squeeze(0) for k, v in inputs.items()}
 
