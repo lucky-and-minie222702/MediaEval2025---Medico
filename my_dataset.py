@@ -26,11 +26,11 @@ def get_img_dict():
 
 
 BASE_TRANSFORM = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean = [0.485, 0.456, 0.406], 
-        std = [0.229, 0.224, 0.225]
-    ),
+    # transforms.ToTensor(),
+    # transforms.Normalize(
+    #     mean = [0.485, 0.456, 0.406], 
+    #     std = [0.229, 0.224, 0.225]
+    # ),
 ])
 
 TRAIN_TRANSFORM = transforms.Compose([
@@ -58,8 +58,9 @@ def norm_text(text):
 def preprocess(processor, d, include_answer = True, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
-    image = Image.open(img_dict[d["img_id"]]).convert("RGB")
-    image = MyImage.change_size(image, (224, 224))
+    image = Image.open(img_dict[d["img_id"]])
+    image = MyImage.change_size(image, (384, 384))
+
     if transform is not None:
         image = transform(image)
     
