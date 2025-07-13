@@ -40,17 +40,8 @@ for e in range(epochs):
     model.train()
     pbar = tqdm_wrapper(train_dl, " Train")
     for batch in pbar:
-        pixel_values = batch["pixel_values"].to(device)
-        input_ids = batch["input_ids"].to(device)
-        attention_mask = batch["attention_mask"].to(device)
-        labels = batch["labels"].to(device)
-
-        outputs = model(
-            input_ids = input_ids,
-            attention_mask = attention_mask,
-            pixel_values = pixel_values,
-            labels = labels,
-        )
+        batch = {k: v.to(device) for k, v in batch.items()}
+        outputs = model(**batch)
 
         loss = outputs.loss
         loss.backward()
@@ -67,17 +58,8 @@ for e in range(epochs):
         model.eval()
         pbar = tqdm_wrapper(val_dl, " Val  ")
         for batch in pbar:
-            pixel_values = batch["pixel_values"].to(device)
-            input_ids = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
-
-            outputs = model(
-                input_ids = input_ids,
-                attention_mask = attention_mask,
-                pixel_values = pixel_values,
-                labels = labels,
-            )
+            batch = {k: v.to(device) for k, v in batch.items()}
+            outputs = model(**batch)
 
             loss = outputs.loss
 

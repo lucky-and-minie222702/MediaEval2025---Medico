@@ -72,18 +72,19 @@ def preprocess(processor, d, include_answer = True, img_dict = None, transform =
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, processor):
+    def __init__(self, df, processor, transform = None):
         super().__init__()
 
+        self.processor = processor
+        self.transform = transform
         self.data = df.to_dict(orient = 'records')
-        img_dict = get_img_dict()
-        self.data = list(map(lambda d: preprocess(processor, d, img_dict = img_dict), self.data))
+        self.img_dict = get_img_dict()
         
     def __len__(self):
         return len(self.data)
         
     def __getitem__(self, index):
-        return self.data[index]
+        return preprocess(self.processor, self.data[index], img_dict = self.img_dict, transform = self.transform)
     
     
 def load_data(processor, batch_size = 32):
@@ -107,9 +108,9 @@ def load_data(processor, batch_size = 32):
     drop_invalid_char_df(test_df)
 
 
-    train_ds = MyDataset(train_df, processor)
-    val_ds = MyDataset(val_df, processor)
-    test_ds = MyDataset(test_df, processor)
+    train_ds = MyDataset(train_df, processor, TRAIN_TRANSFORM)
+    val_ds = MyDataset(val_df, processor, BASE_TRANSFORM)
+    test_ds = MyDataset(test_df, processor, BASE_TRANSFORM)
 
     
     train_dl = DataLoader(train_ds, batch_size = batch_size , shuffle = True, pin_memory = True, num_workers = 4)
