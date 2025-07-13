@@ -34,8 +34,8 @@ def get_bleu_score(label, pred):
     label = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)    
     pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
     
-    label = list(map(lambda s: s.plit(), label))
-    pred = list(map(lambda s: s.plit(), pred))
+    label = list(map(lambda s: s.split(), label))
+    pred = list(map(lambda s: s.split(), pred))
     
     return MyText.bleu_score_batch(label, pred)
 
