@@ -25,7 +25,7 @@ early_stopping_patience = 3
 
 train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
-tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 100, disable = use_tqdm)
+tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = use_tqdm)
 
 def get_bleu_score(label, pred):
     label = label.detach().cpu().numpy().tolist()
@@ -73,8 +73,8 @@ for e in range(epochs):
         train_bleus.append(get_bleu_score(batch["labels"], prediction))
         
         pbar.set_postfix(
-            cur_loss = train_losses[-1], avg_loss = np.mean(train_losses),
-            cur_bleu = train_bleus[-1], avg_bleu = np.mean(train_bleus)
+            avg_loss = np.mean(train_losses),
+            avg_bleu = np.mean(train_bleus)
         )
 
     # val
@@ -92,8 +92,8 @@ for e in range(epochs):
             val_bleus.append(get_bleu_score(batch["labels"], prediction))
             
             pbar.set_postfix(
-                cur_loss = val_losses[-1], avg_loss = np.mean(val_losses),
-                cur_bleu = val_bleus[-1], avg_bleu = np.mean(val_bleus)
+                avg_loss = np.mean(val_losses),
+                avg_bleu = np.mean(val_bleus)
             )
 
 
