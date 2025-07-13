@@ -61,7 +61,12 @@ for e in range(epochs):
     for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
         print(batch["labels"].shape, batch["input_ids"].shape, batch["pixel_values"].shape)
-        outputs = model(**batch)
+        outputs = model(
+            input_ids = batch["input_ids"],
+            pixel_values = batch["pixel_values"]
+        )
+        print(outputs.logits.shape)
+        exit()
 
         loss = outputs.loss
         prediction = torch.argmax(outputs.logits, dim = -1)
