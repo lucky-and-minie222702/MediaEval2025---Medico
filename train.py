@@ -60,13 +60,7 @@ for e in range(epochs):
     pbar = tqdm_wrapper(train_dl, " Train")
     for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
-        print(batch["labels"].shape, batch["input_ids"].shape, batch["pixel_values"].shape)
-        outputs = model(
-            input_ids = batch["input_ids"],
-            pixel_values = batch["pixel_values"]
-        )
-        print(outputs.logits.shape)
-        exit()
+        outputs = model(**batch)
 
         loss = outputs.loss
         prediction = torch.argmax(outputs.logits, dim = -1)
