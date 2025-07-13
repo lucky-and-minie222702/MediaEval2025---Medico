@@ -114,8 +114,8 @@ def load_data(processor, batch_size = 32):
     test_ds = MyDataset(test_df, processor, BASE_TRANSFORM)
 
     
-    train_dl = DataLoader(train_ds, batch_size = batch_size , shuffle = True, pin_memory = True, num_workers = 4)
-    val_dl = DataLoader(val_ds, batch_size = batch_size , shuffle = False, pin_memory = True, num_workers = 4)
-    test_dl = DataLoader(test_ds, batch_size = batch_size , shuffle = False, pin_memory = True, num_workers = 4)
+    train_dl = DataLoader(train_ds, batch_size = batch_size , shuffle = True, num_workers = 4)
+    val_dl = DataLoader(val_ds, batch_size = batch_size , shuffle = False, num_workers = 4)
+    test_dl = DataLoader(test_ds, batch_size = batch_size , shuffle = False, num_workers = 4)
     
     return train_dl, val_dl, test_dl
