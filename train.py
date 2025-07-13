@@ -1,7 +1,7 @@
 import joblib
 from custom_obj import *
 from my_dataset import *
-from transformers import BlipForQuestionAnswering, BlipProcessor
+from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -17,7 +17,7 @@ use_tqdm = "tqdm" in sys.argv
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
-model = BlipForQuestionAnswering.from_pretrained("Salesforce/blip-vqa-base").to(device)
+model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
 optimizer = Adam(model.parameters(), lr = 1e-4)
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = 0.2, patience = 3)
