@@ -6,6 +6,7 @@ from tqdm import tqdm
 from custom_obj import *
 import os
 from os import path
+import torch
 
 # resnet like norm
 # mean = [0.485, 0.456, 0.406]
@@ -112,10 +113,31 @@ def load_data(processor, batch_size = 32):
     train_ds = MyDataset(train_df, processor, TRAIN_TRANSFORM)
     val_ds = MyDataset(val_df, processor, BASE_TRANSFORM)
     test_ds = MyDataset(test_df, processor, BASE_TRANSFORM)
-
     
-    train_dl = DataLoader(train_ds, batch_size = batch_size , shuffle = True)
-    val_dl = DataLoader(val_ds, batch_size = batch_size , shuffle = False)
-    test_dl = DataLoader(test_ds, batch_size = batch_size , shuffle = False)
+
+    def collate_fn(batch):
+        pixel_values = torch.stack([item["pixel_values"] for item in batch])
+        input_ids = torch.nn.utils.rnn.pad_sequence(
+            [item["input_ids"] for item in batch], batch_first = True, padding_value = processor.tokenizer.pad_token_id
+        )
+        attention_mask = torch.nn.utils.rnn.pad_sequence(
+            [item["attention_mask"] for item in batch], batch_first = True, padding_value = 0
+        )
+        labels = torch.nn.utils.rnn.pad_sequence(
+            [item["labels"] for item in batch], batch_first = True, padding_value = 0,
+        )
+        return {
+            "pixel_values": pixel_values,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
+        }
+
+
+    dl_wrapper = lambda ds, sh: DataLoader(ds, batch_size = batch_size, shuffle = sh, num_workers = 4, persistent_workers = True, pin_memory = True, collate_fn = collate_fn)
+    
+    train_dl = dl_wrapper(train_ds, True)
+    val_dl = dl_wrapper(val_ds, False)
+    test_dl = dl_wrapper(test_ds, False)
     
     return train_dl, val_dl, test_dl
