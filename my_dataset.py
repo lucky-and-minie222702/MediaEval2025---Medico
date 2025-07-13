@@ -56,27 +56,41 @@ def norm_text(text):
     return out
 
 
-def preprocess(processor, d, include_answer = True, img_dict = None, transform = None):
+def preprocess(processor, d, max_length, include_answer = True, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
+
     image = Image.open(img_dict[d["img_id"]])
     image = MyImage.change_size(image, (384, 384))
 
     if transform is not None:
         image = transform(image)
     
-    inputs = processor(image, norm_text(d["question"]), return_tensors = "pt")
+    inputs = processor(
+        image, norm_text(d["question"]), 
+        return_tensors = "pt",
+        max_length = max_length[0],
+        padding = "max_length",
+        truncation = True,
+    )
     
     if include_answer:
-        inputs["labels"] = processor.tokenizer(norm_text(d["answer"]), return_tensors = "pt")["input_ids"]
+        inputs["labels"] = processor.tokenizer(
+            norm_text(d["answer"]), 
+            return_tensors = "pt",
+            max_length = max_length[1],
+            padding = "max_length",
+            truncation = True,
+        )["input_ids"]
     
     return {k: v.squeeze(0) for k, v in inputs.items()}
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, processor, transform = None):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, transform = None):
         super().__init__()
 
+        self.max_length = [max_question_legnth, max_answer_length]
         self.processor = processor
         self.transform = transform
         self.data = df.to_dict(orient = 'records')
@@ -86,10 +100,14 @@ class MyDataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, index):
-        return preprocess(self.processor, self.data[index], img_dict = self.img_dict, transform = self.transform)
+        return preprocess(self.processor, self.data[index], self.max_length, 
+                          img_dict = self.img_dict, transform = self.transform)
     
     
-def load_data(processor, batch_size = 32):
+# train: 114_868
+# question_max_length = 20,  # 114_729 in train
+# answer_max_length = 40,  # 113_865 in train
+def load_data(processor, batch_size = 32, max_question_length = 20,  max_answer_length = 40):
     # Tu nhien co tieng Trung
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
@@ -110,9 +128,9 @@ def load_data(processor, batch_size = 32):
     drop_invalid_char_df(test_df)
 
 
-    train_ds = MyDataset(train_df, processor, TRAIN_TRANSFORM)
-    val_ds = MyDataset(val_df, processor, BASE_TRANSFORM)
-    test_ds = MyDataset(test_df, processor, BASE_TRANSFORM)
+    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, TRAIN_TRANSFORM)
+    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
+    test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
     
 
     def collate_fn(batch):
