@@ -11,14 +11,14 @@ import evaluate
 
 class MyUtils:
     @staticmethod
-    def get_scores_from_ids(processor, pred, label):
+    def get_scores_from_ids(processor, pred, label, exclude_metrics = []):
         pred = pred.detach().cpu().numpy().tolist()
         label = label.detach().cpu().numpy().tolist()
         
         pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
         label = processor.tokenizer.batch_decode(label, skip_special_tokens = True)    
         
-        return MyText.get_scores(pred, label)
+        return MyText.get_scores(pred, label, exclude_metrics)
     
     def get_sentences_from_ids(processor, s):
         s = s.detach().cpu().numpy().tolist()
@@ -26,13 +26,14 @@ class MyUtils:
         return s
     
     class MetricLogger:
-        def __init__(self, processor):
+        def __init__(self, processor, exclude_metrics = []):
             self.cur_content = None
             self.processor = processor
             self.content = None
+            self.exclude_metrics = exclude_metrics
         
         def log_per_step(self, predictions, labels):
-            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
+            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels, self.exclude_metrics)
             
             if self.cur_content is None:
                 self.cur_content = scores
@@ -89,7 +90,7 @@ class MyText:
     meteor = evaluate.load("meteor")
     
     @staticmethod
-    def get_scores(predictions, references):
+    def get_scores(predictions, references, exclude_metrics = []):
         clean_data = [
             (pred.strip(), ref.strip())
             for pred, ref in zip(predictions, references)
@@ -109,9 +110,20 @@ class MyText:
 
         bleu_refs = [[ref] for ref in clean_refs]
 
-        bleu = MyText.bleu.compute(predictions = clean_preds, references = bleu_refs)
-        rouge = MyText.rouge.compute(predictions = clean_preds, references = clean_refs)
-        meteor = MyText.meteor.compute(predictions = clean_preds, references = clean_refs)
+        if "bleu" in exclude_metrics:
+            bleu = dict({})
+        else:
+            bleu = MyText.bleu.compute(predictions = clean_preds, references = bleu_refs)
+            
+        if "rouge" in exclude_metrics:
+            rouge = dict({})
+        else:
+            rouge = MyText.rouge.compute(predictions = clean_preds, references = clean_refs)
+            
+        if "meteor" in exclude_metrics:
+            meteor = dict({})
+        else:
+            meteor = MyText.meteor.compute(predictions = clean_preds, references = clean_refs)
 
         return {
             "bleu": bleu.get("bleu", 0.0),

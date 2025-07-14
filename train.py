@@ -28,7 +28,6 @@ train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
 # logger
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
-train_metric_logger = MyUtils.MetricLogger(processor)
 val_metric_logger = MyUtils.MetricLogger(processor)
 overall_train_losses = []
 overall_val_losses = []
@@ -58,13 +57,11 @@ for e in range(epochs):
         optimizer.step()
 
         train_losses.append(loss.item())
-        train_metric_logger.log_per_step(predictions, labels)
         
         pbar.set_postfix(
             loss = round(np.mean(train_losses), 4),
-            meteor = round(train_metric_logger.mean_content["meteor"], 4),
-            bleu = round(train_metric_logger.mean_content["bleu"], 4),
         )
+        break
 
     # val
     with torch.no_grad():
@@ -84,8 +81,7 @@ for e in range(epochs):
             
             pbar.set_postfix(
                 loss = round(np.mean(val_losses), 4),
-                meteor = round(val_metric_logger.mean_content["meteor"], 4),
-                bleu = round(val_metric_logger.mean_content["bleu"], 4),
+                **{k: round(v, 4) for k, v in val_metric_logger.mean_content}
             )
 
 
@@ -100,8 +96,7 @@ for e in range(epochs):
     
     overall_train_losses.append(train_loss)
     overall_val_losses.append(val_loss)
-        
-    train_metric_logger.end_batch()
+
     val_metric_logger.end_batch()
         
     # early stopping:
@@ -114,5 +109,4 @@ for e in range(epochs):
 torch.save(model.state_dict(), "models/model.torch")
 joblib.dump(overall_train_losses, "models/train_loss.joblib")
 joblib.dump(overall_val_losses, "models/val_loss.joblib")
-joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
 joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
