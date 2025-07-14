@@ -36,5 +36,6 @@ with torch.no_grad():
         outputs = model.generate(**batch, max_length = 40)
         
         labels[labels == -100] = 0
+        print("Question:", get_sentence(batch["input_ids"]))
         print("Model:", get_sentence(outputs))
         print("Actual:", get_sentence(labels))
