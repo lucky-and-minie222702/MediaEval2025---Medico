@@ -52,14 +52,14 @@ for e in range(epochs):
 
         loss = outputs.loss
         predictions = torch.argmax(outputs.logits, dim = -1)
+        labels = batch["labels"]
+        labels = labels[labels == -100] = processor.tokenizer.pad_token_id
         
         loss.backward()
         optimizer.step()
 
-        print(predictions.shape, batch["labels"].shape)
-
         train_losses.append(loss.item())
-        train_metric_logger.log_per_step(predictions, batch["labels"])
+        train_metric_logger.log_per_step(predictions, labels)
         
         pbar.set_postfix(
             loss = round(np.mean(train_losses), 4),
@@ -78,9 +78,11 @@ for e in range(epochs):
 
             loss = outputs.loss
             predictions = torch.argmax(outputs.logits, dim = -1)
+            labels = batch["labels"]
+            labels = labels[labels == -100] = processor.tokenizer.pad_token_id
             
             val_losses.append(loss.item())
-            val_metric_logger.log_per_step(predictions, batch["labels"])
+            val_metric_logger.log_per_step(predictions, labels)
             
             pbar.set_postfix(
                 loss = round(np.mean(val_losses), 4),
