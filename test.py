@@ -12,7 +12,7 @@ batch_size = int(MyCLI.get_arg("batch_size", 16))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Test on: {device}")
-model = torch.load('models/model.torch')
+model = torch.load('models/model.torch', map_location = torch.device('cpu') if not torch.cuda.is_available() else None)
 model = model.to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
 
