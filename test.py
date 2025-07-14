@@ -33,7 +33,7 @@ with torch.no_grad():
 
         batch = {k: v.to(device) for k, v in batch.items()}
         labels = batch.pop("labels", None)
-        outputs = model.generate(**batch)
+        outputs = model.generate(**batch, max_length = 40)
         
         print("Model:", get_sentence(torch.argmax(outputs, dim = -1)))
         print("Actual:", get_sentence(labels))
