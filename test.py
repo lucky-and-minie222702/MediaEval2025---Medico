@@ -33,5 +33,5 @@ with torch.no_grad():
         batch = {k: v.to(device) for k, v in batch.items()}
         outputs = model(**batch)
         
-        print("Question:", get_sentence(batch["input_ids"]))
+        print("Question:", get_sentence(torch.argmax(batch["input_ids"], dim = -1)))
         print("Answer:", get_sentence(batch["labels"]))
