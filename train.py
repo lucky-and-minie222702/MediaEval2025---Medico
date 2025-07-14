@@ -23,7 +23,7 @@ print(f"Train on: {device}")
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
 optimizer = Adam(model.parameters(), lr = config["lr"])
-lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sheduler"]["factor"], patience = config["lr_sheduler"]["patience"], min_lr = config["lr_sheduler"]["min_lr"])
+lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
