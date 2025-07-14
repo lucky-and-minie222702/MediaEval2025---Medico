@@ -9,22 +9,25 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 torch.set_float32_matmul_precision("high")
 
+# load config
+config = MyUtils.load_json("train_config.json")
+
 # training config
-batch_size = int(MyCLI.get_arg("batch_size", 32))
-epochs = int(MyCLI.get_arg("epochs", 20))
-use_tqdm = "tqdm" in sys.argv
+batch_size = config["batch_size"]
+epochs = config["epochs"]
+use_tqdm = config["use_tqdm"]
 
 # models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
-optimizer = Adam(model.parameters(), lr = 1e-4)
-lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = 0.25, patience = 3, min_lr = 2e-6)
-early_stopping_patience = 5
+optimizer = Adam(model.parameters(), lr = config["lr"])
+lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sheduler"]["factor"], patience = config["lr_sheduler"]["patience"], min_lr = config["lr_sheduler"]["min_lr"])
+early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
+train_dl, val_dl, _ = load_data(processor, train_ratio = config["train_ratio"],batch_size = batch_size)
 
 # logger
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
@@ -61,7 +64,6 @@ for e in range(epochs):
         pbar.set_postfix(
             loss = round(np.mean(train_losses), 4),
         )
-        break
 
     # val
     with torch.no_grad():

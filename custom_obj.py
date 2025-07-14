@@ -20,10 +20,17 @@ class MyUtils:
         
         return MyText.get_scores(pred, label, exclude_metrics)
     
+    @staticmethod
     def get_sentences_from_ids(processor, s):
         s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
         return s
+    
+    @staticmethod
+    def load_json(p):
+        with open(p, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data
     
     class MetricLogger:
         def __init__(self, processor, exclude_metrics = []):
