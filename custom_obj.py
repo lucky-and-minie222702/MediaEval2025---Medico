@@ -16,7 +16,7 @@ class MyUtils:
         label = label.detach().cpu().numpy().tolist()
         
         pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
-        label = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)    
+        label = processor.tokenizer.batch_decode(label, skip_special_tokens = True)    
         
         return MyText.get_scores(pred, label)
     

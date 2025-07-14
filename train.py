@@ -52,10 +52,11 @@ for e in range(epochs):
 
         loss = outputs.loss
         predictions = torch.argmax(outputs.logits, dim = -1)
-        loss.backward()
         
+        loss.backward()
         optimizer.step()
-        optimizer.zero_grad()
+
+        print(predictions.shape, batch["labels"].shape)
 
         train_losses.append(loss.item())
         train_metric_logger.log_per_step(predictions, batch["labels"])
