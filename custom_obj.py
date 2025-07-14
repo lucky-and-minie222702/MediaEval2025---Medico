@@ -20,6 +20,11 @@ class MyUtils:
         
         return MyText.get_scores(pred, label)
     
+    def get_sentences_from_ids(processor, s):
+        s = s.detach().cpu().numpy().tolist()
+        s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
+        return s
+    
     class MetricLogger:
         def __init__(self, processor):
             self.cur_content = None

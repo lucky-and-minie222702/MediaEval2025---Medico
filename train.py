@@ -9,12 +9,12 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 torch.set_float32_matmul_precision("high")
 
-
+# training config
 batch_size = int(MyCLI.get_arg("batch_size", 16))
 epochs = int(MyCLI.get_arg("epochs", 20))
 use_tqdm = "tqdm" in sys.argv
 
-
+# models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
 model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
@@ -23,18 +23,17 @@ optimizer = Adam(model.parameters(), lr = 1e-4)
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = 0.25, patience = 3, min_lr = 2e-6)
 early_stopping_patience = 5
 
+# data
 train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
+# logger
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
-
-
 train_metric_logger = MyUtils.MetricLogger(processor)
 val_metric_logger = MyUtils.MetricLogger(processor)
-
-
 overall_train_losses = []
 overall_val_losses = []
 
+# train
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
     
@@ -66,7 +65,6 @@ for e in range(epochs):
             meteor = round(train_metric_logger.mean_content["meteor"], 4),
             bleu = round(train_metric_logger.mean_content["bleu"], 4),
         )
-        break
 
     # val
     with torch.no_grad():
@@ -89,7 +87,6 @@ for e in range(epochs):
                 meteor = round(val_metric_logger.mean_content["meteor"], 4),
                 bleu = round(val_metric_logger.mean_content["bleu"], 4),
             )
-            break
 
 
     train_loss = np.mean(train_losses)
@@ -113,10 +110,9 @@ for e in range(epochs):
             print("Early stop triggered!")
             break
 
+# save
 torch.save(model.state_dict(), "models/model.torch")
-
 joblib.dump(overall_train_losses, "models/train_loss.joblib")
 joblib.dump(overall_val_losses, "models/val_loss.joblib")
-
 joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
 joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
