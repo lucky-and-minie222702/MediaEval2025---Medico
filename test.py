@@ -33,9 +33,10 @@ with torch.no_grad():
 
         batch = {k: v.to(device) for k, v in batch.items()}
         labels = batch.pop("labels", None)
-        outputs = model.generate(**batch, max_length = 40)
+        outputs = model(**batch)
+        prediction = torch.argmax(outputs.logits, dim = -1)
         
         labels[labels == -100] = 0
         print("Question:", get_sentence(batch["input_ids"]))
-        print("Model:", get_sentence(outputs))
+        print("Model:", get_sentence(prediction))
         print("Actual:", get_sentence(labels))
