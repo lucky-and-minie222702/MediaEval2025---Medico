@@ -25,7 +25,7 @@ early_stopping_patience = 3
 
 train_dl, val_dl, _ = load_data(processor, batch_size = batch_size)
 
-tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = use_tqdm)
+tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
 
 def get_bleu_score(label, pred):
     label = label.detach().cpu().numpy().tolist()
@@ -108,8 +108,16 @@ for e in range(epochs):
     if not use_tqdm:
         print(f" Train loss : {train_loss}")
         print(f" Val loss   : {val_loss}")
-        print(f" Train bleu : {train_loss}")
-        print(f" Val bleu   : {val_loss}")
+        print(f" Train bleu : {train_bleu}")
+        print(f" Val bleu   : {val_bleu}")
+        
+    
+    overall_train_losses.append(train_loss)
+    overall_val_losses.append(val_loss)
+    
+    overall_train_bleus.append(train_bleu)
+    overall_val_bleus.append(val_bleu)
+        
         
     # early stopping:
     if len(overall_val_losses) > early_stopping_patience:
