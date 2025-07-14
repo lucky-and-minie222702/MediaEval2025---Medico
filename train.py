@@ -65,7 +65,6 @@ for e in range(epochs):
             meteor = round(train_metric_logger.mean_content["meteor"], 4),
             bleu = round(train_metric_logger.mean_content["bleu"], 4),
         )
-        
         break
 
     # val
@@ -87,6 +86,7 @@ for e in range(epochs):
                 meteor = round(val_metric_logger.mean_content["meteor"], 4),
                 bleu = round(val_metric_logger.mean_content["bleu"], 4),
             )
+            break
 
 
     train_loss = np.mean(train_losses)
