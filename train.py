@@ -27,11 +27,12 @@ lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sc
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl, _ = load_data(processor, train_ratio = config["train_ratio"],batch_size = batch_size)
+train_dl, val_dl, _ = load_data(processor, train_ratio = config["train_ratio"], batch_size = batch_size)
 
 # logger
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
 val_metric_logger = MyUtils.MetricLogger(processor)
+train_metric_logger = MyUtils.MetricLogger(processor)
 overall_train_losses = []
 overall_val_losses = []
 
@@ -60,6 +61,7 @@ for e in range(epochs):
         optimizer.step()
 
         train_losses.append(loss.item())
+        train_metric_logger.log_per_step(predictions, labels)
         
         pbar.set_postfix(
             loss = round(np.mean(train_losses), 4),
@@ -99,6 +101,7 @@ for e in range(epochs):
     overall_train_losses.append(train_loss)
     overall_val_losses.append(val_loss)
 
+    train_metric_logger.end_batch()
     val_metric_logger.end_batch()
         
     # early stopping:
@@ -111,4 +114,5 @@ for e in range(epochs):
 torch.save(model.state_dict(), "models/model.torch")
 joblib.dump(overall_train_losses, "models/train_loss.joblib")
 joblib.dump(overall_val_losses, "models/val_loss.joblib")
+joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
 joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
