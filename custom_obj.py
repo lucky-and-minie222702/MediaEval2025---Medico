@@ -44,6 +44,8 @@ class MyUtils:
         def end_batch(self):
             if self.content is None:
                 self.content = self.mean_content
+                for k, v in self.content.items():
+                    self.content[k] = [v]
             else:
                 for k in self.content.keys():
                     self.content[k].append(self.mean_content[k])
