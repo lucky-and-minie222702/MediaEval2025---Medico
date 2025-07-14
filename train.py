@@ -53,7 +53,7 @@ for e in range(epochs):
         loss = outputs.loss
         predictions = torch.argmax(outputs.logits, dim = -1)
         labels = batch["labels"]
-        labels = labels[labels == -100] = processor.tokenizer.pad_token_id
+        labels[labels == -100] = processor.tokenizer.pad_token_id
         
         loss.backward()
         optimizer.step()
@@ -79,7 +79,7 @@ for e in range(epochs):
             loss = outputs.loss
             predictions = torch.argmax(outputs.logits, dim = -1)
             labels = batch["labels"]
-            labels = labels[labels == -100] = processor.tokenizer.pad_token_id
+            labels[labels == -100] = processor.tokenizer.pad_token_id
             
             val_losses.append(loss.item())
             val_metric_logger.log_per_step(predictions, labels)
