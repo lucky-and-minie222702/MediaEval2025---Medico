@@ -31,7 +31,7 @@ class MyUtils:
             
             if self.cur_content is None:
                 self.cur_content = scores
-                for k, v in scores.items():
+                for k, v in self.cur_content.items():
                     self.cur_content[k] = [v]
             else:
                 for k, v in scores.items():
