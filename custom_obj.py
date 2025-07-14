@@ -90,23 +90,36 @@ class MyText:
     
     @staticmethod
     def get_scores(predictions, references):
-        references = [[tokens] for tokens in references] 
+        clean_data = [
+            (pred.strip(), ref.strip())
+            for pred, ref in zip(predictions, references)
+            if pred.strip() and ref.strip()
+        ]
 
-        bleu = MyText.bleu.compute(predictions = predictions, references=references)
+        if len(clean_data) == 0:
+            return {
+                "bleu": 0.0,
+                "rouge1": 0.0,
+                "rouge2": 0.0,
+                "rougeL": 0.0,
+                "meteor": 0.0,
+            }
 
-        rouge = MyText.rouge.compute(predictions = predictions, references = [ref[0] for ref in references])
+        clean_preds, clean_refs = zip(*clean_data)
 
-        meteor = MyText.meteor.compute(predictions = predictions, references = [ref[0] for ref in references])
+        bleu_refs = [[ref] for ref in clean_refs]
 
-        results = {
-            "bleu": bleu["bleu"],
-            "rouge1": rouge["rouge1"],
-            "rouge2": rouge["rouge2"],
-            "rougeL": rouge["rougeL"],
-            "meteor": meteor["meteor"],
+        bleu = MyText.bleu.compute(predictions = clean_preds, references = bleu_refs)
+        rouge = MyText.rouge.compute(predictions = clean_preds, references = clean_refs)
+        meteor = MyText.meteor.compute(predictions = clean_preds, references = clean_refs)
+
+        return {
+            "bleu": bleu.get("bleu", 0.0),
+            "rouge1": rouge.get("rouge1", 0.0),
+            "rouge2": rouge.get("rouge2", 0.0),
+            "rougeL": rouge.get("rougeL", 0.0),
+            "meteor": meteor.get("meteor", 0.0),
         }
-
-        return results
     
 
 class MyImage:
