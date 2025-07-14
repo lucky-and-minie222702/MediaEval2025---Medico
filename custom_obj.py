@@ -1,18 +1,55 @@
+import joblib
 import numpy as np
-import pandas as pd
-import cv2
-import os
 from PIL import Image, ImageOps, ImageFile
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 import nltk
-import re
-from tqdm import tqdm
-from nltk.tokenize import word_tokenize
-from nltk.translate.bleu_score import sentence_bleu, corpus_bleu, SmoothingFunction
 import json
 import sys
+import evaluate
 
+
+class MyUtils:
+    @staticmethod
+    def get_scores_from_ids(processor, pred, label):
+        pred = pred.detach().cpu().numpy().tolist()
+        label = label.detach().cpu().numpy().tolist()
+        
+        pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
+        label = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)    
+        
+        return MyText.get_scores(pred, label)
+    
+    class MetricLogger:
+        def __init__(self, processor):
+            self.cur_content = None
+            self.processor = processor
+            self.content = None
+        
+        def log_per_step(self, predictions, labels):
+            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
+            
+            if self.cur_content is None:
+                self.cur_content = scores
+                for k, v in scores.items():
+                    self.cur_content[k] = [v]
+            else:
+                for k, v in scores.items():
+                    self.cur_content[k].append(v)
+                    
+        @property
+        def mean_content(self):
+            return {k: np.mean(v) for k, v in self.cur_content.items()}
+                    
+        def end_batch(self):
+            if self.content is None:
+                self.content = self.mean_content
+            else:
+                for k in self.content.keys():
+                    self.content[k].append(self.mean_content[k])
+
+            self.cur_content = None
+            
 
 class MyCLI:
     @staticmethod
@@ -40,21 +77,29 @@ def download_nltk():
 
 
 class MyText:
-    @staticmethod
-    def bleu_score(reference, candidate, smooth = True):
-        smoothie = SmoothingFunction().method4
-        score = sentence_bleu([reference], candidate, smoothing_function = smoothie if smooth else None)
-        return score
+    bleu = evaluate.load("bleu")
+    rouge = evaluate.load("rouge")
+    meteor = evaluate.load("meteor")
     
     @staticmethod
-    def bleu_score_batch(reference, candidate, smooth = True):
-        scores = [
-            MyText.bleu_score(
-                r, 
-                c, 
-                smooth,
-            ) for r, c in zip(reference, candidate)]
-        return np.mean(scores)
+    def get_scores(predictions, references):
+        references = [[tokens] for tokens in references] 
+
+        bleu = MyText.bleu.compute(predictions = predictions, references=references)
+
+        rouge = MyText.rouge.compute(predictions = predictions, references = [ref[0] for ref in references])
+
+        meteor = MyText.meteor.compute(predictions = predictions, references = [ref[0] for ref in references])
+
+        results = {
+            "bleu": bleu["bleu"],
+            "rouge1": rouge["rouge1"],
+            "rouge2": rouge["rouge2"],
+            "rougeL": rouge["rougeL"],
+            "meteor": meteor["meteor"],
+        }
+
+        return results
     
 
 class MyImage:
