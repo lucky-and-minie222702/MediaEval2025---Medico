@@ -11,7 +11,7 @@ batch_size = int(MyCLI.get_arg("batch_size", 16))
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Train on: {device}")
+print(f"Test on: {device}")
 model = torch.load('models/model.torch')
 model = model.to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
@@ -26,12 +26,14 @@ def get_sentence(s):
 
 
 with torch.no_grad():
+    model.eval()
     for i, batch in enumerate(test_dl):
         if i == 1:
             break
 
         batch = {k: v.to(device) for k, v in batch.items()}
-        outputs = model(**batch)
+        labels = batch.pop("labels", None)
+        outputs = model.generate(**batch)
         
-        print("Question:", get_sentence(torch.argmax(batch["input_ids"], dim = -1)))
-        print("Answer:", get_sentence(batch["labels"]))
+        print("Model:", get_sentence(torch.argmax(outputs, dim = -1)))
+        print("Actual:", get_sentence(labels))
