@@ -16,7 +16,7 @@ model = torch.load('models/model.torch')
 model = model.to(device)
 processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
 
-_, _, test_dl = load_data(processor, batch_size = 1)
+_, _, test_dl = load_data(processor, batch_size = 3)
 
 
 def get_sentence(s):
