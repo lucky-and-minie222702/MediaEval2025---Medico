@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 torch.set_float32_matmul_precision("high")
 
 # training config
-batch_size = int(MyCLI.get_arg("batch_size", 16))
+batch_size = int(MyCLI.get_arg("batch_size", 32))
 epochs = int(MyCLI.get_arg("epochs", 20))
 use_tqdm = "tqdm" in sys.argv
 
