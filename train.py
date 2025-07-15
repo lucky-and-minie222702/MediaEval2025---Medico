@@ -74,7 +74,7 @@ for e in range(epochs):
     with torch.no_grad():
         model.eval()
         pbar = tqdm_wrapper(val_dl, " Val  ")
-        for sstep, batch in enumerate(pbar):
+        for step, batch in enumerate(pbar):
             batch = {k: v.to(device) for k, v in batch.items()}
             outputs = model(**batch)
 
