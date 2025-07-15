@@ -46,7 +46,7 @@ for e in range(epochs):
     # train
     model.train()
     pbar = tqdm_wrapper(train_dl, " Train")
-    for batch in pbar:
+    for step, batch in enumerate(pbar):
         batch = {k: v.to(device) for k, v in batch.items()}
         outputs = model(**batch)
 
@@ -65,13 +65,16 @@ for e in range(epochs):
         
         pbar.set_postfix(
             loss = round(np.mean(train_losses), 4),
+            **{k: round(v, 4) for k, v in train_metric_logger.mean_content.items()}
         )
+        if step == 3:
+            break
 
     # val
     with torch.no_grad():
         model.eval()
         pbar = tqdm_wrapper(val_dl, " Val  ")
-        for batch in pbar:
+        for sstep, batch in enumerate(pbar):
             batch = {k: v.to(device) for k, v in batch.items()}
             outputs = model(**batch)
 
@@ -87,6 +90,8 @@ for e in range(epochs):
                 loss = round(np.mean(val_losses), 4),
                 **{k: round(v, 4) for k, v in val_metric_logger.mean_content.items()}
             )
+            if step == 3:
+                break
 
 
     train_loss = np.mean(train_losses)
