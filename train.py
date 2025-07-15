@@ -67,8 +67,6 @@ for e in range(epochs):
             loss = round(np.mean(train_losses), 4),
             **{k: round(v, 4) for k, v in train_metric_logger.mean_content.items()}
         )
-        if step == 3:
-            break
 
     # val
     with torch.no_grad():
@@ -90,8 +88,6 @@ for e in range(epochs):
                 loss = round(np.mean(val_losses), 4),
                 **{k: round(v, 4) for k, v in val_metric_logger.mean_content.items()}
             )
-            if step == 3:
-                break
 
 
     train_loss = np.mean(train_losses)
