@@ -30,7 +30,7 @@ early_stopping_patience = config["early_stopping"]["patience"]
 train_dl, val_dl, _ = load_data(processor, train_ratio = config["train_ratio"], batch_size = batch_size)
 
 # logger
-tqdm_wrapper = lambda dl, name: tqdm(dl, desc = name, ncols = 150, disable = not use_tqdm)
+tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
 val_metric_logger = MyUtils.MetricLogger(processor)
 train_metric_logger = MyUtils.MetricLogger(processor)
 overall_train_losses = []
@@ -45,7 +45,7 @@ for e in range(epochs):
     
     # train
     model.train()
-    pbar = tqdm_wrapper(train_dl, " Train")
+    pbar = tqdm_wrapper(train_dl, "Train", e+1)
     for step, batch in enumerate(pbar):
         batch = {k: v.to(device) for k, v in batch.items()}
         outputs = model(**batch)
@@ -71,7 +71,7 @@ for e in range(epochs):
     # val
     with torch.no_grad():
         model.eval()
-        pbar = tqdm_wrapper(val_dl, " Val  ")
+        pbar = tqdm_wrapper(val_dl, "Val  ", e+1)
         for step, batch in enumerate(pbar):
             batch = {k: v.to(device) for k, v in batch.items()}
             outputs = model(**batch)
@@ -95,8 +95,8 @@ for e in range(epochs):
 
     lr_scheduler.step(val_loss)
             
-    print(f" Train loss : {train_loss}")
-    print(f" Val loss   : {val_loss}")
+    print(f"  Train loss : {train_loss}")
+    print(f"  Val loss   : {val_loss}")
     
     overall_train_losses.append(train_loss)
     overall_val_losses.append(val_loss)
