@@ -95,9 +95,8 @@ for e in range(epochs):
 
     lr_scheduler.step(val_loss)
             
-    if not use_tqdm:
-        print(f" Train loss : {train_loss}")
-        print(f" Val loss   : {val_loss}")
+    print(f" Train loss : {train_loss}")
+    print(f" Val loss   : {val_loss}")
     
     overall_train_losses.append(train_loss)
     overall_val_losses.append(val_loss)
