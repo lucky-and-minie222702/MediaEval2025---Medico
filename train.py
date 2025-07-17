@@ -37,6 +37,7 @@ overall_val_losses = []
 
 # save path
 folder = f"models_checkpoint_{config["id"]}/"
+os.makedirs(folder , exist_ok = True)
 
 # train
 for e in range(epochs):
