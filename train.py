@@ -3,14 +3,13 @@ from custom_obj import *
 from my_dataset import *
 from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
-from torch import nn
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 torch.set_float32_matmul_precision("high")
 
 # load config
-config = MyUtils.load_json("train_config.json")
+config = MyConfig("train_config.json")
 
 # training config
 batch_size = config["batch_size"]
@@ -27,7 +26,7 @@ lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sc
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl, _ = load_data(processor, train_ratio = config["train_ratio"], batch_size = batch_size)
+train_dl, val_dl, _ = load_data(processor, max_question_length = config["mql"], max_answer_length = config["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["use_original"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
@@ -35,6 +34,9 @@ val_metric_logger = MyUtils.MetricLogger(processor)
 train_metric_logger = MyUtils.MetricLogger(processor)
 overall_train_losses = []
 overall_val_losses = []
+
+# save path
+folder = f"models_checkpoint_{config["id"]}/"
 
 # train
 for e in range(epochs):
@@ -95,9 +97,10 @@ for e in range(epochs):
 
     lr_scheduler.step(val_loss)
     
-    if val_loss < min(val_losses):
-        torch.save(model.state_dict(), "models/model.torch")
-        print("Checkpoint saved!")
+    if len(overall_val_losses) > 0:
+        if val_loss < min(overall_val_losses):
+            torch.save(model.state_dict(), folder + "model.torch")
+            print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
@@ -109,10 +112,10 @@ for e in range(epochs):
     val_metric_logger.end_batch()
         
     # save metrics
-    joblib.dump(overall_train_losses, "models/train_loss.joblib")
-    joblib.dump(overall_val_losses, "models/val_loss.joblib")
-    joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
-    joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
+    joblib.dump(overall_train_losses, folder + "train_loss.joblib")
+    joblib.dump(overall_val_losses, folder + "val_loss.joblib")
+    joblib.dump(train_metric_logger.content, folder + "train_metrics.joblib")
+    joblib.dump(val_metric_logger.content, folder + "val_metrics.joblib")
         
     # early stopping:
     if len(overall_val_losses) > early_stopping_patience:

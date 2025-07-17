@@ -9,6 +9,20 @@ import sys
 import evaluate
 
 
+class MyConfig:
+    @staticmethod
+    def load_json(p):
+        with open(p, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data
+    
+    def __init__(self, p):
+        self.data = MyConfig.load_json(p)
+        
+    def __getitem__(self, index):
+        return self.data.get(index, None)
+
+
 class MyUtils:
     @staticmethod
     def get_scores_from_ids(processor, pred, label, exclude_metrics = []):
@@ -25,12 +39,6 @@ class MyUtils:
         s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
         return s
-    
-    @staticmethod
-    def load_json(p):
-        with open(p, "r", encoding="utf-8") as file:
-            data = json.load(file)
-        return data
     
     class MetricLogger:
         def __init__(self, processor, exclude_metrics = []):
