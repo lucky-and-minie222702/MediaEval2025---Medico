@@ -20,14 +20,14 @@ use_tqdm = config["use_tqdm"]
 # models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
-model, processor = get_models_by_name(config["name"])
+model, processor = get_models_by_name(config["model_name"])
 model = model.to(device)
 optimizer = Adam(model.parameters(), lr = config["lr"])
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl, _ = load_data(processor, max_question_length = config["data"]["mql"], max_answer_length = config["data"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["data"]["use_original"])
+train_dl, val_dl, _ = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
