@@ -8,3 +8,8 @@ def get_baseline():
     model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base")
     processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
     return model, processor
+
+
+def get_models_by_name(name):
+    if name == "baseline":
+        return get_baseline()

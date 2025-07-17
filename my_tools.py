@@ -16,11 +16,14 @@ class MyConfig:
             data = json.load(file)
         return data
     
-    def __init__(self, p):
-        self.data = MyConfig.load_json(p)
+    def __init__(self, data, is_path = True):
+        self.data= data
+        if is_path:
+            self.data = MyConfig.load_json(data)
         
     def __getitem__(self, index):
-        return self.data.get(index, None)
+        out = self.data[index]
+        return out
 
 
 class MyUtils:
