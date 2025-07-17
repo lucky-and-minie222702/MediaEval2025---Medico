@@ -37,7 +37,7 @@ overall_train_losses = []
 overall_val_losses = []
 
 # save path
-folder = f"models_checkpoint_{config["name"]}/"
+folder = f"models_checkpoint_{config['name']}/"
 os.makedirs(folder , exist_ok = True)
 
 # train
