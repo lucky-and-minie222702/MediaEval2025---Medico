@@ -91,14 +91,6 @@ class MyTyping:
     reformat = lambda s: json.loads(s.replace("\n", ""))
 
 
-def download_nltk():
-    nltk.download('stopwords')
-    nltk.download('wordnet')
-    nltk.download("punkt")
-    nltk.download("punkt_tab")
-    nltk.download('averaged_perceptron_tagger_eng')
-
-
 class MyText:
     bleu = evaluate.load("bleu")
     rouge = evaluate.load("rouge")

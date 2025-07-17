@@ -1,10 +1,11 @@
 import joblib
-from custom_obj import *
+from my_tools import *
 from my_dataset import *
 from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from my_models import *
 
 torch.set_float32_matmul_precision("high")
 
@@ -19,8 +20,8 @@ use_tqdm = config["use_tqdm"]
 # models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base").to(device)
-processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
+model, processor = get_baseline()
+model = model.to(device)
 optimizer = Adam(model.parameters(), lr = config["lr"])
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
@@ -123,3 +124,6 @@ for e in range(epochs):
         if min(overall_val_losses[:-early_stopping_patience:]) < min(overall_val_losses[-early_stopping_patience::]):
             print("Early stop triggered!")
             break
+        
+if epochs == 1:
+    torch.save(model.state_dict(), folder + "model.torch")
