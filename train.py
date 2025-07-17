@@ -94,6 +94,9 @@ for e in range(epochs):
     val_loss = np.mean(val_losses)
 
     lr_scheduler.step(val_loss)
+    
+    if val_loss < min(val_losses):
+        torch.save(model.state_dict(), "models/model.torch")
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
@@ -104,15 +107,14 @@ for e in range(epochs):
     train_metric_logger.end_batch()
     val_metric_logger.end_batch()
         
+    # save metrics
+    joblib.dump(overall_train_losses, "models/train_loss.joblib")
+    joblib.dump(overall_val_losses, "models/val_loss.joblib")
+    joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
+    joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
+        
     # early stopping:
     if len(overall_val_losses) > early_stopping_patience:
         if min(overall_val_losses[:-early_stopping_patience:]) < min(overall_val_losses[-early_stopping_patience::]):
             print("Early stop triggered!")
             break
-
-# save
-torch.save(model.state_dict(), "models/model.torch")
-joblib.dump(overall_train_losses, "models/train_loss.joblib")
-joblib.dump(overall_val_losses, "models/val_loss.joblib")
-joblib.dump(train_metric_logger.content, "models/train_metrics.joblib")
-joblib.dump(val_metric_logger.content, "models/val_metrics.joblib")
