@@ -20,7 +20,7 @@ use_tqdm = config["use_tqdm"]
 # models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
-model, processor = get_models_by_name(config["model_name"])
+model, processor = get_models_by_name(config["model"])
 model = model.to(device)
 optimizer = Adam(model.parameters(), lr = config["lr"])
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
