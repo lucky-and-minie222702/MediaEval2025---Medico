@@ -97,6 +97,7 @@ for e in range(epochs):
     
     if val_loss < min(val_losses):
         torch.save(model.state_dict(), "models/model.torch")
+        print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
