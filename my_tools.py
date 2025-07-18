@@ -76,6 +76,37 @@ class MyUtils:
 
             self.cur_content = None
             
+    class TestLogger(MetricLogger):
+        def __init__(self, processor, exclude_metrics = []):
+            super().__init__(processor, exclude_metrics)
+            self.outputs = []
+            self.losses = []
+            
+        def log_per_step(self, questions, predictions, labels, loss):
+            super().log_per_step(predictions, labels)
+            
+            self.outputs.append([
+                MyUtils.get_sentences_from_ids(questions),
+                MyUtils.get_sentences_from_ids(labels),
+                MyUtils.get_sentences_from_ids(predictions),
+            ])
+            
+            self.losses.append(loss)
+            
+        def end_batch(self):
+            super().end_batch()
+            
+            self.outputs = np.concatenate(self.outputs, axis = 0)
+            self.outputs = {
+                "questions": self.outputs[::, 0],
+                "labels": self.outputs[::, 1],
+                "predictions": self.outputs[::, 2],
+            }
+            
+            # unsqueeze
+            self.content = {k: v[0] for k, v in self.content.items()}
+            self.content["loss"] = np.mean(self.losses)
+    
 
 class MyCLI:
     @staticmethod

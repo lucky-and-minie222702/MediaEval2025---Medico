@@ -8,3 +8,4 @@ models
 slurm*
 *_temp*
 train_config.json
+test_config.json

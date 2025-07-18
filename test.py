@@ -1,37 +1,52 @@
+import joblib
 from my_tools import *
 from my_dataset import *
 from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
+from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from my_models import *
 
 torch.set_float32_matmul_precision("high")
 
-# testing config
-batch_size = int(MyCLI.get_arg("batch_size", 16))
+# load config
+config = MyConfig("test_config.json")
 
-# testing model
+# training config
+batch_size = config["batch_size"]
+
+# models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Test on: {device}")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base")
-model.load_state_dict(torch.load('models/model.torch'))
-model = model.to(device)
-processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
+print(f"Train on: {device}")
+model, processor = get_models_by_name(config["model"])
 
 # data
-_, _, test_dl = load_data(processor, batch_size = 3)
+test_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], batch_size = batch_size, use_original = config["dataset"]["use_original"], test_only = True)
 
-# test
-with torch.no_grad():
-    model.eval()
-    for i, batch in enumerate(test_dl):
-        if i == 1:
-            break
+# logger
+logger = MyUtils.TestLogger(processor)
 
-        batch = {k: v.to(device) for k, v in batch.items()}
-        labels = batch.pop("labels", None)
-        outputs = model(**batch)
-        prediction = torch.argmax(outputs.logits, dim = -1)
-        
-        labels[labels == -100] = 0
-        print("Question:", MyText.get_sentence(processor, batch["input_ids"]))
-        print("Model:", MyText.get_sentence(processor, prediction))
-        print("Actual:", MyText.get_sentence(processor, labels))
+# save path
+folder = f"models_checkpoint_{config['name']}/"
+model.load_state_dict(torch.load(folder + "model.torch"))
+model = model.to(device)
+
+for batch in test_dl:
+    batch = {k: v.to(device) for k, v in batch.items()}
+    outputs = model(**batch)
+    
+    loss = outputs.loss
+    
+    predictions = torch.argmax(outputs.logits, dim = -1)
+    	
+    labels = batch["labels"]
+    labels[labels == -100] = processor.tokenizer.pad_token_id
+    	
+    questions = batch["input_ids"]
+
+    logger.log_per_step(questions, predictions, labels, loss.item())
+    
+logger.end_batch()
+
+joblib.dump(logger.content, folder + "test_metrics.joblib")
+joblib.dump(logger.outputs, folder + "test_outputs.joblib")

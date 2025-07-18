@@ -116,7 +116,7 @@ class MyDataset(Dataset):
 # train: 114_868
 # question_max_length = 20,  # 114_729 in train
 # answer_max_length = 40,  # 113_865 in train
-def load_data(processor, max_question_length, max_answer_length, train_ratio = 0.8, batch_size = 16, use_original = False):
+def load_data(processor, max_question_length, max_answer_length, train_ratio = 0.8, batch_size = 16, use_original = False, test_only = False):
     # Tu nhien co tieng Trung
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
@@ -126,6 +126,21 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = 0
     def drop_invalid_char_df(df):
         df.drop(index = invalid_char(df["question"].tolist()), inplace = True)
         df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
+        
+    def collate_fn(batch):
+        return {
+            key: torch.stack([item[key] for item in batch])
+            for key in batch[0]
+        }
+        
+    dl_wrapper = lambda ds, sh: DataLoader(ds, batch_size = batch_size, shuffle = sh, num_workers = 4, persistent_workers = True, pin_memory = True, collate_fn = collate_fn)
+    
+    if test_only:
+        test_df = pd.read_csv("data/test.csv")
+        drop_invalid_char_df(test_df)
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, use_original, BASE_TRANSFORM)
+        test_dl = dl_wrapper(test_ds, False)
+        return test_dl
 
     # load df
     train_df = pd.read_csv("data/train.csv")
@@ -133,26 +148,11 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = 0
     train_size = int(len(train_df) * train_ratio)
     val_df = train_df.iloc[train_size::]
     train_df = train_df.iloc[:train_size:]
-    test_df = pd.read_csv("data/test.csv")
-    drop_invalid_char_df(test_df)
-
 
     train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, use_original, TRAIN_TRANSFORM)
     val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, use_original, BASE_TRANSFORM)
-    test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, use_original, BASE_TRANSFORM)
-    
 
-    def collate_fn(batch):
-        return {
-            key: torch.stack([item[key] for item in batch])
-            for key in batch[0]
-        }
-
-
-    dl_wrapper = lambda ds, sh: DataLoader(ds, batch_size = batch_size, shuffle = sh, num_workers = 4, persistent_workers = True, pin_memory = True, collate_fn = collate_fn)
-    
     train_dl = dl_wrapper(train_ds, True)
     val_dl = dl_wrapper(val_ds, False)
-    test_dl = dl_wrapper(test_ds, False)
     
-    return train_dl, val_dl, test_dl
+    return train_dl, val_dl

@@ -27,7 +27,7 @@ lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sc
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl, _ = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"])
+train_dl, val_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
@@ -57,7 +57,9 @@ for e in range(epochs):
         optimizer.zero_grad()
 
         loss = outputs.loss
+
         predictions = torch.argmax(outputs.logits, dim = -1)
+
         labels = batch["labels"]
         labels[labels == -100] = processor.tokenizer.pad_token_id
         
@@ -81,7 +83,9 @@ for e in range(epochs):
             outputs = model(**batch)
 
             loss = outputs.loss
+            
             predictions = torch.argmax(outputs.logits, dim = -1)
+
             labels = batch["labels"]
             labels[labels == -100] = processor.tokenizer.pad_token_id
             
@@ -119,11 +123,11 @@ for e in range(epochs):
     joblib.dump(train_metric_logger.content, folder + "train_metrics.joblib")
     joblib.dump(val_metric_logger.content, folder + "val_metrics.joblib")
         
-    # early stopping:
+    # early stopping
     if len(overall_val_losses) > early_stopping_patience:
         if min(overall_val_losses[:-early_stopping_patience:]) < min(overall_val_losses[-early_stopping_patience::]):
             print("Early stop triggered!")
             break
         
-if epochs == 1:
+if epochs == 1: 
     torch.save(model.state_dict(), folder + "model.torch")
