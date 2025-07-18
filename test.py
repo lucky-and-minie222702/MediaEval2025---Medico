@@ -31,22 +31,27 @@ folder = f"models_checkpoint_{config['name']}/"
 model.load_state_dict(torch.load(folder + "model.torch"))
 model = model.to(device)
 
-for batch in test_dl:
-    batch = {k: v.to(device) for k, v in batch.items()}
-    outputs = model(**batch)
-    
-    loss = outputs.loss
-    
-    predictions = torch.argmax(outputs.logits, dim = -1)
-    	
-    labels = batch["labels"]
-    labels[labels == -100] = processor.tokenizer.pad_token_id
-    	
-    questions = batch["input_ids"]
+with torch.no_grad():
+    model.eval()
+    for batch in test_dl:
+        batch = {k: v.to(device) for k, v in batch.items()}
+        outputs = model(**batch)
+        
+        loss = outputs.loss
+        
+        predictions = torch.argmax(outputs.logits, dim = -1)
+            
+        labels = batch["labels"]
+        labels[labels == -100] = processor.tokenizer.pad_token_id
+            
+        questions = batch["input_ids"]
 
-    logger.log_per_step(questions, predictions, labels, loss.item())
+        logger.log_per_step(questions, predictions, labels, loss.item())
     
 logger.end_batch()
+
+for k, v in logger.content.items():
+    print(f"{k}: {v}")
 
 joblib.dump(logger.content, folder + "test_metrics.joblib")
 joblib.dump(logger.outputs, folder + "test_outputs.joblib")
