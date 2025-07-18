@@ -86,9 +86,9 @@ class MyUtils:
             super().log_per_step(predictions, labels)
             
             self.outputs.append([
-                MyUtils.get_sentences_from_ids(questions),
-                MyUtils.get_sentences_from_ids(labels),
-                MyUtils.get_sentences_from_ids(predictions),
+                MyUtils.get_sentences_from_ids(self.processor, questions),
+                MyUtils.get_sentences_from_ids(self.processor, labels),
+                MyUtils.get_sentences_from_ids(self.processor, predictions),
             ])
             
             self.losses.append(loss)
