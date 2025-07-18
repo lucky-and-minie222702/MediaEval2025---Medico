@@ -26,22 +26,19 @@ class MyConfig:
         return out
 
 
-class MyUtils:
-    @staticmethod
-    def get_scores_from_ids(processor, pred, label, exclude_metrics = []):
-        pred = pred.detach().cpu().numpy().tolist()
-        label = label.detach().cpu().numpy().tolist()
-        
-        pred = processor.tokenizer.batch_decode(pred, skip_special_tokens = True)
-        label = processor.tokenizer.batch_decode(label, skip_special_tokens = True)    
-        
-        return MyText.get_scores(pred, label, exclude_metrics)
-    
+class MyUtils:    
     @staticmethod
     def get_sentences_from_ids(processor, s):
         s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
         return s
+
+    @staticmethod
+    def get_scores_from_ids(processor, pred, label, exclude_metrics = []):
+        pred = MyUtils.get_sentences_from_ids(processor, pred)
+        label = MyUtils.get_sentences_from_ids(processor, label)
+        
+        return MyText.get_scores(pred, label, exclude_metrics)
     
     class MetricLogger:
         def __init__(self, processor, exclude_metrics = []):
