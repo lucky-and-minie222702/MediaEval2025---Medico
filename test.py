@@ -28,7 +28,7 @@ logger = MyUtils.TestLogger(processor)
 
 # save path
 folder = f"models_checkpoint_{config['name']}/"
-model.load_state_dict(torch.load(folder + "model.torch"))
+model.load_state_dict(torch.load(folder + "model.torch", map_location = device))
 model = model.to(device)
 
 with torch.no_grad():
