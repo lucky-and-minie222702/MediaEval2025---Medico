@@ -12,12 +12,12 @@ torch.set_float32_matmul_precision("high")
 # load config
 config = MyConfig("test_config.json")
 
-# training config
+# testing config
 batch_size = config["batch_size"]
 
-# models and training strategy
+# models and testing strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Train on: {device}")
+print(f"Test on: {device}")
 model, processor = get_models_by_name(config["model"])
 
 # data
