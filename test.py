@@ -14,6 +14,7 @@ config = MyConfig("test_config.json")
 
 # testing config
 batch_size = config["batch_size"]
+use_tqdm = config["use_tqdm"]
 
 # models and testing strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -31,9 +32,12 @@ folder = f"models_checkpoint_{config['name']}/"
 model.load_state_dict(torch.load(folder + "model.torch", map_location = device))
 model = model.to(device)
 
+tqdm_wrapper = lambda dl, name: tqdm(dl, desc = f"{name}", ncols = 175, disable = not use_tqdm)
+
 with torch.no_grad():
     model.eval()
-    for batch in test_dl:
+    pbar = tqdm_wrapper(test_dl, "Test ")
+    for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
         outputs = model(**batch)
         
@@ -47,6 +51,11 @@ with torch.no_grad():
         questions = batch["input_ids"]
 
         logger.log_per_step(questions, predictions, labels, loss.item())
+        
+        pbar.set_postfix(
+            loss = round(np.mean(logger.losses), 4),
+            **{k: round(v, 4) for k, v in logger.mean_content.items()}
+        )
     
 logger.end_batch()
 
