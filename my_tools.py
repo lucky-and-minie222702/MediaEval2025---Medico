@@ -7,10 +7,6 @@ import nltk
 import json
 import sys
 import evaluate
-from sacrebleu import corpus_bleu
-from rouge_score import rouge_scorer
-from nltk.translate.meteor_score import meteor_score
-
 
 
 class MyConfig:
@@ -38,20 +34,21 @@ class MyUtils:
         return s
 
     @staticmethod
-    def get_scores_from_ids(processor, pred, label):
+    def get_scores_from_ids(processor, pred, label, exclude_metrics = []):
         pred = MyUtils.get_sentences_from_ids(processor, pred)
         label = MyUtils.get_sentences_from_ids(processor, label)
         
-        return MyText.get_scores(pred, label)
+        return MyText.get_scores(pred, label, exclude_metrics)
     
     class MetricLogger:
-        def __init__(self, processor):
+        def __init__(self, processor, exclude_metrics = []):
             self.cur_content = None
             self.processor = processor
             self.content = None
+            self.exclude_metrics = exclude_metrics
         
         def log_per_step(self, predictions, labels):
-            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
+            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels, self.exclude_metrics)
             
             if self.cur_content is None:
                 self.cur_content = scores
@@ -77,8 +74,8 @@ class MyUtils:
             self.cur_content = None
             
     class TestLogger(MetricLogger):
-        def __init__(self, processor):
-            super().__init__(processor)
+        def __init__(self, processor, exclude_metrics = []):
+            super().__init__(processor, exclude_metrics)
             self.outputs = None
             self.losses = []
             
@@ -126,16 +123,12 @@ class MyTyping:
 
 
 class MyText:
-    # bleu = evaluate.load("bleu")
-    # rouge = evaluate.load("rouge")
-    # meteor = evaluate.load("meteor")
-    
-    bleu = corpus_bleu
-    rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
-    meteor = meteor_score
+    bleu = evaluate.load("bleu")
+    rouge = evaluate.load("rouge")
+    meteor = evaluate.load("meteor")
     
     @staticmethod
-    def get_scores(predictions, references):
+    def get_scores(predictions, references, exclude_metrics = []):
         clean_data = [
             (pred.strip(), ref.strip())
             for pred, ref in zip(predictions, references)
@@ -155,18 +148,27 @@ class MyText:
 
         bleu_refs = [[ref] for ref in clean_refs]
 
-        bleu = MyText.bleu(clean_preds, bleu_refs)
+        if "bleu" in exclude_metrics:
+            bleu = dict({})
+        else:
+            bleu = MyText.bleu.compute(predictions = clean_preds, references = bleu_refs)
             
-        rouge = MyText.rouge.score(clean_refs, clean_preds)
+        if "rouge" in exclude_metrics:
+            rouge = dict({})
+        else:
+            rouge = MyText.rouge.compute(predictions = clean_preds, references = clean_refs)
             
-        meteor = MyText.meteor(clean_refs, clean_preds)
+        if "meteor" in exclude_metrics:
+            meteor = dict({})
+        else:
+            meteor = MyText.meteor.compute(predictions = clean_preds, references = clean_refs)
 
         return {
-            "bleu": bleu.score,
-            "rouge1": rouge["rouge1"].fmeasure,
-            "rouge2": rouge["rouge2"].fmeasure,
-            "rougeL": rouge["rougeL"].fmeasure,
-            "meteor": meteor,
+            "bleu": bleu.get("bleu", 0.0),
+            "rouge1": rouge.get("rouge1", 0.0),
+            "rouge2": rouge.get("rouge2", 0.0),
+            "rougeL": rouge.get("rougeL", 0.0),
+            "meteor": meteor.get("meteor", 0.0),
         }
     
 
