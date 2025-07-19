@@ -101,7 +101,7 @@ class MyUtils:
         def end_batch(self):
             super().end_batch()
             
-            self.outputs = np.transpose(self.ouptuts, (1, 0)) # (n_samples, 3)
+            self.outputs = np.transpose(self.outputs, (1, 0)) # (n_samples, 3)
             
             # unsqueeze
             self.content = {k: v[0] for k, v in self.content.items()}

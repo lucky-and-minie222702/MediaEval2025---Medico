@@ -5,11 +5,9 @@ from transformers import BlipForConditionalGeneration, BlipProcessor
 
 
 def get_baseline():
-    model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base")
-    processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
+    model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-capfilt-large")
+    processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-capfilt-large")
     return model, processor
-
-
 
 
 
