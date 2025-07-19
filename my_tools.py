@@ -91,7 +91,7 @@ class MyUtils:
             if self.outputs is None:
                 self.outputs = cur_outputs
             else:
-                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 0)
+                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 1)
             
             self.losses.append(loss)
             
