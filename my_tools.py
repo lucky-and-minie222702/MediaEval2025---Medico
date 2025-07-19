@@ -76,24 +76,27 @@ class MyUtils:
     class TestLogger(MetricLogger):
         def __init__(self, processor, exclude_metrics = []):
             super().__init__(processor, exclude_metrics)
-            self.outputs = []
+            self.outputs = None
             self.losses = []
             
         def log_per_step(self, questions, predictions, labels, loss):
             super().log_per_step(predictions, labels)
             
-            self.outputs.append([
+            cur_outputs = [
                 MyUtils.get_sentences_from_ids(self.processor, questions),
                 MyUtils.get_sentences_from_ids(self.processor, labels),
                 MyUtils.get_sentences_from_ids(self.processor, predictions),
-            ])  # (n_steps, batch_size, 3)
+            ]
+            
+            if self.outputs is None:
+                self.outputs = cur_outputs
+            else:
+                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 0)
             
             self.losses.append(loss)
             
         def end_batch(self):
             super().end_batch()
-            
-            self.outputs = np.array([sample for batch in self.outputs for sample in batch])  # (n_samples, 3)
             
             # unsqueeze
             self.content = {k: v[0] for k, v in self.content.items()}
