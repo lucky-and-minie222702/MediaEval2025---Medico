@@ -91,12 +91,14 @@ class MyUtils:
             if self.outputs is None:
                 self.outputs = cur_outputs
             else:
-                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 1)
+                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 1)  # (3, n_samples)
             
             self.losses.append(loss)
             
         def end_batch(self):
             super().end_batch()
+            
+            self.outputs = np.transpose(self.ouptuts, (1, 0)) # (n_samples, 3)
             
             # unsqueeze
             self.content = {k: v[0] for k, v in self.content.items()}
