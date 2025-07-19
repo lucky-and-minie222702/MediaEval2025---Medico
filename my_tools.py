@@ -93,7 +93,7 @@ class MyUtils:
         def end_batch(self):
             super().end_batch()
             
-            self.outputs = np.concatenate(self.outputs, axis = 0)
+            self.outputs = np.concatenate(self.outputs, axis = 1)  # (n_samples, 3)
             self.outputs = {
                 "questions": self.outputs[::, 0],
                 "labels": self.outputs[::, 1],
