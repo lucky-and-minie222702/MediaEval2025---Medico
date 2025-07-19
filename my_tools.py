@@ -153,20 +153,35 @@ class MyText:
 
         clean_preds, clean_refs = zip(*clean_data)
 
-        bleu_refs = [[ref] for ref in clean_refs]
+        clean_refs_list = [[ref] for ref in clean_refs]
 
-        bleu = MyText.bleu(clean_preds, bleu_refs)
-            
-        rouge = MyText.rouge.score(clean_refs, clean_preds)
-            
-        meteor = MyText.meteor(clean_refs, clean_preds)
+        bleu = corpus_bleu(clean_preds, clean_refs_list).score
+
+        # --- ROUGE (F1 averaged)
+        r1_total, r2_total, rl_total = 0, 0, 0
+        for pred, refs in zip(clean_preds, clean_refs_list):
+            ref = refs[0]
+            scores = MyText.rouge.score(ref, pred)
+            r1_total += scores["rouge1"].fmeasure
+            r2_total += scores["rouge2"].fmeasure
+            rl_total += scores["rougeL"].fmeasure
+        n = len(clean_preds)
+        rouge1 = r1_total / n
+        rouge2 = r2_total / n
+        rougeL = rl_total / n
+
+        # --- METEOR (averaged)
+        meteor_total = 0
+        for pred, refs in zip(clean_preds, clean_refs_list):
+            meteor_total += meteor_score(refs, pred)
+        meteor = meteor_total / n
 
         return {
-            "bleu": bleu.score,
-            "rouge1": rouge["rouge1"].fmeasure,
-            "rouge2": rouge["rouge2"].fmeasure,
-            "rougeL": rouge["rougeL"].fmeasure,
-            "meteor": meteor,
+            "bleu": bleu,
+            "rouge1": rouge1,
+            "rouge2": rouge2,
+            "rouge:": rougeL,
+            "meteor": meteor
         }
     
 
