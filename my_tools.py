@@ -93,13 +93,7 @@ class MyUtils:
         def end_batch(self):
             super().end_batch()
             
-            self.outputs = [sample for batch in self.outputs for sample in batch]
-            self.outputs = self.outputs.reshape(-1, 3)  # (n_samples, 3) 
-            self.outputs = {
-                "questions": self.outputs[::, 0],
-                "labels": self.outputs[::, 1],
-                "predictions": self.outputs[::, 2],
-            }
+            self.outputs = np.array([sample for batch in self.outputs for sample in batch])  # (n_samples, 3)
             
             # unsqueeze
             self.content = {k: v[0] for k, v in self.content.items()}
