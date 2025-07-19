@@ -173,7 +173,10 @@ class MyText:
         # --- METEOR (averaged)
         meteor_total = 0
         for pred, refs in zip(clean_preds, clean_refs_list):
-            meteor_total += meteor_score(refs, pred)
+            meteor_total += meteor_score(
+                [ref.split() for ref in refs],
+                pred.split()
+            )
         meteor = meteor_total / n
 
         return {
