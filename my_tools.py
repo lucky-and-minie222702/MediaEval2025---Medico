@@ -155,7 +155,7 @@ class MyText:
 
         clean_refs_list = [[ref] for ref in clean_refs]
 
-        bleu = corpus_bleu(clean_preds, clean_refs_list).score
+        bleu = corpus_bleu(clean_preds, clean_refs_list).score / 100
 
         # --- ROUGE (F1 averaged)
         r1_total, r2_total, rl_total = 0, 0, 0
@@ -183,7 +183,7 @@ class MyText:
             "bleu": bleu,
             "rouge1": rouge1,
             "rouge2": rouge2,
-            "rouge:": rougeL,
+            "rougeL": rougeL,
             "meteor": meteor
         }
     
