@@ -86,14 +86,14 @@ class MyUtils:
                 MyUtils.get_sentences_from_ids(self.processor, questions),
                 MyUtils.get_sentences_from_ids(self.processor, labels),
                 MyUtils.get_sentences_from_ids(self.processor, predictions),
-            ])
+            ])  # (n_steps, batch_size, 3)
             
             self.losses.append(loss)
             
         def end_batch(self):
             super().end_batch()
             
-            self.outputs = np.concatenate(self.outputs, axis = 1)  # (n_samples, 3)
+            self.outputs = self.outputs.reshape(-1, 3)  # (n_samples, 3) 
             self.outputs = {
                 "questions": self.outputs[::, 0],
                 "labels": self.outputs[::, 1],
