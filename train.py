@@ -29,7 +29,7 @@ lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sc
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["complexities"])
+train_dl, val_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["dataset"]["complexities"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
