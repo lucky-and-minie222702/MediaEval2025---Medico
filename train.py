@@ -21,13 +21,15 @@ use_tqdm = config["use_tqdm"]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
 model, processor = get_models_by_name(config["model"])
+if config["use_pretrained"]:
+    model.load_state_dict(torch.load(config["pretrained_path"], map_location = device))
 model = model.to(device)
 optimizer = Adam(model.parameters(), lr = config["lr"])
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"])
+train_dl, val_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["complexities"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
@@ -39,6 +41,10 @@ overall_val_losses = []
 # save path
 folder = f"models_checkpoint_{config['name']}/"
 os.makedirs(folder , exist_ok = True)
+
+# best model
+best_val_loss = 1e9
+best_state_dict = None
 
 # train
 for e in range(epochs):
@@ -100,12 +106,16 @@ for e in range(epochs):
 
     train_loss = np.mean(train_losses)
     val_loss = np.mean(val_losses)
-
+    
     lr_scheduler.step(val_loss)
+    
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        best_state_dict = model.state_dict()
     
     if len(overall_val_losses) > 0:
         if val_loss < min(overall_val_losses):
-            torch.save(model.state_dict(), folder + "model.torch")
+            torch.save(best_state_dict, folder + "model.torch")
             print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")

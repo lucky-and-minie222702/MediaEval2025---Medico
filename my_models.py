@@ -9,6 +9,10 @@ def get_baseline():
     processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-capfilt-large")
     return model, processor
 
+def get_baseline():
+    model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large")
+    processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
+    return model, processor
 
 
 def get_models_by_name(name):
