@@ -42,10 +42,6 @@ overall_val_losses = []
 folder = f"models_checkpoint_{config['name']}/"
 os.makedirs(folder , exist_ok = True)
 
-# best model
-best_val_loss = 1e9
-best_state_dict = None
-
 # train
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
@@ -108,14 +104,10 @@ for e in range(epochs):
     val_loss = np.mean(val_losses)
     
     lr_scheduler.step(val_loss)
-    
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
-        best_state_dict = model.state_dict()
-    
+
     if len(overall_val_losses) > 0:
         if val_loss < min(overall_val_losses):
-            torch.save(best_state_dict, folder + "model.torch")
+            torch.save(model.state_dict(), folder + "model.torch")
             print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")
