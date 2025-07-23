@@ -20,11 +20,16 @@ use_tqdm = config["use_tqdm"]
 # models and training strategy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Train on: {device}")
+
 model, processor = get_models_by_name(config["model"])
+
 if config["use_pretrained"]:
     model.load_state_dict(torch.load(config["pretrained_path"], map_location = device))
 model = model.to(device)
+
 optimizer = Adam(model.parameters(), lr = config["lr"])
+criterion = nn.CrossEntropyLoss(ignore_index = processor.tokenizer.pad_token_id, reduction = "none")
+
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
 
@@ -52,19 +57,35 @@ for e in range(epochs):
     # train
     model.train()
     pbar = tqdm_wrapper(train_dl, "Train", e+1)
-    for step, batch in enumerate(pbar):
+    for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
-        outputs = model(**batch)
+        
+        labels = batch["labels"]
+        input_ids = batch["input_ids"]
+        attention_mask = batch["attention_mask"]
+        pixel_values = batch["pixel_values"]
+        outputs = model(
+            input_ids = input_ids,
+            pixel_values = pixel_values,
+            attention_mask = attention_mask,
+            labels = labels,
+        )
 
         optimizer.zero_grad()
-
-        loss = outputs.loss
-
+        
         predictions = torch.argmax(outputs.logits, dim = -1)
 
-        labels = batch["labels"]
-        labels[labels == -100] = processor.tokenizer.pad_token_id
+        logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
+        labels_flat = labels.view(-1)
+        loss = criterion(logits_flat, labels_flat)
+        loss = loss.view(config["batch_size"], config["dataset"]["mal"])
         
+        sample_w = batch["weights"]
+        sample_w[labels == processor.tokenizer.pad_token_id] = 0
+        sample_w = sample_w.unsqueeze(-1)
+        
+        loss = (loss * sample_w).mean()
+
         loss.backward()
         optimizer.step()
 
@@ -80,16 +101,25 @@ for e in range(epochs):
     with torch.no_grad():
         model.eval()
         pbar = tqdm_wrapper(val_dl, "Val  ", e+1)
-        for step, batch in enumerate(pbar):
+        for batch in pbar:
             batch = {k: v.to(device) for k, v in batch.items()}
-            outputs = model(**batch)
+
+            labels = batch["labels"]
+            input_ids = batch["input_ids"]
+            attention_mask = batch["attention_mask"]
+            pixel_values = batch["pixel_values"]
+            outputs = model(
+                input_ids = input_ids,
+                pixel_values = pixel_values,
+                attention_mask = attention_mask,
+                labels = labels,
+            )
 
             loss = outputs.loss
             
             predictions = torch.argmax(outputs.logits, dim = -1)
 
             labels = batch["labels"]
-            labels[labels == -100] = processor.tokenizer.pad_token_id
             
             val_losses.append(loss.item())
             val_metric_logger.log_per_step(predictions, labels)

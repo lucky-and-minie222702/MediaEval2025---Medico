@@ -37,9 +37,19 @@ tqdm_wrapper = lambda dl, name: tqdm(dl, desc = f"{name}", ncols = 175, disable 
 with torch.no_grad():
     model.eval()
     pbar = tqdm_wrapper(test_dl, "Test ")
-    for batch in pbar:
+    for batch, _ in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
-        outputs = model(**batch)
+
+        labels = batch["labels"]
+        input_ids = batch["input_ids"]
+        attention_mask = batch["attention_mask"]
+        pixel_values = batch["pixel_values"]
+        outputs = model(
+            input_ids = input_ids,
+            pixel_values = pixel_values,
+            attention_mask = attention_mask,
+            labels = labels,
+        )
         
         loss = outputs.loss
         
@@ -47,10 +57,8 @@ with torch.no_grad():
             
         labels = batch["labels"]
         labels[labels == -100] = processor.tokenizer.pad_token_id
-            
-        questions = batch["input_ids"]
 
-        logger.log_per_step(questions, predictions, labels, loss.item())
+        logger.log_per_step(input_ids, predictions, labels, loss.item())
         
         pbar.set_postfix(
             loss = round(np.mean(logger.losses), 4),

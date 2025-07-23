@@ -87,11 +87,13 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
             padding = "max_length",
             truncation = True,
         )["input_ids"]
-        inputs["labels"][inputs["labels"] == processor.tokenizer.pad_token_id] = -100
         
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
     
-    return inputs, complexity_weight
+    if complexity_weight is not None:
+        inputs["weights"] = complexity_weight
+    
+    return inputs
 
 
 class MyDataset(Dataset):
