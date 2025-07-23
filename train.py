@@ -80,8 +80,7 @@ for e in range(epochs):
         loss = criterion(logits_flat, labels_flat)
         loss = loss.view(config["batch_size"], config["dataset"]["mal"])
         
-        sample_w = batch["weights"]
-        print(sample_w.shape, loss.shape)
+        sample_w = batch["weights"].unsqueeze(-1)
         loss = (loss * sample_w).mean()
 
         loss.backward()
