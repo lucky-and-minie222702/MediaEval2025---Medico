@@ -80,10 +80,7 @@ for e in range(epochs):
         loss = criterion(logits_flat, labels_flat)
         loss = loss.view(config["batch_size"], config["dataset"]["mal"])
         
-        sample_w = batch["weights"].unsqueeze(-1)
-        print(sample_w.shape)
-        sample_w[labels_flat == processor.tokenizer.pad_token_id] = 0
-        sample_w = sample_w.unsqueeze(-1)
+        sample_w = batch["weights"]
         
         loss = (loss * sample_w).mean()
 
