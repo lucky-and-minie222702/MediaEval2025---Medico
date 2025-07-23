@@ -91,7 +91,7 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
     
     if complexity_weight is not None:
-        inputs["weights"] = complexity_weight
+        inputs["weights"] = torch.tensor(complexity_weight, dtype = torch.float)
     
     return inputs
 
