@@ -22,7 +22,7 @@ print(f"Test on: {device}")
 model, processor = get_models_by_name(config["model"])
 
 # data
-test_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], batch_size = batch_size, use_original = config["dataset"]["use_original"], test_only = True)
+test_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["dataset"]["complexities"], complexity_weight = config["dataset"]["complexity_weight"], test_only = True)
 
 # logger
 logger = MyUtils.TestLogger(processor)
