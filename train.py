@@ -81,7 +81,7 @@ for e in range(epochs):
         loss = loss.view(config["batch_size"], config["dataset"]["mal"])
         
         sample_w = batch["weights"]
-        
+        print(sample_w.shape, loss.shape)
         loss = (loss * sample_w).mean()
 
         loss.backward()
