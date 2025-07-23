@@ -114,7 +114,7 @@ class MyDataset(Dataset):
     def __getitem__(self, index):
         return preprocess(self.processor, self.data[index], self.max_length, 
                           use_original = self.use_original,
-                          complexity_weight = self.complexity_weight_map[self.data["complexity"]],
+                          complexity_weight = self.complexity_weight_map[self.data[index]["complexity"]],
                           img_dict = self.img_dict, 
                           transform = self.transform)
     
