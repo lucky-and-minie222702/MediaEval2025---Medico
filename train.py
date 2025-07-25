@@ -32,7 +32,7 @@ lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_sc
 early_stopping_patience = config["early_stopping"]["patience"]
 
 # data
-train_dl, val_dl = load_data(processor, train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["dataset"]["complexities"])
+train_dl, val_dl = load_data(processor, batch_size = batch_size, mql = config["dataset"]["mql"], mal = config["dataset"]["mal"], train_ratio = config["train_ratio"], use_original = config["dataset"]["use_original"], complexities = config["dataset"]["complexities"])
 
 # logger
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
@@ -81,7 +81,7 @@ for e in range(epochs):
             pixel_values = pixel_values,
             attention_mask = attention_mask,
             labels = labels,
-            max_length = config["mal"],
+            max_length = config["dataset"]["mal"],
         )
         
         print(processor.tokenizer.batch_decode(predictions, skip_special_tokens = True))
@@ -120,7 +120,7 @@ for e in range(epochs):
                 pixel_values = pixel_values,
                 attention_mask = attention_mask,
                 labels = labels,
-                max_length = config["mal"],
+                max_length = config["dataset"]["mal"],
             )
             
             val_metric_logger.log_per_step(predictions, labels)
