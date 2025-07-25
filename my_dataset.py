@@ -61,7 +61,7 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
         img_dict = get_img_dict()
 
     image = Image.open(img_dict[d["img_id"]])
-    image = MyImage.change_size(image, (384, 384))
+    image = MyImage.change_size(image, (224, 224))
 
     if transform is not None:
         image = transform(image)
