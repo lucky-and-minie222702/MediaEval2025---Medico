@@ -2,7 +2,7 @@ import joblib
 from my_tools import *
 from my_dataset import *
 import torch
-from torch.optim import Adam
+from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from my_models import *
 
@@ -26,7 +26,7 @@ if config["use_pretrained"]:
     model.load_state_dict(torch.load(config["pretrained_path"], map_location = device))
 model = model.to(device)
 
-optimizer = Adam(model.parameters(), lr = config["lr"])
+optimizer = AdamW(model.parameters(), lr = config["lr"])
 criterion = get_loss_by_name(config["loss"], processor)
 
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
@@ -70,8 +70,6 @@ for e in range(epochs):
             attention_mask = attention_mask,
             labels = labels,
         )
-        
-        predictions = torch.argmax(outputs.logits, dim = -1)
 
         logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
         labels_flat = labels.view(-1)
@@ -83,6 +81,16 @@ for e in range(epochs):
 
         loss.backward()
         optimizer.step()
+        
+        predictions = model.generate(
+            input_ids = input_ids,
+            pixel_values = pixel_values,
+            attention_mask = attention_mask,
+            labels = labels,
+            max_length = config["mal"],
+        )
+        
+        print(processor.tokenizer.batch_decode(predictions, skip_special_tokens = True))
 
         train_losses.append(loss.item())
         train_metric_logger.log_per_step(predictions, labels)
@@ -109,8 +117,6 @@ for e in range(epochs):
                 attention_mask = attention_mask,
                 labels = labels,
             )
-            
-            predictions = torch.argmax(outputs.logits, dim = -1)
 
             logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
             labels_flat = labels.view(-1)
@@ -121,6 +127,15 @@ for e in range(epochs):
             loss = (loss * sample_w).mean()
             
             val_losses.append(loss.item())
+            
+            predictions = model.generate(
+                input_ids = input_ids,
+                pixel_values = pixel_values,
+                attention_mask = attention_mask,
+                labels = labels,
+                max_length = config["mal"],
+            )
+            
             val_metric_logger.log_per_step(predictions, labels)
             
             pbar.set_postfix(
