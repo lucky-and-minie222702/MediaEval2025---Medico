@@ -56,7 +56,7 @@ def norm_text(text):
     return out
 
 
-def preprocess(processor, d, max_length, complexity_weight = None, include_answer = True, use_original = False, img_dict = None, transform = None):
+def preprocess(processor, d, complexity_weight = None, include_answer = True, use_original = False, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
 
@@ -75,18 +75,12 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
         images = image,
         text = quest,
         return_tensors = "pt",
-        max_length = max_length[0],
-        padding = "max_length",
-        truncation = True,
     )
     
     if include_answer:
         inputs["labels"] = processor.tokenizer(
             norm_text(d["answer"]), 
             return_tensors = "pt",
-            max_length = max_length[1],
-            padding = "max_length",
-            truncation = True,
         )["input_ids"]
         
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
@@ -98,11 +92,10 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, complexity_weight_map = None, use_original = False, transform = None):
+    def __init__(self, df, processor, complexity_weight_map = None, use_original = False, transform = None):
         super().__init__()
 
         self.use_original = use_original
-        self.max_length = [max_question_legnth, max_answer_length]
         self.processor = processor
         self.transform = transform
         self.data = df.to_dict(orient = 'records')
@@ -113,7 +106,7 @@ class MyDataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, index):
-        return preprocess(self.processor, self.data[index], self.max_length, 
+        return preprocess(self.processor, self.data[index], 
                           use_original = self.use_original,
                           complexity_weight = self.complexity_weight_map[self.data[index]["complexity"]],
                           img_dict = self.img_dict, 
@@ -123,7 +116,7 @@ class MyDataset(Dataset):
 # train: 114_868
 # question_max_length = 20,  # 114_729 in train
 # answer_max_length = 40,  # 113_865 in train
-def load_data(processor, max_question_length, max_answer_length, train_ratio = 0.8, batch_size = 16, use_original = False, complexities = [1, 2, 3], complexity_weight = None, test_only = False):
+def load_data(processor, train_ratio = 0.8, batch_size = 16, use_original = False, complexities = [1, 2, 3], complexity_weight = None, test_only = False):
     # Tu nhien co tieng Trung
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
@@ -145,7 +138,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = 0
     if test_only:
         test_df = pd.read_csv("data/test.csv")
         drop_invalid_char_df(test_df)
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, complexity_weight, use_original, BASE_TRANSFORM)
+        test_ds = MyDataset(test_df, processor, complexity_weight, use_original, BASE_TRANSFORM)
         test_dl = dl_wrapper(test_ds, False)
         return test_dl
 
@@ -158,8 +151,8 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = 0
     val_df = train_df.iloc[train_size::]
     train_df = train_df.iloc[:train_size:]
 
-    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, complexity_weight, use_original, TRAIN_TRANSFORM)
-    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, complexity_weight, use_original, BASE_TRANSFORM)
+    train_ds = MyDataset(train_df, processor, complexity_weight, use_original, TRAIN_TRANSFORM)
+    val_ds = MyDataset(val_df, processor, complexity_weight, use_original, BASE_TRANSFORM)
 
     train_dl = dl_wrapper(train_ds, True)
     val_dl = dl_wrapper(val_ds, False)

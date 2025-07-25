@@ -27,7 +27,6 @@ if config["use_pretrained"]:
 model = model.to(device)
 
 optimizer = AdamW(model.parameters(), lr = config["lr"])
-criterion = get_loss_by_name(config["loss"], processor)
 
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
@@ -71,14 +70,7 @@ for e in range(epochs):
             labels = labels,
         )
 
-        logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
-        labels_flat = labels.view(-1)
-        loss = criterion(logits_flat, labels_flat)
-        loss = loss.view(config["batch_size"], config["dataset"]["mal"])
-        
-        sample_w = batch["weights"].unsqueeze(-1)
-        loss = (loss * sample_w).mean()
-
+        loss = outputs.loss
         loss.backward()
         optimizer.step()
         
@@ -118,14 +110,7 @@ for e in range(epochs):
                 labels = labels,
             )
 
-            logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
-            labels_flat = labels.view(-1)
-            loss = criterion(logits_flat, labels_flat)
-            loss = loss.view(config["batch_size"], config["dataset"]["mal"])
-            
-            sample_w = batch["weights"].unsqueeze(-1)
-            loss = (loss * sample_w).mean()
-            
+            loss = outputs.loss
             val_losses.append(loss.item())
             
             predictions = model.generate(
