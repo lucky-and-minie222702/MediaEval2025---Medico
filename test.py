@@ -1,10 +1,7 @@
 import joblib
 from my_tools import *
 from my_dataset import *
-from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
-from torch.optim import Adam
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from my_models import *
 
 torch.set_float32_matmul_precision("high")
@@ -31,6 +28,7 @@ logger = MyUtils.TestLogger(processor)
 folder = f"models_checkpoint_{config['name']}/"
 model.load_state_dict(torch.load(folder + "model.torch", map_location = device))
 model = model.to(device)
+criterion = get_loss_by_name(config["loss"], processor)
 
 tqdm_wrapper = lambda dl, name: tqdm(dl, desc = f"{name}", ncols = 175, disable = not use_tqdm)
 
@@ -51,12 +49,15 @@ with torch.no_grad():
             labels = labels,
         )
         
-        loss = outputs.loss
-        
         predictions = torch.argmax(outputs.logits, dim = -1)
-            
-        labels = batch["labels"]
-        labels[labels == -100] = processor.tokenizer.pad_token_id
+
+        logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
+        labels_flat = labels.view(-1)
+        loss = criterion(logits_flat, labels_flat)
+        loss = loss.view(config["batch_size"], config["dataset"]["mal"])
+        
+        sample_w = batch["weights"].unsqueeze(-1)
+        loss = (loss * sample_w).mean()
 
         logger.log_per_step(input_ids, predictions, labels, loss.item())
         

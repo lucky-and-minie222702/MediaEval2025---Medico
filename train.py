@@ -1,7 +1,6 @@
 import joblib
 from my_tools import *
 from my_dataset import *
-from transformers import BlipForConditionalGeneration, BlipProcessor
 import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -28,7 +27,7 @@ if config["use_pretrained"]:
 model = model.to(device)
 
 optimizer = Adam(model.parameters(), lr = config["lr"])
-criterion = nn.CrossEntropyLoss(ignore_index = processor.tokenizer.pad_token_id, reduction = "none")
+criterion = get_loss_by_name(config["loss"], processor)
 
 lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
 early_stopping_patience = config["early_stopping"]["patience"]
@@ -58,6 +57,7 @@ for e in range(epochs):
     model.train()
     pbar = tqdm_wrapper(train_dl, "Train", e+1)
     for batch in pbar:
+        optimizer.zero_grad()
         batch = {k: v.to(device) for k, v in batch.items()}
         
         labels = batch["labels"]
@@ -70,8 +70,6 @@ for e in range(epochs):
             attention_mask = attention_mask,
             labels = labels,
         )
-
-        optimizer.zero_grad()
         
         predictions = torch.argmax(outputs.logits, dim = -1)
 
@@ -111,12 +109,16 @@ for e in range(epochs):
                 attention_mask = attention_mask,
                 labels = labels,
             )
-
-            loss = outputs.loss
             
             predictions = torch.argmax(outputs.logits, dim = -1)
 
-            labels = batch["labels"]
+            logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
+            labels_flat = labels.view(-1)
+            loss = criterion(logits_flat, labels_flat)
+            loss = loss.view(config["batch_size"], config["dataset"]["mal"])
+            
+            sample_w = batch["weights"].unsqueeze(-1)
+            loss = (loss * sample_w).mean()
             
             val_losses.append(loss.item())
             val_metric_logger.log_per_step(predictions, labels)
@@ -139,6 +141,7 @@ for e in range(epochs):
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
+    print(f"  Lr: {np.mean(lr_scheduler.get_last_lr())}")
     
     overall_train_losses.append(train_loss)
     overall_val_losses.append(val_loss)
