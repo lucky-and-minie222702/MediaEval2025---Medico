@@ -72,7 +72,8 @@ def preprocess(processor, d, max_length, complexity_weight = None, include_answe
         quest = " ".join([quest[i]["q"] for i in range(len(quest))])
     
     inputs = processor(
-        image, quest, 
+        images = image,
+        text = quest,
         return_tensors = "pt",
         max_length = max_length[0],
         padding = "max_length",
