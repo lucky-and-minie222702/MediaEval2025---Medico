@@ -77,8 +77,6 @@ for e in range(epochs):
             attention_mask = attention_mask,
             labels = labels,
         )
-        
-        print(labels.shape, input_ids.shape, pixel_values.shape)
 
         loss = outputs.loss
         loss.backward()
