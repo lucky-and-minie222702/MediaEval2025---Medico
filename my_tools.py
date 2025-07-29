@@ -48,7 +48,8 @@ class MyUtils:
         def __init__(self, processor):
             self.cur_content = None
             self.processor = processor
-            self.content = None
+            self.batch_content = None
+            self.step_content = None
         
         def log_per_step(self, predictions, labels):
             scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
@@ -66,15 +67,28 @@ class MyUtils:
             return {k: np.mean(v) for k, v in self.cur_content.items()}
                     
         def end_batch(self):
-            if self.content is None:
-                self.content = self.mean_content
-                for k, v in self.content.items():
-                    self.content[k] = [v]
+            if self.batch_content is None:
+                self.batch_content = self.mean_content
+                for k, v in self.batch_content.items():
+                    self.batch_content[k] = [v]
             else:
-                for k in self.content.keys():
-                    self.content[k].append(self.mean_content[k])
+                for k in self.batch_content.keys():
+                    self.batch_content[k].append(self.mean_content[k])
+
+            if self.step_content is None:
+                self.step_content = self.cur_content
+            else:
+                for k, v in self.cur_content:
+                    self.step_content[k].extend(v)
 
             self.cur_content = None
+            
+        @property
+        def content(self):
+            return {
+                "by_step": self.step_content,
+                "by_batch": self.batch_content,
+            }
             
     class TestLogger(MetricLogger):
         def __init__(self, processor):
