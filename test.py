@@ -41,7 +41,7 @@ model = model.to(device)
 tqdm_wrapper = lambda dl, name: tqdm(dl, 
                                      desc = f"{name}", 
                                      ncols = 150, 
-                                     bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining},{rate_fmt},{postfix}]",
+                                     bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining},{rate_fmt}{postfix}]",
                                      disable = not use_tqdm)
 
 with torch.no_grad():
