@@ -9,7 +9,7 @@ from my_models import *
 torch.set_float32_matmul_precision("high")
 
 # load config
-config = MyConfig("train_config.json")
+config = MyConfig(sys.argv[1])
 
 # training config
 batch_size = config["batch_size"]
@@ -43,14 +43,18 @@ train_dl, val_dl = load_data(
 )
 
 # logger
-tqdm_wrapper = lambda dl, name, ep: tqdm(dl, desc = f" [{ep}] {name}", ncols = 175, disable = not use_tqdm)
+tqdm_wrapper = lambda dl, name, ep: tqdm(dl, 
+                                         desc = f" [{ep}] {name}", 
+                                         ncols = 150, 
+                                         bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+                                         disable = not use_tqdm)
 val_metric_logger = MyUtils.MetricLogger(processor)
 train_metric_logger = MyUtils.MetricLogger(processor)
 overall_train_losses = []
 overall_val_losses = []
 
 # save path
-folder = f"models_checkpoint_{config['name']}/"
+folder = f"checkpoint_{config['dir_name']}/"
 os.makedirs(folder , exist_ok = True)
 
 # train
@@ -142,7 +146,7 @@ for e in range(epochs):
 
     if len(overall_val_losses) > 0:
         if val_loss < min(overall_val_losses):
-            torch.save(model.state_dict(), folder + "model.torch")
+            torch.save(model.state_dict(), folder + f"model_{config["name"]}.torch")
             print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")
@@ -156,10 +160,10 @@ for e in range(epochs):
     val_metric_logger.end_batch()
         
     # save metrics
-    joblib.dump(overall_train_losses, folder + "train_loss.joblib")
-    joblib.dump(overall_val_losses, folder + "val_loss.joblib")
-    joblib.dump(train_metric_logger.content, folder + "train_metrics.joblib")
-    joblib.dump(val_metric_logger.content, folder + "val_metrics.joblib")
+    joblib.dump(overall_train_losses, folder + f"train_loss_{config["name"]}.joblib")
+    joblib.dump(overall_val_losses, folder + f"val_loss_{config["name"]}.joblib")
+    joblib.dump(train_metric_logger.content, folder + f"train_metrics_{config["name"]}.joblib")
+    joblib.dump(val_metric_logger.content, folder + f"val_metrics_{config["name"]}.joblib")
         
     # early stopping
     if len(overall_val_losses) > early_stopping_patience:
@@ -168,4 +172,4 @@ for e in range(epochs):
             break
         
 if epochs == 1: 
-    torch.save(model.state_dict(), folder + "model.torch")
+    torch.save(model.state_dict(), folder + f"model_{config["name"]}.torch")

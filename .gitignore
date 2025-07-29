@@ -1,11 +1,11 @@
 data
 *.ipynb_checkpoints*
 *.DS_Store*
-models_checkpoint_*
-models
+checkpoint*
+models*
 *.ipynb
 *__pycache__*
 slurm*
 *_temp*
-train_config.json
-test_config.json
+*_config.json
+*_config.json

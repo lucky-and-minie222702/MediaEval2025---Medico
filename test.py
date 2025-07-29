@@ -7,7 +7,7 @@ from my_models import *
 torch.set_float32_matmul_precision("high")
 
 # load config
-config = MyConfig("test_config.json")
+config = MyConfig(sys.argv[1])
 
 # testing config
 batch_size = config["batch_size"]
@@ -19,22 +19,34 @@ print(f"Test on: {device}")
 model, processor = get_models_by_name(config["model"])
 
 # data
-test_dl = load_data(processor, max_question_length = config["dataset"]["mql"], max_answer_length = config["dataset"]["mal"], train_ratio = config["train_ratio"], batch_size = batch_size, use_original = config["dataset"]["use_original"], complexities = config["dataset"]["complexities"], complexity_weight = config["dataset"]["complexity_weight"], test_only = True)
+test_dl = load_data(
+    processor, 
+    batch_size = batch_size, 
+    max_question_length = config["dataset"]["mql"], 
+    max_answer_length = config["dataset"]["mal"], 
+    train_ratio = config["train_ratio"], 
+    use_original = config["dataset"]["use_original"], 
+    complexities = config["dataset"]["complexities"],
+    test_only = True,
+)
 
 # logger
 logger = MyUtils.TestLogger(processor)
 
 # save path
-folder = f"models_checkpoint_{config['name']}/"
-model.load_state_dict(torch.load(folder + "model.torch", map_location = device))
+folder = f"checkpoint_{config['dir_name']}/"
+model.load_state_dict(torch.load(folder + f"model_{config["name"]}.torch", map_location = device))
 model = model.to(device)
-criterion = get_loss_by_name(config["loss"], processor)
 
-tqdm_wrapper = lambda dl, name: tqdm(dl, desc = f"{name}", ncols = 175, disable = not use_tqdm)
+tqdm_wrapper = lambda dl, name: tqdm(dl, 
+                                     desc = f"{name}", 
+                                     ncols = 150, 
+                                     bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+                                     disable = not use_tqdm)
 
 with torch.no_grad():
     model.eval()
-    pbar = tqdm_wrapper(test_dl, "Test ")
+    pbar = tqdm_wrapper(test_dl, "Test")
     for batch, _ in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
 
@@ -49,15 +61,15 @@ with torch.no_grad():
             labels = labels,
         )
         
-        predictions = torch.argmax(outputs.logits, dim = -1)
-
-        logits_flat = outputs.logits.view(-1, outputs.logits.size(-1))
-        labels_flat = labels.view(-1)
-        loss = criterion(logits_flat, labels_flat)
-        loss = loss.view(config["batch_size"], config["dataset"]["mal"])
+        loss = outputs.loss
         
-        sample_w = batch["weights"].unsqueeze(-1)
-        loss = (loss * sample_w).mean()
+        predictions = model.generate(
+            input_ids = input_ids,
+            pixel_values = pixel_values,
+            attention_mask = attention_mask,
+            labels = labels,
+            max_new_tokens = config["dataset"]["mal"],
+        )
 
         logger.log_per_step(input_ids, predictions, labels, loss.item())
         
@@ -71,5 +83,5 @@ logger.end_batch()
 for k, v in logger.content.items():
     print(f"{k}: {v}")
 
-joblib.dump(logger.content, folder + "test_metrics.joblib")
-joblib.dump(logger.outputs, folder + "test_outputs.joblib")
+joblib.dump(logger.content, folder + f"test_metrics_{config["name"]}.joblib")
+joblib.dump(logger.outputs, folder + f"test_outputs_{config["name"]}.joblib")
