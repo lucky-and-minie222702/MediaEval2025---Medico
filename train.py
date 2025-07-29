@@ -89,7 +89,7 @@ for e in range(epochs):
             pixel_values = pixel_values,
             attention_mask = attention_mask,
             labels = labels,
-            max_length = config["dataset"]["mal"],
+            max_new_tokens = config["dataset"]["mal"],
         )
         
         print(processor.tokenizer.batch_decode(predictions, skip_special_tokens = True))
@@ -128,7 +128,7 @@ for e in range(epochs):
                 pixel_values = pixel_values,
                 attention_mask = attention_mask,
                 labels = labels,
-                max_length = config["dataset"]["mal"],
+                max_new_tokens = config["dataset"]["mal"],
             )
             
             val_metric_logger.log_per_step(predictions, labels)
