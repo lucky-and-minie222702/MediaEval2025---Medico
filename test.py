@@ -35,7 +35,7 @@ logger = MyUtils.TestLogger(processor)
 
 # save path
 folder = f"checkpoint_{config['dir_name']}/"
-model.load_state_dict(torch.load(folder + f"model_{config["name"]}.torch", map_location = device))
+model.load_state_dict(torch.load(folder + f"model_{config['name']}.torch", map_location = device))
 model = model.to(device)
 
 tqdm_wrapper = lambda dl, name: tqdm(dl, 
@@ -83,5 +83,5 @@ logger.end_batch()
 for k, v in logger.content.items():
     print(f"{k}: {v}")
 
-joblib.dump(logger.content, folder + f"test_metrics_{config["name"]}.joblib")
-joblib.dump(logger.outputs, folder + f"test_outputs_{config["name"]}.joblib")
+joblib.dump(logger.content, folder + f"test_metrics_{config['name']}.joblib")
+joblib.dump(logger.outputs, folder + f"test_outputs_{config['name']}.joblib")
