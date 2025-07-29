@@ -83,5 +83,4 @@ logger.end_batch()
 for k, v in logger.content.items():
     print(f"{k}: {v}")
 
-joblib.dump(logger.content, folder + f"test_metrics_{config['name']}.joblib")
-joblib.dump(logger.outputs, folder + f"test_outputs_{config['name']}.joblib")
+joblib.dump(logger.content, folder + f"test_results_{config['name']}.joblib")

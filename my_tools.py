@@ -65,6 +65,10 @@ class MyUtils:
         @property
         def mean_content(self):
             return {k: np.mean(v) for k, v in self.cur_content.items()}
+        
+        @property
+        def last_content(self):
+            return {k: v[-1] for k, v in self.cur_content.items()}
                     
         def end_batch(self):
             if self.batch_content is None:
@@ -86,8 +90,8 @@ class MyUtils:
         @property
         def content(self):
             return {
-                "by_step": self.step_content,
-                "by_batch": self.batch_content,
+                "per_step": self.step_content,
+                "per_batch": self.batch_content,
             }
             
     class TestLogger(MetricLogger):
@@ -117,9 +121,14 @@ class MyUtils:
             
             self.outputs = np.transpose(self.outputs, (1, 0)) # (n_samples, 3)
             
-            # unsqueeze
-            self.content = {k: v[0] for k, v in self.content.items()}
-            self.content["loss"] = np.mean(self.losses)
+        @property
+        def content(self):
+            return {
+                "per_step": self.step_content,
+                "per_batch": self.batch_content,
+                "losses": self.losses,
+                "outputs": self.outputs,
+            }
     
 
 class MyCLI:
