@@ -76,8 +76,8 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
         text = quest,
         return_tensors = "pt",
         max_length = max_length[0],
-        padding = True,
-        truncation = True,
+        padding = "max_length",
+        truncation = "max_length",
     )
     
     if include_answer:
@@ -85,8 +85,8 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
             norm_text(d["answer"]), 
             return_tensors = "pt",
             max_length = max_length[1],
-            padding = True,
-            truncation = True,
+            padding = "max_length",
+            truncation = "max_length",
         )["input_ids"]
         
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
