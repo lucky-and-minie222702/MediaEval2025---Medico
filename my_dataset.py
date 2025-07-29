@@ -77,7 +77,7 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
         return_tensors = "pt",
         max_length = max_length[0],
         padding = "max_length",
-        truncation = "max_length",
+        truncation = True,
     )
     
     if include_answer:
@@ -86,7 +86,7 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
             return_tensors = "pt",
             max_length = max_length[1],
             padding = "max_length",
-            truncation = "max_length",
+            truncation = True,
         )["input_ids"]
         
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
