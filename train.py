@@ -28,8 +28,11 @@ model = model.to(device)
 
 optimizer = AdamW(model.parameters(), lr = config["lr"])
 
-lr_scheduler = ReduceLROnPlateau(optimizer, mode = "min", factor = config["lr_scheduler"]["factor"], patience = config["lr_scheduler"]["patience"], min_lr = config["lr_scheduler"]["min_lr"])
-early_stopping_patience = config["early_stopping"]["patience"]
+lr_scheduler = ReduceLROnPlateau(optimizer, 
+                                 mode = "min", 
+                                 factor = config["lr_scheduler"]["factor"], 
+                                 patience = config["lr_scheduler"]["patience"], 
+                                 min_lr = config["lr_scheduler"]["min_lr"])
 
 # data
 train_dl, val_dl = load_data(
@@ -48,10 +51,8 @@ tqdm_wrapper = lambda dl, name, ep: tqdm(dl,
                                          ncols = 150, 
                                          bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining},{rate_fmt}{postfix}]",
                                          disable = not use_tqdm)
-val_metric_logger = MyUtils.MetricLogger(processor)
+val_metric_logger = MyUtils.MetricLogger(processor, early_stopping_patience = config["early_stopping"]["patience"])
 train_metric_logger = MyUtils.MetricLogger(processor)
-overall_train_losses = []
-overall_val_losses = []
 
 # save path
 folder = f"checkpoint_{config['dir_name']}/"
@@ -60,9 +61,6 @@ os.makedirs(folder , exist_ok = True)
 # train
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
-    
-    train_losses = []
-    val_losses = []
     
     # train
     model.train()
@@ -94,11 +92,9 @@ for e in range(epochs):
             max_new_tokens = config["dataset"]["mal"],
         )
 
-        train_losses.append(loss.item())
-        train_metric_logger.log_per_step(predictions, labels)
+        train_metric_logger.log_per_step(predictions, labels, loss.item())
         
         pbar.set_postfix(
-            loss = round(np.mean(train_losses), 4),
             **{k: round(v, 4) for k, v in train_metric_logger.mean_content.items()}
         )
 
@@ -121,7 +117,6 @@ for e in range(epochs):
             )
 
             loss = outputs.loss
-            val_losses.append(loss.item())
             
             predictions = model.generate(
                 input_ids = input_ids,
@@ -131,45 +126,38 @@ for e in range(epochs):
                 max_new_tokens = config["dataset"]["mal"],
             )
             
-            val_metric_logger.log_per_step(predictions, labels)
+            val_metric_logger.log_per_step(predictions, labels, loss.item())
             
             pbar.set_postfix(
-                loss = round(np.mean(val_losses), 4),
                 **{k: round(v, 4) for k, v in val_metric_logger.mean_content.items()}
             )
 
 
-    train_loss = np.mean(train_losses)
-    val_loss = np.mean(val_losses)
+    train_loss = train_metric_logger.mean_content["loss"]
+    val_loss = val_metric_logger.mean_content["loss"]
     
     lr_scheduler.step(val_loss)
 
-    if len(overall_val_losses) > 0:
-        if val_loss < min(overall_val_losses):
+    if e > 0:
+        if val_loss < min(val_metric_logger.batch_content["loss"]):
             torch.save(model.state_dict(), folder + f"model_{config['name']}.torch")
             print("Checkpoint saved!")
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
     print(f"  Lr: {np.mean(lr_scheduler.get_last_lr())}")
-    
-    overall_train_losses.append(train_loss)
-    overall_val_losses.append(val_loss)
 
     train_metric_logger.end_batch()
     val_metric_logger.end_batch()
         
     # save metrics
-    joblib.dump(overall_train_losses, folder + f"train_loss_{config['name']}.joblib")
-    joblib.dump(overall_val_losses, folder + f"val_loss_{config['name']}.joblib")
     joblib.dump(train_metric_logger.content, folder + f"train_metrics_{config['name']}.joblib")
     joblib.dump(val_metric_logger.content, folder + f"val_metrics_{config['name']}.joblib")
         
     # early stopping
-    if len(overall_val_losses) > early_stopping_patience:
-        if min(overall_val_losses[:-early_stopping_patience:]) < min(overall_val_losses[-early_stopping_patience::]):
-            print("Early stop triggered!")
-            break
+    if val_metric_logger.is_early_stop():
+        print("Early stop triggered!")
+        break
         
 if epochs == 1: 
     torch.save(model.state_dict(), folder + f"model_{config['name']}.torch")

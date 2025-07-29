@@ -45,17 +45,19 @@ class MyUtils:
         return MyText.get_scores(pred, label)
     
     class MetricLogger:
-        def __init__(self, processor):
+        def __init__(self, processor, early_stopping_patience = None):
             self.cur_content = None
             self.processor = processor
             self.batch_content = None
             self.step_content = None
+            self.early_stopping_patience = early_stopping_patience
         
-        def log_per_step(self, predictions, labels):
+        def log_per_step(self, predictions, labels, loss):
             scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
             
             if self.cur_content is None:
                 self.cur_content = scores
+                self.cur_content["loss"] = loss
                 for k, v in self.cur_content.items():
                     self.cur_content[k] = [v]
             else:
@@ -94,14 +96,27 @@ class MyUtils:
                 "per_batch": self.batch_content,
             }
             
+        def is_early_stop(self, per_step = False):
+            if self.early_stopping_patience is None:
+                raise NotImplementedError()
+                
+            l = self.batch_content["loss"]
+            if per_step:
+                l = self.step_content["loss"]
+
+            if len(l) > self.early_stopping_patience:
+                if min(l[:-self.early_stopping_patience:]) < min(l[-self.early_stopping_patience::]):
+                    return True
+            return False
+                    
+            
     class TestLogger(MetricLogger):
         def __init__(self, processor):
             super().__init__(processor)
             self.outputs = None
-            self.losses = []
             
         def log_per_step(self, questions, predictions, labels, loss):
-            super().log_per_step(predictions, labels)
+            super().log_per_step(predictions, labels, loss)
             
             cur_outputs = [
                 MyUtils.get_sentences_from_ids(self.processor, questions),
@@ -114,8 +129,6 @@ class MyUtils:
             else:
                 self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 1)  # (3, n_samples)
             
-            self.losses.append(loss)
-            
         def end_batch(self):
             super().end_batch()
             
@@ -124,9 +137,7 @@ class MyUtils:
         @property
         def content(self):
             return {
-                "per_step": self.step_content,
-                "per_batch": self.batch_content,
-                "losses": self.losses,
+                **super().content,
                 "outputs": self.outputs,
             }
     
