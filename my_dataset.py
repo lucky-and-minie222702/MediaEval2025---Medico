@@ -76,7 +76,7 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
         text = quest,
         return_tensors = "pt",
         max_length = max_length[0],
-        padding = "max_length",
+        padding = True,
         truncation = True,
     )
     
@@ -85,7 +85,7 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
             norm_text(d["answer"]), 
             return_tensors = "pt",
             max_length = max_length[1],
-            padding = "max_length",
+            padding = True,
             truncation = True,
         )["input_ids"]
         
