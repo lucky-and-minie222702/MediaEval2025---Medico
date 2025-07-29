@@ -63,6 +63,7 @@ class MyUtils:
             else:
                 for k, v in scores.items():
                     self.cur_content[k].append(v)
+                self.cur_content["loss"].append(loss)
                     
         @property
         def mean_content(self):
