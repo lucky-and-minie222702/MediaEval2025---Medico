@@ -91,8 +91,6 @@ for e in range(epochs):
             labels = labels,
             max_new_tokens = config["dataset"]["mal"],
         )
-        
-        print(processor.tokenizer.batch_decode(predictions, skip_special_tokens = True))
 
         train_losses.append(loss.item())
         train_metric_logger.log_per_step(predictions, labels)
