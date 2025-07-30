@@ -61,6 +61,7 @@ os.makedirs(folder , exist_ok = True)
 # train
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
+    print(f"  Lr         : {optimizer.param_groups[0]['lr']}")
     
     # train
     model.train()
@@ -145,7 +146,7 @@ for e in range(epochs):
             
     print(f"  Train loss : {train_loss}")
     print(f"  Val loss   : {val_loss}")
-    print(f"  Lr: {np.mean(lr_scheduler.get_last_lr())}")
+    print(f"  Lr         : {optimizer.param_groups[0]['lr']}")
 
     train_metric_logger.end_batch()
     val_metric_logger.end_batch()
