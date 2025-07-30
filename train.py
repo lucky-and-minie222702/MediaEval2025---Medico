@@ -49,7 +49,7 @@ train_dl, val_dl = load_data(
 tqdm_wrapper = lambda dl, name, ep: tqdm(dl, 
                                          desc = f" [{ep}] {name}", 
                                          ncols = 150, 
-                                         bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]",
+                                         bar_format = "{l_bar}{n_fmt}/{total_fmt} [{elapsed}<{remaining},{rate_fmt}{postfix}]",
                                          disable = not use_tqdm)
 val_metric_logger = MyUtils.MetricLogger(processor, early_stopping_patience = config["early_stopping"]["patience"])
 train_metric_logger = MyUtils.MetricLogger(processor)
