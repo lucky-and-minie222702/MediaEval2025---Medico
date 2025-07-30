@@ -61,7 +61,6 @@ os.makedirs(folder , exist_ok = True)
 # train
 for e in range(epochs):
     print(f"Epoch {e+1}/{epochs}:")
-    print(f"  Lr         : {optimizer.param_groups[0]['lr']}")
     
     # train
     model.train()
