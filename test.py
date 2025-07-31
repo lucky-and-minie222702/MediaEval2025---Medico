@@ -24,7 +24,6 @@ test_dl = load_data(
     batch_size = batch_size, 
     max_question_length = config["dataset"]["mql"], 
     max_answer_length = config["dataset"]["mal"], 
-    train_ratio = config["train_ratio"], 
     use_original = config["dataset"]["use_original"], 
     complexities = config["dataset"]["complexities"],
     test_only = True,
