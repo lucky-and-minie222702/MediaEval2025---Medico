@@ -85,7 +85,7 @@ class MyUtils:
             if self.step_content is None:
                 self.step_content = self.cur_content
             else:
-                for k, v in self.cur_content:
+                for k, v in self.cur_content.items():
                     self.step_content[k].extend(v)
 
             self.cur_content = None
