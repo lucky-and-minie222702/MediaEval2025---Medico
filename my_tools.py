@@ -161,10 +161,6 @@ class MyTyping:
 
 
 class MyText:
-    # bleu = evaluate.load("bleu")
-    # rouge = evaluate.load("rouge")
-    # meteor = evaluate.load("meteor")
-    
     bleu = corpus_bleu
     rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
     meteor = meteor_score
@@ -192,7 +188,7 @@ class MyText:
 
         bleu = corpus_bleu(clean_preds, clean_refs_list).score / 100
 
-        # --- ROUGE (F1 averaged)
+        # rouge
         r1_total, r2_total, rl_total = 0, 0, 0
         for pred, refs in zip(clean_preds, clean_refs_list):
             ref = refs[0]
@@ -205,7 +201,7 @@ class MyText:
         rouge2 = r2_total / n
         rougeL = rl_total / n
 
-        # --- METEOR (averaged)
+        # meteor
         meteor_total = 0
         for pred, refs in zip(clean_preds, clean_refs_list):
             meteor_total += meteor_score(
