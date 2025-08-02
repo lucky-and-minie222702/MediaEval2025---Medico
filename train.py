@@ -22,8 +22,8 @@ print(f"Train on: {device}")
 
 model, processor = get_models_by_name(config["model"])
 
-if config["use_pretrained"]:
-    model.load_state_dict(torch.load(config["pretrained_path"], map_location = device))
+if config["use_prefinetuned"]:
+    model.load_state_dict(torch.load(config["prefinetuned_path"], map_location = device))
 model = model.to(device)
 
 optimizer = AdamW(model.parameters(), lr = config["lr"])
