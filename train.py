@@ -50,7 +50,7 @@ train_ds, val_ds = load_data(
 
 # train
 training_args = TrainingArguments(
-    output_dir = config["dir"],
+    output_dir = f"save_{config["dir"]}",
     per_device_train_batch_size = config["batch_size"],
     per_device_eval_batch_size = config.get("val_batch_size", config["batch_size"]),
     gradient_accumulation_steps = config["grad_accum"],
