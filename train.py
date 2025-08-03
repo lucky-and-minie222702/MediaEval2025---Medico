@@ -69,7 +69,8 @@ trainer = Trainer(
     args = training_args,
     train_dataset = train_ds,
     eval_dataset = val_ds,
-    tokenizer = processor.tokenizer
+    tokenizer = processor.tokenizer,
+    compute_metrics = lambda e: MyUtils.get_scores_from_ids(processor, e[0], e[1])
 )
 
 trainer.train()
