@@ -16,18 +16,10 @@ from nltk.translate.meteor_score import meteor_score
 class MyConfig:
     @staticmethod
     def load_json(p):
+        data = dict({})
         with open(p, "r", encoding="utf-8") as file:
             data = json.load(file)
         return data
-    
-    def __init__(self, data, is_path = True):
-        self.data= data
-        if is_path:
-            self.data = MyConfig.load_json(data)
-        
-    def __getitem__(self, index):
-        out = self.data[index]
-        return out
 
 
 class MyUtils:    
@@ -43,105 +35,7 @@ class MyUtils:
         label = MyUtils.get_sentences_from_ids(processor, label)
         
         return MyText.get_scores(pred, label)
-    
-    class MetricLogger:
-        def __init__(self, processor, early_stopping_patience = None):
-            self.cur_content = None
-            self.processor = processor
-            self.batch_content = None
-            self.step_content = None
-            self.early_stopping_patience = early_stopping_patience
-        
-        def log_per_step(self, predictions, labels, loss):
-            scores = MyUtils.get_scores_from_ids(self.processor, predictions, labels)
-            
-            if self.cur_content is None:
-                self.cur_content = scores
-                self.cur_content["loss"] = loss
-                for k, v in self.cur_content.items():
-                    self.cur_content[k] = [v]
-            else:
-                for k, v in scores.items():
-                    self.cur_content[k].append(v)
-                self.cur_content["loss"].append(loss)
-                    
-        @property
-        def mean_content(self):
-            return {k: np.mean(v) for k, v in self.cur_content.items()}
-        
-        @property
-        def last_content(self):
-            return {k: v[-1] for k, v in self.cur_content.items()}
-                    
-        def end_batch(self):
-            if self.batch_content is None:
-                self.batch_content = self.mean_content
-                for k, v in self.batch_content.items():
-                    self.batch_content[k] = [v]
-            else:
-                for k in self.batch_content.keys():
-                    self.batch_content[k].append(self.mean_content[k])
 
-            if self.step_content is None:
-                self.step_content = self.cur_content
-            else:
-                for k, v in self.cur_content.items():
-                    self.step_content[k].extend(v)
-
-            self.cur_content = None
-            
-        @property
-        def content(self):
-            return {
-                "per_step": self.step_content,
-                "per_batch": self.batch_content,
-            }
-            
-        def is_early_stop(self, per_step = False):
-            if self.early_stopping_patience is None:
-                raise NotImplementedError()
-                
-            l = self.batch_content["loss"]
-            if per_step:
-                l = self.step_content["loss"]
-
-            if len(l) > self.early_stopping_patience:
-                if min(l[:-self.early_stopping_patience:]) < min(l[-self.early_stopping_patience::]):
-                    return True
-            return False
-                    
-            
-    class TestLogger(MetricLogger):
-        def __init__(self, processor):
-            super().__init__(processor)
-            self.outputs = None
-            
-        def log_per_step(self, questions, predictions, labels, loss):
-            super().log_per_step(predictions, labels, loss)
-            
-            cur_outputs = [
-                MyUtils.get_sentences_from_ids(self.processor, questions),
-                MyUtils.get_sentences_from_ids(self.processor, labels),
-                MyUtils.get_sentences_from_ids(self.processor, predictions),
-            ]
-            
-            if self.outputs is None:
-                self.outputs = cur_outputs
-            else:
-                self.outputs = np.concatenate([self.outputs, cur_outputs], axis = 1)  # (3, n_samples)
-            
-        def end_batch(self):
-            super().end_batch()
-            
-            self.outputs = np.transpose(self.outputs, (1, 0)) # (n_samples, 3)
-            
-        @property
-        def content(self):
-            return {
-                **super().content,
-                "outputs": self.outputs,
-            }
-    
 
 class MyCLI:
     @staticmethod

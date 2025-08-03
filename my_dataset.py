@@ -56,7 +56,7 @@ def norm_text(text):
     return out
 
 
-def preprocess(processor, d, max_length, include_answer = True, use_original = False, img_dict = None, transform = None):
+def preprocess(processor, d, max_length, include_answer = True, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
 
@@ -66,10 +66,7 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
     if transform is not None:
         image = transform(image)
     
-    quest = norm_text(d["question"])
-    if use_original:
-        quest = MyTyping.reformat(d["original"])
-        quest = " ".join([quest[i]["q"] for i in range(len(quest))])
+    quest = f"Question: {norm_text(d["question"])}"
     
     inputs = processor(
         images = image,
@@ -95,10 +92,9 @@ def preprocess(processor, d, max_length, include_answer = True, use_original = F
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, use_original = False, transform = None):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, transform = None):
         super().__init__()
 
-        self.use_original = use_original
         self.max_length = [max_question_legnth, max_answer_length]
         self.processor = processor
         self.transform = transform
@@ -110,16 +106,11 @@ class MyDataset(Dataset):
         
     def __getitem__(self, index):
         return preprocess(self.processor, self.data[index], self.max_length, 
-                          use_original = self.use_original,
                           img_dict = self.img_dict, 
                           transform = self.transform)
     
     
-# train: 114_868
-# question_max_length = 20,  # 114_729 in train
-# answer_max_length = 40,  # 113_865 in train
-def load_data(processor, max_question_length, max_answer_length, train_ratio = None, batch_size = 16, use_original = False, complexities = [1, 2, 3], test_only = False):
-    # Tu nhien co tieng Trung
+def load_data(processor, max_question_length, max_answer_length, train_ratio = None, complexities = [1, 2, 3], test_only = False):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
@@ -128,21 +119,12 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
     def drop_invalid_char_df(df):
         df.drop(index = invalid_char(df["question"].tolist()), inplace = True)
         df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
-        
-    def collate_fn(batch):
-        return {
-            key: torch.stack([item[key] for item in batch])
-            for key in batch[0]
-        }
-        
-    dl_wrapper = lambda ds, sh: DataLoader(ds, batch_size = batch_size, shuffle = sh, num_workers = 4, persistent_workers = True, pin_memory = True, collate_fn = collate_fn)
     
     if test_only:
         test_df = pd.read_csv("data/test.csv")
         drop_invalid_char_df(test_df)
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, use_original, BASE_TRANSFORM)
-        test_dl = dl_wrapper(test_ds, False)
-        return test_dl
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
+        return test_ds
 
     # load df
     train_df = pd.read_csv("data/train.csv")
@@ -153,10 +135,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
     val_df = train_df.iloc[train_size::]
     train_df = train_df.iloc[:train_size:]
 
-    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, use_original, TRAIN_TRANSFORM)
-    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, use_original, BASE_TRANSFORM)
-
-    train_dl = dl_wrapper(train_ds, True)
-    val_dl = dl_wrapper(val_ds, False)
+    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, TRAIN_TRANSFORM)
+    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
     
-    return train_dl, val_dl
+    return train_ds, val_ds
