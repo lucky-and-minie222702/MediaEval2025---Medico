@@ -66,7 +66,6 @@ with torch.no_grad():
             input_ids = input_ids,
             pixel_values = pixel_values,
             attention_mask = attention_mask,
-            labels = labels,
             max_new_tokens = config["dataset"]["mal"],
         )
 
