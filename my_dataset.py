@@ -36,11 +36,11 @@ BASE_TRANSFORM = transforms.Compose([
 
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
-        brightness = 0.2,
-        contrast = 0.2,
-        saturation = 0.1,
+        brightness = 0.1,
+        contrast = 0.1,
+        saturation = 0.025,
     ),
-    transforms.RandomAffine(36),
+    transforms.RandomAffine(18),
     *BASE_TRANSFORM.transforms,
 ])
 

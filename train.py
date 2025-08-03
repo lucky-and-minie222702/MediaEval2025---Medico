@@ -40,10 +40,9 @@ model.language_model = get_peft_model(model.language_model, lora_config)
 # get data
 train_ds, val_ds = load_data(
     processor, 
-    max_question_length = config["dataset"]["mql"], 
-    max_answer_length = config["dataset"]["mal"], 
+    max_question_length = config["dataset"]["max_question_length"], 
+    max_answer_length = config["dataset"]["max_answer_length"], 
     train_ratio = config["dataset"]["train_ratio"], 
-    use_original = config["dataset"]["use_original"], 
     complexities = config["dataset"]["complexities"]
 )
 
