@@ -91,8 +91,6 @@ training_args = Seq2SeqTrainingArguments(
     
     dataloader_num_workers = 4,
     dataloader_pin_memory = False,
-    
-    torch_empty_cache_steps = config["n_steps"],
 )
 
 trainer = Trainer(
