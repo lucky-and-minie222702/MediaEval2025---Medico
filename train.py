@@ -22,6 +22,7 @@ quant_config = BitsAndBytesConfig(
     llm_int8_threshold = 6.0,
     llm_int8_skip_modules = None,
     llm_int8_enable_fp32_cpu_offload = True,
+    use_cache = False,
 )
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
