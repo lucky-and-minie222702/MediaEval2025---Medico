@@ -2,7 +2,9 @@ import numpy as np
 from PIL import Image, ImageOps
 import json
 import sys
-from transformers.utils import logging
+import transformers
+from functools import partial
+from tqdm import tqdm
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
@@ -11,13 +13,7 @@ from nltk.translate.meteor_score import meteor_score
 class MyDisplay:
     @staticmethod
     def set_trainer_ncols(ncols):
-        original_bar = logging.get_progress_bar
-
-        def custom_progress_bar(*args, **kwargs):
-            kwargs["ncols"] = ncols
-            return original_bar(*args, **kwargs)
-
-        logging.get_progress_bar = custom_progress_bar
+        transformers.trainer_utils.tqdm = partial(tqdm, ncols = ncols)
         
 
 
