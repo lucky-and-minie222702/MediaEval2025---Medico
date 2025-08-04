@@ -42,7 +42,7 @@ lora_config = LoraConfig(
     task_type = TaskType.CAUSAL_LM  # can use SEQ_2_SEQ_LM
 )
 model.add_adapter(lora_config, adapter_name="lora_1")
-model.enable_adapter()
+model.enable_adapters()
 
 model.language_model = get_peft_model(model.language_model, lora_config)
 
