@@ -80,19 +80,19 @@ training_args = Seq2SeqTrainingArguments(
     save_total_limit = 1,
     
     logging_strategy = "steps",
-    logging_steps = 0.2,
+    logging_steps = config["n_steps"],
     
     predict_with_generate = True,
-    generation_config = GenerationConfig(use_cache = False),
     
     fp16 = True,
     report_to = "none",
     
     dataloader_num_workers = 4,
     dataloader_pin_memory = False,
+    
+    torch_empty_cache_steps = config["n_steps"],
 )
 
-model.config.use_cache = False
 trainer = Trainer(
     model = model,
     args = training_args,
