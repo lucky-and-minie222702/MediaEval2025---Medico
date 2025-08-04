@@ -92,6 +92,7 @@ training_args = Seq2SeqTrainingArguments(
     dataloader_pin_memory = False,
     
     batch_eval_metrics = True,
+    disable_tqdm = True,
 )
 
 trainer = Trainer(
