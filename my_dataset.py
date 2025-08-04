@@ -1,16 +1,11 @@
 from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from PIL import Image
 import pandas as pd
-from tqdm import tqdm
 from my_tools import *
 import os
 from os import path
-import torch
-
-# resnet like norm
-# mean = [0.485, 0.456, 0.406]
-# std = [0.229, 0.224, 0.225]
+from sklearn.model_selection import train_test_split
 
 
 def get_img_dict():
@@ -27,11 +22,6 @@ def get_img_dict():
 
 
 BASE_TRANSFORM = transforms.Compose([
-    # transforms.ToTensor(),
-    # transforms.Normalize(
-    #     mean = [0.485, 0.456, 0.406], 
-    #     std = [0.229, 0.224, 0.225]
-    # ),
 ])
 
 TRAIN_TRANSFORM = transforms.Compose([
@@ -110,7 +100,7 @@ class MyDataset(Dataset):
                           transform = self.transform)
     
     
-def load_data(processor, max_question_length, max_answer_length, train_ratio = None, complexities = [1, 2, 3], test_only = False):
+def load_data(processor, max_question_length, max_answer_length, train_ratio = None, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
@@ -123,17 +113,18 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
     if test_only:
         test_df = pd.read_csv("data/test.csv")
         drop_invalid_char_df(test_df)
+        mask = test_df["complexity"].map(lambda x: x in test_complexities)
+        test_df = test_df[mask]
         test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
         return test_ds
 
     # load df
     train_df = pd.read_csv("data/train.csv")
     drop_invalid_char_df(train_df)
-    mask = train_df["complexity"].map(lambda x: x in complexities)
+    mask = train_df["complexity"].map(lambda x: x in train_complexities)
     train_df = train_df[mask]
-    train_size = int(len(train_df) * train_ratio)
-    val_df = train_df.iloc[train_size::]
-    train_df = train_df.iloc[:train_size:]
+
+    train_df, val_df = train_test_split(train_df, train_size = train_ratio, random_state = seed)
 
     train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, TRAIN_TRANSFORM)
     val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)

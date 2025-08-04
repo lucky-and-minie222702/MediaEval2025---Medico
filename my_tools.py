@@ -1,20 +1,9 @@
-import numpy as np
 from PIL import Image, ImageOps
 import json
 import sys
-import transformers
-from functools import partial
-from tqdm import tqdm
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
-
-
-class MyDisplay:
-    @staticmethod
-    def set_trainer_ncols(ncols):
-        transformers.trainer_utils.tqdm = partial(tqdm, ncols = ncols)
-        
 
 
 class MyConfig:
