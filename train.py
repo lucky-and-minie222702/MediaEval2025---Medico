@@ -1,5 +1,5 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training, get_peft_model, LoraConfig, TaskType
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig, GenerationConfig
+from peft import prepare_model_for_kbit_training, LoraConfig, TaskType
 import torch
 from transformers import Trainer, TrainingArguments
 from my_tools import *
@@ -81,6 +81,9 @@ training_args = TrainingArguments(
     
     logging_strategy = "steps",
     logging_steps = 0.2,
+    
+    predict_with_generate = True,
+    generation_config = GenerationConfig(use_cache = False),
     
     fp16 = True,
     report_to = "none",
