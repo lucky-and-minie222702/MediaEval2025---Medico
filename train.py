@@ -80,7 +80,7 @@ training_args = Seq2SeqTrainingArguments(
     save_total_limit = 1,
     
     logging_strategy = "steps",
-    logging_steps = config["n_steps"],
+    logging_steps = config["log_steps"],
     
     predict_with_generate = True,
     
@@ -90,6 +90,8 @@ training_args = Seq2SeqTrainingArguments(
     
     dataloader_num_workers = 4,
     dataloader_pin_memory = False,
+    
+    batch_eval_metrics = True,
 )
 
 trainer = Trainer(
@@ -98,7 +100,7 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    # compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
+    compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
