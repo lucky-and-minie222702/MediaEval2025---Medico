@@ -92,6 +92,7 @@ training_args = Seq2SeqTrainingArguments(
     dataloader_pin_memory = False,
 )
 
+model.config.use_cache = False
 trainer = Trainer(
     model = model,
     args = training_args,
