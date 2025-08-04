@@ -73,7 +73,7 @@ training_args = TrainingArguments(
     eval_steps = 10,
     
     save_strategy = "steps",
-    save_steps = 0.2,
+    save_steps = 10,
     
     metric_for_best_model = "eval_loss",
     load_best_model_at_end = True,
