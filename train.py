@@ -70,7 +70,7 @@ training_args = TrainingArguments(
     gradient_accumulation_steps = config["grad_accum"],
     
     eval_strategy = "steps",
-    eval_steps = 0.2,
+    eval_steps = 10,
     
     save_strategy = "steps",
     save_steps = 0.2,
@@ -94,7 +94,7 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    compute_metrics = lambda e: MyUtils.get_scores_from_ids(processor, e[0], e[1])
+    compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()

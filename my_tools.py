@@ -4,6 +4,7 @@ import sys
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
+import numpy as np
 
 
 class MyConfig:
@@ -15,15 +16,29 @@ class MyConfig:
         return data
 
 
-class MyUtils:    
+class MyUtils:   
+    @staticmethod
+    def torch_to_list(s):
+        s = s.detach().cpu().numpy().tolist()
+        return s
+     
     @staticmethod
     def get_sentences_from_ids(processor, s):
-        s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
         return s
 
     @staticmethod
     def get_scores_from_ids(processor, pred, label):
+        pred = MyUtils.get_sentences_from_ids(processor, pred)
+        label = MyUtils.get_sentences_from_ids(processor, label)
+        
+        return MyText.get_scores(pred, label)
+
+    @staticmethod
+    def trainer_compute_metrics(processor, eval_preds):
+        logits, label = eval_preds
+        pred = np.argmax(logits, axis = -1)
+        
         pred = MyUtils.get_sentences_from_ids(processor, pred)
         label = MyUtils.get_sentences_from_ids(processor, label)
         
