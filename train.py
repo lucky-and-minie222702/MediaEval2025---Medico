@@ -1,7 +1,7 @@
 from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig, GenerationConfig
 from peft import prepare_model_for_kbit_training, LoraConfig, TaskType
 import torch
-from transformers import Trainer, TrainingArguments
+from transformers import Trainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
 from my_models import *
@@ -59,7 +59,7 @@ train_ds, val_ds = load_data(
 
 
 # train
-training_args = TrainingArguments(
+training_args = Seq2SeqTrainingArguments(
     output_dir = f"results/{config['dir']}",
     
     num_train_epochs = config["epochs"],
