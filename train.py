@@ -56,17 +56,25 @@ train_ds, val_ds = load_data(
 # train
 training_args = TrainingArguments(
     output_dir = f"save_{config['dir']}",
+    
+    num_train_epochs = config["epochs"],
+    learning_rate = config["lr"],
+    
     per_device_train_batch_size = config["batch_size"],
     per_device_eval_batch_size = config.get("val_batch_size", config["batch_size"]),
     gradient_accumulation_steps = config["grad_accum"],
-    evaluation_strategy = "epochs",
-    save_strategy = "epochs",
-    save_steps = 100,
+    
+    eval_strategy = "steps",
+    eval_steps = 0.2,
+    
+    save_strategy = "no",
+    
     logging_steps = 10,
-    num_train_epochs = config["epochs"],
-    learning_rate = config["lr"],
-    fp16 = True,
+    
+    metric_for_best_model = "eval_loss",
     load_best_model_at_end = True,
+    
+    fp16 = True,
     report_to = "none"
 )
 
@@ -80,3 +88,4 @@ trainer = Trainer(
 )
 
 trainer.train()
+trainer.save_model(f"save_{config['dir']}")
