@@ -54,7 +54,7 @@ train_ds, val_ds = load_data(
     processor, 
     max_question_length = config["dataset"]["max_question_length"], 
     max_answer_length = config["dataset"]["max_answer_length"], 
-    train_ratio = config["dataset"]["train_ratio"], 
+    fold = config["dataset"]["fold"], 
     train_complexities = config["dataset"]["complexities"]
 )
 
@@ -101,7 +101,6 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
