@@ -68,6 +68,7 @@ training_args = Seq2SeqTrainingArguments(
     per_device_train_batch_size = config["batch_size"],
     per_device_eval_batch_size = config.get("val_batch_size", config["batch_size"]),
     gradient_accumulation_steps = config["grad_accum"],
+    overlap_comm = False,
     
     eval_strategy = "steps",
     eval_steps = config["n_steps"],
@@ -84,7 +85,8 @@ training_args = Seq2SeqTrainingArguments(
     
     predict_with_generate = True,
     
-    fp16 = True,
+    fp16 = False,
+    bf16 = True,
     report_to = "none",
     
     dataloader_num_workers = 4,
