@@ -36,7 +36,8 @@ class MyUtils:
 
     @staticmethod
     def trainer_compute_metrics(processor, eval_preds):
-        logits, label = eval_preds
+        logits = eval_preds.predictions
+        label = eval_preds.label_ids
         pred = np.argmax(logits, axis = -1)
         
         pred = MyUtils.get_sentences_from_ids(processor, pred)
