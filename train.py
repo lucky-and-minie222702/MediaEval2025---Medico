@@ -86,7 +86,6 @@ training_args = TrainingArguments(
     report_to = "none"
 )
 
-trainer.model_accepts_loss_kwargs = False
 trainer = Trainer(
     model = model,
     args = training_args,
@@ -95,5 +94,5 @@ trainer = Trainer(
     processing_class = processor,
     compute_metrics = lambda e: MyUtils.get_scores_from_ids(processor, e[0], e[1])
 )
-
+trainer.model_accepts_loss_kwargs = False
 trainer.train()
