@@ -1,4 +1,4 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, get_peft_model, LoraConfig, TaskType
 import torch
 from transformers import Trainer, TrainingArguments
@@ -14,11 +14,17 @@ config = MyConfig.load_json(sys.argv[1])
 model_name = "Salesforce/blip2-flan-t5-xl"
 
 processor = Blip2Processor.from_pretrained(model_name)
+quant_config = BitsAndBytesConfig(
+    load_in_8bit = True,
+    llm_int8_threshold = 6.0,
+    llm_int8_skip_modules = None,
+    llm_int8_enable_fp32_cpu_offload = True,
+)
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
     torch_dtype = torch.float16,
-    load_in_8bit = True
+    quantization_config = quant_config,
 )
 
 model.vision_model.requires_grad_(False)
