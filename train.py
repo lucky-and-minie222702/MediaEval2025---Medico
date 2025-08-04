@@ -83,9 +83,12 @@ training_args = TrainingArguments(
     logging_steps = 0.2,
     
     fp16 = True,
-    report_to = "none"
+    report_to = "none",
+    
+    dataloader_num_workers = 4,
 )
 
+MyDisplay.set_trainer_ncols(100)
 trainer = Trainer(
     model = model,
     args = training_args,

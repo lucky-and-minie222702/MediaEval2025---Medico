@@ -1,16 +1,24 @@
-import joblib
 import numpy as np
-from PIL import Image, ImageOps, ImageFile
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer, PorterStemmer
-import nltk
+from PIL import Image, ImageOps
 import json
 import sys
-import evaluate
+from transformers.utils import logging
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
 
+
+class MyDisplay:
+    @staticmethod
+    def set_trainer_ncols(ncols):
+        original_bar = logging.get_progress_bar
+
+        def custom_progress_bar(*args, **kwargs):
+            kwargs["ncols"] = ncols
+            return original_bar(*args, **kwargs)
+
+        logging.get_progress_bar = custom_progress_bar
+        
 
 
 class MyConfig:
