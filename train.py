@@ -67,12 +67,15 @@ training_args = TrainingArguments(
     eval_strategy = "steps",
     eval_steps = 0.2,
     
-    save_strategy = "no",
-    
-    logging_steps = 10,
+    save_strategy = "steps",
+    save_steps = 0.2,
     
     metric_for_best_model = "eval_loss",
     load_best_model_at_end = True,
+    save_total_limit = 1,
+    
+    logging_strategy = "steps",
+    logging_steps = 0.2,
     
     fp16 = True,
     report_to = "none"
@@ -88,4 +91,3 @@ trainer = Trainer(
 )
 
 trainer.train()
-trainer.save_model(f"save_{config['dir']}")
