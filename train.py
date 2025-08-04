@@ -91,7 +91,7 @@ training_args = Seq2SeqTrainingArguments(
     dataloader_num_workers = 4,
     dataloader_pin_memory = False,
 
-    disable_tqdm = True,
+    disable_tqdm = not config["tqdm"],
 )
 
 trainer = Trainer(
