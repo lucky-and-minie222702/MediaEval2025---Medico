@@ -70,10 +70,10 @@ training_args = TrainingArguments(
     gradient_accumulation_steps = config["grad_accum"],
     
     eval_strategy = "steps",
-    eval_steps = 10,
+    eval_steps = config["n_steps"],
     
     save_strategy = "steps",
-    save_steps = 10,
+    save_steps = config["n_steps"],
     
     metric_for_best_model = "eval_loss",
     load_best_model_at_end = True,
@@ -86,6 +86,7 @@ training_args = TrainingArguments(
     report_to = "none",
     
     dataloader_num_workers = 4,
+    dataloader_pin_memory = False,
 )
 
 trainer = Trainer(
