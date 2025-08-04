@@ -4,6 +4,7 @@ import torch
 from transformers import Trainer, TrainingArguments
 from my_tools import *
 from my_dataset import *
+from my_models import *
 
 os.makedirs("results", exist_ok = True)
 
@@ -87,7 +88,7 @@ training_args = TrainingArguments(
     report_to = "none"
 )
 
-trainer = Trainer(
+trainer = SafeTrainer(
     model = model,
     args = training_args,
     train_dataset = train_ds,
