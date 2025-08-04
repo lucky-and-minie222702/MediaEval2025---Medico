@@ -5,6 +5,8 @@ from transformers import Trainer, TrainingArguments
 from my_tools import *
 from my_dataset import *
 
+os.makedirs("results", exist_ok = True)
+
 
 # get config
 config = MyConfig.load_json(sys.argv[1])
@@ -59,7 +61,7 @@ train_ds, val_ds = load_data(
 
 # train
 training_args = TrainingArguments(
-    output_dir = f"save_{config['dir']}",
+    output_dir = f"results/{config['dir']}",
     
     num_train_epochs = config["epochs"],
     learning_rate = config["lr"],
@@ -90,7 +92,7 @@ trainer = Trainer(
     args = training_args,
     train_dataset = train_ds,
     eval_dataset = val_ds,
-    tokenizer = processor.tokenizer,
+    processing_class = processor,
     compute_metrics = lambda e: MyUtils.get_scores_from_ids(processor, e[0], e[1])
 )
 

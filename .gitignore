@@ -6,6 +6,7 @@ save_*
 *.ipynb
 *__pycache__*
 slurm*
+results
 *_temp*
 *_config.json
 *_config.json
