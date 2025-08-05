@@ -1,10 +1,9 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig, GenerationConfig
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
 from peft import prepare_model_for_kbit_training, LoraConfig, TaskType
 import torch
 from transformers import Trainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
-from my_models import *
 
 os.makedirs("results", exist_ok = True)
 
@@ -15,6 +14,7 @@ config = MyConfig.load_json(sys.argv[1])
 
 # get model
 model_name = "Salesforce/blip2-flan-t5-xl"
+model_path = f"results/{config['dir']}"
 
 processor = Blip2Processor.from_pretrained(model_name)
 quant_config = BitsAndBytesConfig(
@@ -60,7 +60,7 @@ train_ds, val_ds = load_data(
 
 # train
 training_args = Seq2SeqTrainingArguments(
-    output_dir = f"results/{config['dir']}",
+    output_dir = model_path,
     
     num_train_epochs = config["epochs"],
     learning_rate = config["lr"],
@@ -100,6 +100,7 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
+    compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
