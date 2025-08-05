@@ -100,7 +100,7 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
+    # compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
