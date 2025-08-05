@@ -21,7 +21,6 @@ test_ds = load_data(
     processor, 
     max_question_length = config["dataset"]["max_question_length"], 
     max_answer_length = config["dataset"]["max_answer_length"], 
-    fold = config["dataset"]["fold"], 
     test_complexities = config["dataset"]["complexities"],
     test_only = True
 )

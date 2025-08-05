@@ -100,7 +100,7 @@ class MyDataset(Dataset):
                           transform = self.transform)
     
     
-def load_data(processor, train_ratio, max_question_length, max_answer_length, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
+def load_data(processor, max_question_length, max_answer_length, train_ratio = None, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
