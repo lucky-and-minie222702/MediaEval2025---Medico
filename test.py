@@ -3,6 +3,7 @@ from my_tools import *
 from my_dataset import *
 from torch.utils.data import DataLoader
 import torch
+from tqdm import tqdm
 
 
 # load config
@@ -24,12 +25,20 @@ test_ds = load_data(
     test_complexities = config["dataset"]["complexities"],
     test_only = True
 )
-test_dl = DataLoader(
-    test_ds, 
-    batch_size = config["batch_size"],
-    num_workers = 4,
-)
+test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"])
 
 # test
 with torch.no_grad():
-    
+    for batch in tqdm(test_dl):
+        labels = batch.pop("labels", None)
+        
+        predictions = model.generate(
+            **batch,
+            do_sample = True,
+            max_new_tokens = config["dataset"]["max_answer_length"],
+            num_beams = 5,
+            early_stopping = True,
+            num_return_sequences = 5,
+        )
+        
+        

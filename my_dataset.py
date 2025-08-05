@@ -5,7 +5,7 @@ import pandas as pd
 from my_tools import *
 import os
 from os import path
-from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
 
 
 def get_img_dict():
@@ -100,7 +100,7 @@ class MyDataset(Dataset):
                           transform = self.transform)
     
     
-def load_data(processor, max_question_length, max_answer_length, fold, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
+def load_data(processor, train_ratio, max_question_length, max_answer_length, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
@@ -124,13 +124,7 @@ def load_data(processor, max_question_length, max_answer_length, fold, train_com
     mask = df["complexity"].map(lambda x: x in train_complexities)
     df = df[mask]
 
-    kfold = KFold(n_splits = 3, random_state = seed, shuffle = True)
-    train_df, val_df = None, None
-    for i, (train_idx, val_idx) in enumerate(kfold.split(df), 1):
-        if i == fold:
-            train_df = df.iloc[train_idx]
-            val_df = df.iloc[val_idx]
-            break
+    train_df, val_df = train_test_split(df, train_size = train_ratio, shuffle = True, random_state = seed)
 
     train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, TRAIN_TRANSFORM)
     val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)

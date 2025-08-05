@@ -51,9 +51,9 @@ model.enable_adapters()
 # load dataset
 train_ds, val_ds = load_data(
     processor, 
+    train_ratio = config["dataset"]["train_ratio"],
     max_question_length = config["dataset"]["max_question_length"], 
     max_answer_length = config["dataset"]["max_answer_length"], 
-    fold = config["dataset"]["fold"], 
     train_complexities = config["dataset"]["complexities"]
 )
 
