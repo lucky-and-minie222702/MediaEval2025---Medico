@@ -30,9 +30,6 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     quantization_config = quant_config,
 )
 
-model.vision_model.requires_grad_(False)
-model.qformer.requires_grad_(False)
-
 model = prepare_model_for_kbit_training(model)
 
 lora_config = LoraConfig(
