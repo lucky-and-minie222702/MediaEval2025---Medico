@@ -4,7 +4,8 @@ import sys
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
-import numpy as np
+from torch.utils.data import DataLoader
+import torch
 
 
 class MyConfig:
@@ -28,39 +29,33 @@ class MyUtils:
         return s
 
     @staticmethod
-    def get_scores_from_ids(processor, pred, label):
-        pred = MyUtils.get_sentences_from_ids(processor, pred)
-        label = MyUtils.get_sentences_from_ids(processor, label)
-        
-        return MyText.get_scores(pred, label)
-
-    @staticmethod
-    def trainer_compute_metrics(processor, eval_preds):
-        logits = eval_preds.predictions
-        label = eval_preds.label_ids
-        pred = np.argmax(logits, axis = -1)
+    def get_scores_from_ids(processor, pred, label, to_list = True):
+        if to_list:
+            pred = MyUtils.torch_to_list(pred)
+            label = MyUtils.torch_to_list(label)
         
         pred = MyUtils.get_sentences_from_ids(processor, pred)
         label = MyUtils.get_sentences_from_ids(processor, label)
         
         return MyText.get_scores(pred, label)
-
-
-class MyCLI:
+    
     @staticmethod
-    def get_arg(name, default = None):
-        if name in sys.argv:
-            i = sys.argv.index(name)
-            try:
-                return sys.argv[i+1]
-            except:
-                return default
-        return default
+    def get_dataloader(dataset, batch_size, shuffle = True):
+        def collate_fn(batch):
+            return {
+                key: torch.stack([item[key] for item in batch])
+                for key in batch[0]
+            }
 
-
-class MyTyping:
-    sort_dict = lambda x: dict(reversed(sorted(x.items(), key = lambda item: item[1])))
-    reformat = lambda s: json.loads(s.replace("\n", ""))
+        return DataLoader(
+            dataset = dataset, 
+            batch_size = batch_size, 
+            shuffle = shuffle, 
+            num_workers = 4, 
+            persistent_workers = True, 
+            pin_memory = True, 
+            collate_fn = collate_fn
+        )
 
 
 class MyText:

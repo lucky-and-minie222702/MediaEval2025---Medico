@@ -8,11 +8,11 @@ from my_dataset import *
 os.makedirs("results", exist_ok = True)
 
 
-# get config
+# load config
 config = MyConfig.load_json(sys.argv[1])
 
 
-# get model
+# load model
 model_name = "Salesforce/blip2-flan-t5-xl"
 model_path = f"results/{config['dir']}"
 
@@ -48,7 +48,7 @@ model.add_adapter(lora_config, adapter_name="lora_1")
 model.enable_adapters()
 
 
-# get data
+# load dataset
 train_ds, val_ds = load_data(
     processor, 
     max_question_length = config["dataset"]["max_question_length"], 
@@ -89,7 +89,8 @@ training_args = Seq2SeqTrainingArguments(
     report_to = "none",
     
     dataloader_num_workers = 4,
-    dataloader_pin_memory = False,
+    dataloader_pin_memory = True,
+    dataloader_persistent_workers = True,
 
     disable_tqdm = not config["tqdm"],
 )
@@ -100,7 +101,6 @@ trainer = Trainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    # compute_metrics = lambda e: MyUtils.trainer_compute_metrics(processor, e)
 )
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
