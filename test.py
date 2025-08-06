@@ -1,4 +1,4 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, GenerationConfig
 from my_tools import *
 from my_dataset import *
 from torch.utils.data import DataLoader
@@ -11,7 +11,8 @@ config = MyConfig.load_json(sys.argv[1])
 
 
 # load model
-model_path = f"results/{config['dir']}"
+model_path = f"results/{config['dir']}/checkpoint-{config['checkpoint']}"
+file_path = f"{model_path}-test.results"  # for save test results files
 model = Blip2ForConditionalGeneration.from_pretrained(model_path)
 processor = Blip2Processor.from_pretrained(model_path)
 
@@ -26,6 +27,16 @@ test_ds = load_data(
 )
 test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"])
 
+
+# generation config
+gen_config = GenerationConfig(
+    do_sample = True,
+    max_new_tokens = config["dataset"]["max_answer_length"],
+    num_beams = config["n_beams"],
+    early_stopping = True,
+    num_return_sequences = config["n_returns"],
+)
+
 # test
 with torch.no_grad():
     for batch in tqdm(test_dl):
@@ -33,11 +44,8 @@ with torch.no_grad():
         
         predictions = model.generate(
             **batch,
-            do_sample = True,
-            max_new_tokens = config["dataset"]["max_answer_length"],
-            num_beams = 5,
-            early_stopping = True,
-            num_return_sequences = 5,
+            generation_config = gen_config
         )
-        
+        print(predictions)
+        break
         

@@ -79,14 +79,12 @@ training_args = Seq2SeqTrainingArguments(
     logging_strategy = "steps",
     logging_steps = config["log_steps"],
     
-    predict_with_generate = True,
-    
     fp16 = False,
     bf16 = True,
     report_to = "none",
     
-    dataloader_num_workers = 4,
-    dataloader_pin_memory = True,
+    dataloader_num_workers = 0,
+    dataloader_pin_memory = False,
     dataloader_persistent_workers = True,
 
     disable_tqdm = not config["tqdm"],

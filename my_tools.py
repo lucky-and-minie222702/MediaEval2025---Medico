@@ -51,11 +51,15 @@ class MyUtils:
             dataset = dataset, 
             batch_size = batch_size, 
             shuffle = shuffle, 
-            num_workers = 4, 
+            num_workers = 0, 
             persistent_workers = True, 
-            pin_memory = True, 
+            pin_memory = False, 
             collate_fn = collate_fn
         )
+        
+    class TestLogger():
+        def __init__(self, processor):
+            self.processor = processor
 
 
 class MyText:
