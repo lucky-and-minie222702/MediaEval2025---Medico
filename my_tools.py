@@ -6,6 +6,8 @@ from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
 from torch.utils.data import DataLoader
 import torch
+import os
+import numpy as np
 
 
 class MyConfig:
@@ -17,25 +19,20 @@ class MyConfig:
         return data
 
 
-class MyUtils:   
-    @staticmethod
-    def torch_to_list(s):
-        s = s.detach().cpu().numpy().tolist()
-        return s
-     
+class MyUtils: 
     @staticmethod
     def get_sentences_from_ids(processor, s):
+        s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
         return s
 
     @staticmethod
-    def get_scores_from_ids(processor, pred, label, to_list = True):
-        if to_list:
-            pred = MyUtils.torch_to_list(pred)
-            label = MyUtils.torch_to_list(label)
-        
+    def get_scores_from_ids(processor, pred, label):
         pred = MyUtils.get_sentences_from_ids(processor, pred)
         label = MyUtils.get_sentences_from_ids(processor, label)
+        
+        pred = np.array(pred)
+        label = np.array(label)
         
         return MyText.get_scores(pred, label)
     
@@ -51,15 +48,64 @@ class MyUtils:
             dataset = dataset, 
             batch_size = batch_size, 
             shuffle = shuffle, 
-            num_workers = 0, 
-            persistent_workers = False, 
+            num_workers = 4, 
+            persistent_workers = True, 
             pin_memory = False, 
             collate_fn = collate_fn
         )
         
+    @staticmethod
+    def get_latest_checkpoint(path):
+        checkpoints = [d for d in os.listdir(path) if d.startswith("checkpoint")]
+        
+        if not checkpoints:
+            return path
+
+        latest = sorted(checkpoints, key = lambda x: int(x.split("-")[1]))[-1]
+        return latest
+        
     class TestLogger():
         def __init__(self, processor):
             self.processor = processor
+            self.scores = {
+                "bleu": [],
+                "rouge1": [],
+                "rouge2": [],
+                "rougeL": [],
+                "meteor": [],
+            }
+            self.outputs = {
+                "questions": [],
+                "predictions": [],
+                "label": [],
+            }
+            
+        def log_per_step(self, quest, pred, label, n_returns):
+            quest = MyUtils.to_sentence(self.processor, quest)
+            pred = MyUtils.to_sentence(self.processor, pred).reshape(-1, n_returns)
+            label = MyUtils.to_sentence(self.processor, label)
+            
+            self.outputs["questions"].append(quest)
+            self.outputs["predictions"].append(pred)
+            self.outputs["labels"].append(label)
+            
+            scores = MyUtils.get_scores_from_ids(self.processor, pred)
+            for k, v in scores.items():
+                self.scores[k].append(v)
+                
+        def end(self):
+            for k, v in self.outputs.items():
+                self.outputs[k] = np.concatenate(v, axis = 0)
+                
+            for k, v in self.scores.items():
+                self.outputs[k] = np.mean(v)
+                
+        @property
+        def results(self):
+            return {
+                "outputs": self.outputs,
+                "scores": self.scores,
+            }
 
 
 class MyText:

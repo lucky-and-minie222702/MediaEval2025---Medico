@@ -1,8 +1,10 @@
+import joblib
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 from my_tools import *
 from my_dataset import *
 import torch
 from tqdm import tqdm
+import pandas as pd
 
 
 # load config
@@ -10,7 +12,7 @@ config = MyConfig.load_json(sys.argv[1])
 
 
 # load model
-model_path = f"results/{config['dir']}/checkpoint-{config['checkpoint']}"
+model_path = f"results/{config['dir']}/checkpoint-{MyUtils.get_latest_checkpoint() if config['checkpoint'] == 'latest' else config['checkpoint']}"
 file_path = f"{model_path}-test.results"  # for save test results files
 model = Blip2ForConditionalGeneration.from_pretrained(model_path)
 processor = Blip2Processor.from_pretrained(model_path)
@@ -24,9 +26,12 @@ test_ds = load_data(
     test_complexities = config["dataset"]["complexities"],
     test_only = True
 )
-test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"])
+test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"], shuffle = False)
+
 
 # test
+test_df = pd.read_csv("data/test.csv")
+logger = MyUtils.TestLogger(processor)
 with torch.no_grad():
     for batch in tqdm(test_dl):
         labels = batch.pop("labels", None)
@@ -40,13 +45,13 @@ with torch.no_grad():
             early_stopping = True,
             num_return_sequences = config["gen"]["n_returns"],
         )
-        predictions = MyUtils.torch_to_list(predictions)
-        predictions = processor.tokenizer.batch_decode(predictions, skip_special_tokens = True)
         
-        labels = MyUtils.torch_to_list(labels)
-        labels = processor.tokenizer.batch_decode(labels, skip_special_tokens = True)
-        
-        print(labels)
-        print(predictions)
-        break
+        logger.log_per_step(
+            quest = batch["input_ids"],
+            pred = predictions,
+            label = labels,
+            n_returns = config["gen"]["n_returns"],
+        )
+logger.end()
+joblib.dump(logger.results, file_path)
         

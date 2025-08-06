@@ -76,7 +76,7 @@ def preprocess(processor, d, max_length, include_answer = True, img_dict = None,
             truncation = True,
         )["input_ids"]
         
-    inputs = {k: v.squeeze(0) for k, v in inputs.items()}    
+    inputs = {k: v.squeeze(0) for k, v in inputs.items()}
     
     return inputs
 
@@ -95,9 +95,11 @@ class MyDataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, index):
-        return preprocess(self.processor, self.data[index], self.max_length, 
-                          img_dict = self.img_dict, 
-                          transform = self.transform)
+        return preprocess(
+            self.processor, self.data[index], self.max_length, 
+            img_dict = self.img_dict, 
+            transform = self.transform
+        )
     
     
 def load_data(processor, max_question_length, max_answer_length, train_ratio = None, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 22022009):
