@@ -43,5 +43,6 @@ with torch.no_grad():
         )
         predictions = MyUtils.torch_to_list(predictions)
         predictions = processor.tokenizer.batch_decode(predictions, skip_special_tokens = True)
+        print(predictions)
         break
         
