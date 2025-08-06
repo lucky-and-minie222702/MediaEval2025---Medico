@@ -46,6 +46,7 @@ with torch.no_grad():
             **batch,
             generation_config = gen_config
         )
-        print(predictions)
+        predictions = MyUtils.torch_to_list(predictions)
+        predictions = processor.tokenizer.batch_decode(predictions, skip_special_tokens = True)
         break
         
