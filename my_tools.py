@@ -89,8 +89,20 @@ class MyUtils:
             self.outputs["predictions"].append(pred)
             self.outputs["labels"].append(label)
             
-            scores = MyUtils.get_scores_from_ids(self.processor, pred)
-            for k, v in scores.items():
+            all_scores = {
+                "bleu": [],
+                "rouge1": [],
+                "rouge2": [],
+                "rougeL": [],
+                "meteor": [],
+            }
+            
+            for i in range(n_returns):
+                scores = MyUtils.get_scores_from_ids(self.processor, pred[::, i])
+                for k, v in scores.items():
+                    all_scores[k].append(v)
+            
+            for k, v in all_scores.items():
                 self.scores[k].append(v)
                 
         def end(self):
@@ -98,7 +110,7 @@ class MyUtils:
                 self.outputs[k] = np.concatenate(v, axis = 0)
                 
             for k, v in self.scores.items():
-                self.outputs[k] = np.mean(v)
+                self.scores[k] = np.mean(v, axis = 0)
                 
         @property
         def results(self):
