@@ -43,6 +43,11 @@ with torch.no_grad():
         )
         predictions = MyUtils.torch_to_list(predictions)
         predictions = processor.tokenizer.batch_decode(predictions, skip_special_tokens = True)
+        
+        labels = MyUtils.torch_to_list(labels)
+        labels = processor.tokenizer.batch_decode(labels, skip_special_tokens = True)
+        
+        print(labels)
         print(predictions)
         break
         
