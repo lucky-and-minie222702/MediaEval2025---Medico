@@ -39,7 +39,7 @@ lora_config = LoraConfig(
     lora_dropout = 0.1,
     inference_mode = False,
     bias = "none",
-    task_type = TaskType.CAUSAL_LM  # can use SEQ_2_SEQ_LM
+    task_type = TaskType.QUESTION_ANS
 )
 model.add_adapter(lora_config, adapter_name="lora_1")
 model.enable_adapters()

@@ -1,7 +1,6 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, GenerationConfig
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
 from my_tools import *
 from my_dataset import *
-from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
 
