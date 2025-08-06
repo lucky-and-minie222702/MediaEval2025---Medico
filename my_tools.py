@@ -52,7 +52,7 @@ class MyUtils:
             batch_size = batch_size, 
             shuffle = shuffle, 
             num_workers = 0, 
-            persistent_workers = True, 
+            persistent_workers = False, 
             pin_memory = False, 
             collate_fn = collate_fn
         )
