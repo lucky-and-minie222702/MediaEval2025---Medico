@@ -32,9 +32,9 @@ test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"])
 gen_config = GenerationConfig(
     do_sample = True,
     max_new_tokens = config["dataset"]["max_answer_length"],
-    num_beams = config["n_beams"],
+    num_beams = config["gen"]["n_beams"],
     early_stopping = True,
-    num_return_sequences = config["n_returns"],
+    num_return_sequences = config["gen"]["n_returns"],
 )
 
 # test
