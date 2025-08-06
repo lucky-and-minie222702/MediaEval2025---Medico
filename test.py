@@ -27,16 +27,6 @@ test_ds = load_data(
 )
 test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"])
 
-
-# generation config
-gen_config = GenerationConfig(
-    do_sample = True,
-    max_new_tokens = config["dataset"]["max_answer_length"],
-    num_beams = config["gen"]["n_beams"],
-    early_stopping = True,
-    num_return_sequences = config["gen"]["n_returns"],
-)
-
 # test
 with torch.no_grad():
     for batch in tqdm(test_dl):
@@ -44,7 +34,12 @@ with torch.no_grad():
         
         predictions = model.generate(
             **batch,
-            generation_config = gen_config
+            
+            do_sample = True,
+            max_new_tokens = config["dataset"]["max_answer_length"],
+            num_beams = config["gen"]["n_beams"],
+            early_stopping = True,
+            num_return_sequences = config["gen"]["n_returns"],
         )
         predictions = MyUtils.torch_to_list(predictions)
         predictions = processor.tokenizer.batch_decode(predictions, skip_special_tokens = True)
