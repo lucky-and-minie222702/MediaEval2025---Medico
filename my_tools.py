@@ -130,10 +130,6 @@ class MyUtils:
 
 
 class MyText:
-    bleu = corpus_bleu
-    rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
-    meteor = meteor_score
-    
     @staticmethod
     def get_scores(predictions, references):
         clean_data = [
