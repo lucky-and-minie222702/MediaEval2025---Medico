@@ -21,18 +21,17 @@ class MyConfig:
 
 class MyUtils: 
     @staticmethod
-    def get_sentences_from_ids(processor, s):
+    def get_sentences_from_ids(processor, s, to_numpy = False):
         s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
+        if to_numpy:
+            s = np.array(s)
         return s
 
     @staticmethod
     def get_scores_from_ids(processor, pred, label):
         pred = MyUtils.get_sentences_from_ids(processor, pred)
         label = MyUtils.get_sentences_from_ids(processor, label)
-        
-        pred = np.array(pred)
-        label = np.array(label)
         
         return MyText.get_scores(pred, label)
     
@@ -82,9 +81,9 @@ class MyUtils:
             }
             
         def log_per_step(self, quest, pred, label, n_returns):
-            quest = MyUtils.get_sentences_from_ids(self.processor, quest)
-            pred = MyUtils.get_sentences_from_ids(self.processor, pred).reshape(-1, n_returns)
-            label = MyUtils.get_sentences_from_ids(self.processor, label)
+            quest = MyUtils.get_sentences_from_ids(self.processor, quest, to_numpy = True)
+            pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
+            label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)
