@@ -98,7 +98,7 @@ class MyUtils:
             }
             
             for i in range(n_returns):
-                scores = MyUtils.get_scores_from_ids(self.processor, pred[::, i])
+                scores = MyUtils.get_scores_from_ids(self.processor, pred[::, i], label)
                 for k, v in scores.items():
                     all_scores[k].append(v)
             
