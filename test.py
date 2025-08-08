@@ -43,7 +43,7 @@ with torch.no_grad():
             do_sample = config["gen"].get("do_sample", True),
             max_new_tokens = config["dataset"]["max_answer_length"],
             num_beams = config["gen"]["n_beams"],
-            early_stopping = True,
+            early_stopping = config["gen"].get("early_stopping", True),
             num_return_sequences = config["gen"]["n_returns"],
         )
         
