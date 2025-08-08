@@ -54,7 +54,7 @@ with torch.no_grad():
             n_returns = config["gen"]["n_returns"],
         )
         
-        pbar.set_description(**logger.cur_scores)
+        pbar.set_postfix(**logger.cur_scores)
 logger.end()
 joblib.dump(logger.results, file_path)
         
