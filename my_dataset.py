@@ -84,7 +84,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, mask_answer = -100, transform = None):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, transform = None, mask_answer = -100):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
