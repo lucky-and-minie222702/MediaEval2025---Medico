@@ -121,7 +121,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
         drop_invalid_char_df(test_df)
         mask = test_df["complexity"].map(lambda x: x in test_complexities)
         test_df = test_df[mask]
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM, mask_answer = None)
         return test_ds
 
     # load df
@@ -132,7 +132,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
 
     train_df, val_df = train_test_split(df, train_size = train_ratio, shuffle = True, random_state = seed)
 
-    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, TRAIN_TRANSFORM)
-    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, BASE_TRANSFORM)
+    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, transform = TRAIN_TRANSFORM)
+    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM)
     
     return train_ds, val_ds
