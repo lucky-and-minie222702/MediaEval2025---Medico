@@ -40,7 +40,7 @@ with torch.no_grad():
         predictions = model.generate(
             **batch,
             
-            do_sample = config.get("do_sample", True),
+            do_sample = config["gen"].get("do_sample", True),
             max_new_tokens = config["dataset"]["max_answer_length"],
             num_beams = config["gen"]["n_beams"],
             early_stopping = True,
