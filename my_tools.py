@@ -157,7 +157,8 @@ class MyText:
         r1_total, r2_total, rl_total = 0, 0, 0
         for pred, refs in zip(clean_preds, clean_refs_list):
             ref = refs[0]
-            scores = MyText.rouge.score(ref, pred)
+            rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
+            scores = rouge.score(ref, pred)
             r1_total += scores["rouge1"].fmeasure
             r2_total += scores["rouge2"].fmeasure
             rl_total += scores["rougeL"].fmeasure
