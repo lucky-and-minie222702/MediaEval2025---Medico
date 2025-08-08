@@ -46,7 +46,7 @@ def norm_text(text):
     return out
 
 
-def preprocess(processor, d, max_length, include_answer = True, img_dict = None, transform = None):
+def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
 
@@ -75,7 +75,8 @@ def preprocess(processor, d, max_length, include_answer = True, img_dict = None,
             padding = "max_length",
             truncation = True,
         )["input_ids"]
-        inputs["labels"][inputs["labels"] == processor.tokenizer.pad_token_id] = -100
+        if mask_answer is not None:
+            inputs["labels"][inputs["labels"] == processor.tokenizer.pad_token_id] = mask_answer
         
     inputs = {k: v.squeeze(0) for k, v in inputs.items()}
     
@@ -83,7 +84,7 @@ def preprocess(processor, d, max_length, include_answer = True, img_dict = None,
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, transform = None):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, mask_answer = -100, transform = None):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
@@ -91,6 +92,7 @@ class MyDataset(Dataset):
         self.transform = transform
         self.data = df.to_dict(orient = 'records')
         self.img_dict = get_img_dict()
+        self.mask_answer = mask_answer
         
     def __len__(self):
         return len(self.data)
@@ -99,6 +101,7 @@ class MyDataset(Dataset):
         return preprocess(
             self.processor, self.data[index], self.max_length, 
             img_dict = self.img_dict, 
+            mask_answer = self.mask_answer,
             transform = self.transform
         )
     
