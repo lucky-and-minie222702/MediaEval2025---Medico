@@ -98,7 +98,7 @@ class MyUtils:
             }
             
             for i in range(n_returns):
-                scores = MyText.get_scores(self.processor, pred[::, i], label)
+                scores = MyText.get_scores(pred[::, i], label)
                 for k, v in scores.items():
                     all_scores[k].append(v)
             
