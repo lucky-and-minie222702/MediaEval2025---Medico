@@ -36,7 +36,6 @@ lora_config = LoraConfig(
 )
 model.add_adapter(lora_config, adapter_name="lora_1")
 model.enable_adapters()
-print("Trainable params:", sum(p.requires_grad for p in model.parameters()))
 
 
 # load dataset
