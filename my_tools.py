@@ -61,7 +61,8 @@ class MyUtils:
         if not checkpoints:
             return None
 
-        latest = sorted(checkpoints, key = lambda x: int(x.split("-")[1]))[-1]
+        checkpoints = list(map(lambda x: int(x.split("-")[1]), checkpoints))
+        latest = sorted(checkpoints)[-1]
         return latest
         
     class TestLogger():
