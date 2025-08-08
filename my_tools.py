@@ -113,6 +113,15 @@ class MyUtils:
                 self.scores[k] = np.mean(v, axis = 0)
                 
         @property
+        def cur_scores(self):
+            cur_scores = self.scores.copy()
+            for k, v in cur_scores.items():
+                cur_scores[k] = np.max(
+                    np.mean(v, axis = 0), axis = -1
+                )
+            return cur_scores
+                
+        @property
         def results(self):
             return {
                 "outputs": self.outputs,

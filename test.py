@@ -33,7 +33,8 @@ test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"], shu
 test_df = pd.read_csv("data/test.csv")
 logger = MyUtils.TestLogger(processor)
 with torch.no_grad():
-    for batch in tqdm(test_dl):
+    pbar = tqdm(test_dl)
+    for batch in pbar:
         labels = batch.pop("labels", None)
         
         predictions = model.generate(
@@ -52,6 +53,8 @@ with torch.no_grad():
             label = labels,
             n_returns = config["gen"]["n_returns"],
         )
+        
+        pbar.set_description(**logger.cur_scores)
 logger.end()
 joblib.dump(logger.results, file_path)
         
