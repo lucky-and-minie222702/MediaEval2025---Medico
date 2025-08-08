@@ -77,7 +77,7 @@ class MyUtils:
             self.outputs = {
                 "questions": [],
                 "predictions": [],
-                "label": [],
+                "labels": [],
             }
             
         def log_per_step(self, quest, pred, label, n_returns):
