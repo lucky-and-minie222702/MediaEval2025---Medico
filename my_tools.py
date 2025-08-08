@@ -82,9 +82,9 @@ class MyUtils:
             }
             
         def log_per_step(self, quest, pred, label, n_returns):
-            quest = MyUtils.to_sentence(self.processor, quest)
-            pred = MyUtils.to_sentence(self.processor, pred).reshape(-1, n_returns)
-            label = MyUtils.to_sentence(self.processor, label)
+            quest = MyUtils.get_sentences_from_ids(self.processor, quest)
+            pred = MyUtils.get_sentences_from_ids(self.processor, pred).reshape(-1, n_returns)
+            label = MyUtils.get_sentences_from_ids(self.processor, label)
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)
