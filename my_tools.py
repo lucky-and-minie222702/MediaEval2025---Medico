@@ -55,8 +55,8 @@ class MyUtils:
         )
         
     @staticmethod
-    def get_latest_checkpoint():
-        checkpoints = [d for d in os.listdir("results") if d.startswith("checkpoint")]
+    def get_latest_checkpoint(p):
+        checkpoints = [d for d in os.listdir(p) if d.startswith("checkpoint")]
         
         if not checkpoints:
             return None
