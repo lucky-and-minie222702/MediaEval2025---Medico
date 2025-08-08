@@ -1,9 +1,11 @@
 from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training, LoraConfig, TaskType
+from peft import LoraConfig, TaskType
 import torch
-from transformers import Trainer, Seq2SeqTrainingArguments
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
+from transformers import logging
+logging.set_verbosity_debug()
 
 os.makedirs("results", exist_ok = True)
 
@@ -17,20 +19,11 @@ model_name = "Salesforce/blip2-flan-t5-xl"
 model_path = f"results/{config['dir']}"
 
 processor = Blip2Processor.from_pretrained(model_name)
-quant_config = BitsAndBytesConfig(
-    load_in_8bit = True,
-    llm_int8_threshold = 6.0,
-    llm_int8_skip_modules = None,
-    llm_int8_enable_fp32_cpu_offload = True,
-)
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
-    torch_dtype = torch.float16,
-    quantization_config = quant_config,
+    torch_dtype = torch.bfloat16,
 )
-
-model = prepare_model_for_kbit_training(model)
 
 lora_config = LoraConfig(
     r = 16,
@@ -43,6 +36,7 @@ lora_config = LoraConfig(
 )
 model.add_adapter(lora_config, adapter_name="lora_1")
 model.enable_adapters()
+print("Trainable params:", sum(p.requires_grad for p in model.parameters()))
 
 
 # load dataset
@@ -64,7 +58,9 @@ training_args = Seq2SeqTrainingArguments(
     
     per_device_train_batch_size = config["batch_size"],
     per_device_eval_batch_size = config.get("val_batch_size", config["batch_size"]),
+
     gradient_accumulation_steps = config["grad_accum"],
+    eval_accumulation_steps = config.get("val_grad_accum", config["grad_accum"]),
     
     eval_strategy = "steps",
     eval_steps = config["n_steps"],
@@ -81,21 +77,25 @@ training_args = Seq2SeqTrainingArguments(
     
     fp16 = False,
     bf16 = True,
+    
     report_to = "none",
     
-    dataloader_num_workers = 0,
+    dataloader_num_workers = 4,
+    dataloader_persistent_workers = True,
     dataloader_pin_memory = False,
-    dataloader_persistent_workers = False,
+    
+    remove_unused_columns = False,
 
     disable_tqdm = not config["tqdm"],
 )
 
-trainer = Trainer(
+trainer = Seq2SeqTrainer(
     model = model,
     args = training_args,
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
 )
+
 trainer.model_accepts_loss_kwargs = False
 trainer.train()

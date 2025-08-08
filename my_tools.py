@@ -48,18 +48,18 @@ class MyUtils:
             dataset = dataset, 
             batch_size = batch_size, 
             shuffle = shuffle, 
-            num_workers = 0, 
-            persistent_workers = False, 
+            num_workers = 4, 
+            persistent_workers = True, 
             pin_memory = False, 
             collate_fn = collate_fn
         )
         
     @staticmethod
-    def get_latest_checkpoint(path):
-        checkpoints = [d for d in os.listdir(path) if d.startswith("checkpoint")]
+    def get_latest_checkpoint():
+        checkpoints = [d for d in os.listdir("results") if d.startswith("checkpoint")]
         
         if not checkpoints:
-            return path
+            return None
 
         latest = sorted(checkpoints, key = lambda x: int(x.split("-")[1]))[-1]
         return latest
