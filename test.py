@@ -14,7 +14,12 @@ config = MyConfig.load_json(sys.argv[1])
 # load model
 model_path = f"results/{config['dir']}/checkpoint-{MyUtils.get_latest_checkpoint(config['dir']) if config['checkpoint'] == 'latest' else config['checkpoint']}"
 file_path = f"{model_path}-test.results"  # for save test results files
-model = Blip2ForConditionalGeneration.from_pretrained(model_path)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = Blip2ForConditionalGeneration.from_pretrained(
+    model_path,
+    device_map = "auto",
+    torch_dtype = torch.bfloat16,
+).to(device)
 processor = Blip2Processor.from_pretrained(model_path)
 
 
@@ -35,6 +40,8 @@ logger = MyUtils.TestLogger(processor)
 with torch.no_grad():
     pbar = tqdm(test_dl)
     for batch in pbar:
+        batch = {k: v.to(device) for k, v in batch.items()}
+        
         labels = batch.pop("labels", None)
         
         predictions = model.generate(
