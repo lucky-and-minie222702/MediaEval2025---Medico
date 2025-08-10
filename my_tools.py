@@ -8,7 +8,24 @@ from torch.utils.data import DataLoader
 import torch
 import os
 import numpy as np
+from transformers import TrainerCallback
 
+class TrainerSaveLossCallback(TrainerCallback):
+    def __init__(self, output_file = "losses.json"):
+        self.output_file = output_file
+        self.loss_data = {"train": [], "eval": []}
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        if logs is not None:
+            if "loss" in logs:
+                self.loss_data["train"].append({"step": state.global_step, "loss": logs["loss"]})
+            if "eval_loss" in logs:
+                self.loss_data["eval"].append({"step": state.global_step, "eval_loss": logs["eval_loss"]})
+
+    def on_train_end(self, args, state, control, **kwargs):
+        with open(self.output_file, "w") as f:
+            json.dump(self.loss_data, f, indent=2)
+        print(f"Losses saved to {self.output_file}")
 
 class MyConfig:
     @staticmethod
