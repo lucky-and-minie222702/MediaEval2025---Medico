@@ -5,13 +5,15 @@ from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
 from transformers import logging
-logging.set_verbosity_debug()
 
 os.makedirs("results", exist_ok = True)
 
 
 # load config
 config = MyConfig.load_json(sys.argv[1])
+
+if config.get("debug_mode", False):
+    logging.set_verbosity_debug()
 
 
 # load model
@@ -45,10 +47,6 @@ lora_config = LoraConfig(
         "language_model.model.layers.*.mlp.gate_proj",
         "language_model.model.layers.*.mlp.up_proj",
         "language_model.model.layers.*.mlp.down_proj",
-    ],
-    modules_to_save = [
-        "language_projection",
-        "language_model.lm_head",
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
     inference_mode = False,
