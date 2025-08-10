@@ -15,7 +15,7 @@ config = MyConfig.load_json(sys.argv[1])
 
 
 # load model
-model_name = "Salesforce/blip2-flan-t5-xl"
+model_name = config["model_name"]
 model_path = f"results/{config['dir']}"
 
 processor = Blip2Processor.from_pretrained(model_name)
@@ -26,15 +26,36 @@ model = Blip2ForConditionalGeneration.from_pretrained(
 )
 
 lora_config = LoraConfig(
-    r = 16,
-    lora_alpha = 64,
-    target_modules = ["q", "v", "k", "o"],
-    lora_dropout = 0.1,
+    r = config["lora"]["r"],
+    lora_alpha = config["lora"]["alpha"],
+    target_modules = [
+        # q-former
+        "q_former.encoder.layer.*.attention.self.query",
+        "q_former.encoder.layer.*.attention.self.key",
+        "q_former.encoder.layer.*.attention.self.value",
+        "q_former.encoder.layer.*.attention.output.dense",
+        "q_former.encoder.layer.*.intermediate.dense",
+        "q_former.encoder.layer.*.output.dense",
+        # language model
+        "language_model.model.layers.*.self_attn.q_proj",
+        "language_model.model.layers.*.self_attn.k_proj",
+        "language_model.model.layers.*.self_attn.v_proj",
+        "language_model.model.layers.*.self_attn.o_proj",
+        # mlp:
+        "language_model.model.layers.*.mlp.gate_proj",
+        "language_model.model.layers.*.mlp.up_proj",
+        "language_model.model.layers.*.mlp.down_proj",
+    ],
+    modules_to_save = [
+        "language_projection",
+        "language_model.lm_head",
+    ],
+    lora_dropout = config["lora"].get("dropout", 0.0),
     inference_mode = False,
     bias = "none",
     task_type = TaskType.QUESTION_ANS
 )
-model.add_adapter(lora_config, adapter_name="lora_1")
+model.add_adapter(lora_config, adapter_name = "lora_1")
 model.enable_adapters()
 
 
