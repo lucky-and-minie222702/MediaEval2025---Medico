@@ -114,7 +114,7 @@ trainer = Seq2SeqTrainer(
     train_dataset = train_ds,
     eval_dataset = val_ds,
     processing_class = processor,
-    callbacks = [TrainerSaveLossCallback()]
+    callbacks = [TrainerSaveLossCallback(model_path)]
 )
 
 trainer.model_accepts_loss_kwargs = False

@@ -11,7 +11,8 @@ import numpy as np
 from transformers import TrainerCallback
 
 class TrainerSaveLossCallback(TrainerCallback):
-    def __init__(self, output_file = "losses.json"):
+    def __init__(self, output_dir, output_file = "losses.json"):
+        self.output_dir = output_dir
         self.output_file = output_file
         self.loss_data = {"train": [], "eval": []}
 
@@ -24,8 +25,8 @@ class TrainerSaveLossCallback(TrainerCallback):
 
     def on_train_end(self, args, state, control, **kwargs):
         with open(self.output_file, "w") as f:
-            json.dump(self.loss_data, f, indent=2)
-        print(f"Losses saved to {self.output_file}")
+            json.dump(self.loss_data, f)
+        print(f"Losses saved to {self.output_dir}/{self.output_file}")
 
 class MyConfig:
     @staticmethod
