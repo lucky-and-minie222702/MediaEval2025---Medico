@@ -28,6 +28,7 @@ class TrainerSaveLossCallback(TrainerCallback):
             json.dump(self.loss_data, f)
         print(f"Losses saved to {self.output_dir}/{self.output_file}")
 
+
 class MyConfig:
     @staticmethod
     def load_json(p):
