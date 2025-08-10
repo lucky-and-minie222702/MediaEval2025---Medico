@@ -9,6 +9,7 @@ import torch
 import os
 import numpy as np
 from transformers import TrainerCallback
+import joblib
 
 class TrainerSaveLossCallback(TrainerCallback):
     def __init__(self, output_dir, output_file = "losses.json"):
@@ -16,7 +17,7 @@ class TrainerSaveLossCallback(TrainerCallback):
         self.output_file = output_file
         self.loss_data = {"train": [], "eval": []}
 
-    def on_log(self, args, state, control, logs=None, **kwargs):
+    def on_log(self, args, state, control, logs = None, **kwargs):
         if logs is not None:
             if "loss" in logs:
                 self.loss_data["train"].append({"step": state.global_step, "loss": logs["loss"]})
@@ -84,6 +85,12 @@ class MyUtils:
         return latest
         
     class TestLogger():
+        @staticmethod
+        def get_llm_judge_dataset(output_dir, checkpoint = None, n_checks = None):
+            if checkpoint is None:
+                checkpoint = MyUtils.get_latest_checkpoint(f"results/{output_dir}")
+            raw_data = joblib.load(f"results/{output_dir}/checkpoint-{checkpoint}-test.results")["outputs"]
+        
         def __init__(self, processor):
             self.processor = processor
             self.scores = {
