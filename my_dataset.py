@@ -56,7 +56,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if transform is not None:
         image = transform(image)
     
-    quest = f"Question: {norm_text(d['question'])}"
+    quest = f"Answer this question: {norm_text(d['question'])}"
     
     inputs = processor(
         images = image,

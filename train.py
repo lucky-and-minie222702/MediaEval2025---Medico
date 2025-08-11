@@ -31,14 +31,10 @@ lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
     target_modules = [
-        "dense",
         "q_proj",
         "k_proj",
         "v_proj",
         "o_proj",
-        "gate_proj",
-        "up_proj",
-        "down_proj",
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
     inference_mode = False,
@@ -96,6 +92,7 @@ training_args = Seq2SeqTrainingArguments(
     remove_unused_columns = False,
 
     disable_tqdm = not config["tqdm"],
+    logging_first_step = True,
 )
 
 trainer = Seq2SeqTrainer(
