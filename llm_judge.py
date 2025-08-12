@@ -33,7 +33,6 @@ def judge(a, b):
         messages = messages,
         temperature = 1.0,
         max_tokens = 64,
-        response_format = {"type": "json_object"}
     )
     print(out.choices[0].message)
     text = out.choices[0].message.content
