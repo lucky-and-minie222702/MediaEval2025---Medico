@@ -55,7 +55,11 @@ for l, p in pbar:
     results["labels"].append(1 if res["label"] == "same" else 0)
     results["confidence"].append(res["confidence"])
     
-    pbar.set_postfix(acc = np.mean(results["labels"]))
+    pbar.set_postfix(
+        accuracy = round(np.mean(results["labels"]), 4),
+        avg_confidence = round(np.mean(results["confidence"]), 4),
+        cur_confidence = round(results["confidence"][-1], 4)
+    )
 
 df = pd.read_csv("data/test.csv")
 results_df = pd.DataFrame({
