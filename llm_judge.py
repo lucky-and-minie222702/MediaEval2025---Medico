@@ -28,7 +28,7 @@ def judge(a, b):
          "Respond with JSON ONLY."}
     ]
     out = client.chat.completions.create(
-        model = config["model_name"],
+        model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
         messages = messages,
         temperature = 0.0,
         max_tokens = 64,
