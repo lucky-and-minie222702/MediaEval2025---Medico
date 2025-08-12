@@ -15,7 +15,7 @@ SYSTEM = (
     "You are a semantic equivalence judge. "
     "Given two sentences, respond with STRICT JSON: "
     '{"label": "SAME" or "DIFFERENT", "confidence": float number 0..1}. '
-    "No extra text."
+    "Only JSON, no extra text."
 )
 
 def judge(a, b):
