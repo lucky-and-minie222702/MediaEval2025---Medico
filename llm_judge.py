@@ -10,6 +10,6 @@ agent = MyUtils.TestLogger.LLMJudgeAgent(
 )
 agent.calc_scores()
 agent.from_csv_to_csv(
-    file1 = config["file1"],
+    file1 = "data/test.csv",
     file2 = f"results/{config["dir"]}/checkpoint-{checkpoint}-test-stats.csv"
 )
