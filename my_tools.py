@@ -152,8 +152,8 @@ class MyUtils:
                 "scores": self.scores,
             }
             
-        class SimilarityAgent():
-            def __init__(self, dir, checkpoint, model_name = "cross-encoder/stsb-roberta-large"):
+        class LLMJudgeAgent():
+            def __init__(self, dir, checkpoint):
                 file_path = f"results/{dir}/checkpoint-{checkpoint}-test.results"
                 raw_data = joblib.load(file_path)["outputs"]
                 
@@ -167,34 +167,6 @@ class MyUtils:
                 self.questions = norm_map(self.questions)
                 self.labels = norm_map(self.labels)
                 self.predictions = norm_map(self.predictions)
-
-                self.model = CrossEncoder(model_name)
-                self.scores = []
-                
-            def calc_scores(self, threshold = 0.75):
-                pbar = tqdm(zip(self.labels, self.predictions), total = len(self.labels))
-                for l, p in pbar:
-                    score = self.model.predict([(l, p)])[0]
-                    self.scores.append(score)
-                    acc = list(map(lambda s: int(s >= threshold), self.scores))
-                    pbar.set_postfix(
-                        cur_score = round(score, 3), 
-                        avg_score = round(np.mean(self.scores), 3), 
-                        acc = round(np.mean(acc), 3),
-                    )
-                    
-            def from_csv_to_csv(self, file1, file2):
-                prev_df = pd.read_csv(file1)
-                cur_df = pd.DataFrame({
-                    "img_id": prev_df["img_id"],
-                    "questions": self.questions,
-                    "labels": self.labels,
-                    "predictions": self.predictions,
-                    "scores": self.scores,
-                    "complexity": prev_df["complexity"],
-                    "question_class": prev_df["question_class"],
-                })
-                cur_df.to_csv(file2, index = False)
 
 
 class MyText:
