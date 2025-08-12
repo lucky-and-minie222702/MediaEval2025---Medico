@@ -37,7 +37,7 @@ def judge(a, b):
         max_tokens = 64,
         response_format = {"type": "json_object"}
     )
-    print(out.choices[0].message)
+    print(out.choices)
     text = out.choices[0].message.content
     s, e = text.find("{"), text.rfind("}")
     payload = text[s:e+1] if s != -1 and e != -1 else '{"label":"DIFFERENT","confidence":0.0}'
