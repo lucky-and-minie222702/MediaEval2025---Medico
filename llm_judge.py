@@ -2,15 +2,10 @@ import os
 import json
 from huggingface_hub import InferenceClient
 from my_tools import *
+import requests
 
 config = MyConfig.load_json(sys.argv[1])
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
-
-client = InferenceClient(
-    model = config["model_name"],
-    api_key = config["api_key"],
-    provider = config["provider"],
-)
 
 SYSTEM = (
     "You are a semantic equivalence judge. "
@@ -27,21 +22,23 @@ USER = (
 )
 
 def judge(a, b):
+    url = "https://api.siliconflow.com/v1/chat/completions"
     messages = [
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": USER.format(a = a, b = b)}
     ]
-    out = client.chat.completions.create(
-        messages = messages,
-        temperature = 1.0,
-        max_tokens = 64,
-        response_format = {"type": "json_object"}
-    )
-    text = out.choices[0].message.content
-    s, e = text.find("{"), text.rfind("}")
-    payload = text[s:e+1] if s != -1 and e != -1 else '{"label":"DIFFERENT","confidence":0.0}'
-    payload = payload.lower()
-    return json.loads(payload)
+    payload = {
+        "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+        "messages": messages,
+    }
+    headers = {
+        "Authorization": f"Bearer {config['api_key']}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    print(response.json())
+    exit()
 
 reader = MyUtils.TestLogger.ResultsReader(
     dir = config["dir"],
