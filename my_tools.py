@@ -177,7 +177,11 @@ class MyUtils:
                     score = self.model.predict([(l, p)])[0]
                     self.scores.append(score)
                     acc = list(map(lambda s: int(s >= threshold), self.scores))
-                    pbar.set_postfix(cur_score = score, avg_score = np.mean(self.scores), acc = np.mean(acc))
+                    pbar.set_postfix(
+                        cur_score = round(score, 3), 
+                        avg_score = round(np.mean(self.scores), 3), 
+                        acc = round(np.mean(acc), 3),
+                    )
                     
             def from_csv_to_csv(self, file1, file2):
                 prev_df = pd.read_csv(file1)
