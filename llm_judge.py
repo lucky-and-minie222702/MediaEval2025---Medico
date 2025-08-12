@@ -35,6 +35,7 @@ def judge(a: str, b: str):
     text = out.choices[0].message.content
     s, e = text.find("{"), text.rfind("}")
     payload = text[s:e+1] if s != -1 and e != -1 else '{"label":"DIFFERENT","confidence":0.0}'
+    print(s, e, text)
     return json.loads(payload)
 
 print(judge("The meeting starts at 3 pm.", "The meeting begins at 3:00 in the afternoon."))
