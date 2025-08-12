@@ -152,7 +152,7 @@ class MyUtils:
                 "scores": self.scores,
             }
             
-        class LLMJudgeAgent():
+        class SimilarityAgent():
             def __init__(self, dir, checkpoint, model_name = "cross-encoder/stsb-roberta-large"):
                 file_path = f"results/{dir}/checkpoint-{checkpoint}-test.results"
                 raw_data = joblib.load(file_path)["outputs"]
@@ -171,7 +171,7 @@ class MyUtils:
                 self.model = CrossEncoder(model_name)
                 self.scores = []
                 
-            def calc_scores(self, threshold = 0.5):
+            def calc_scores(self, threshold = 0.75):
                 pbar = tqdm(zip(self.labels, self.predictions), total = len(self.labels))
                 for l, p in pbar:
                     score = self.model.predict([(l, p)])[0]
