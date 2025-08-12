@@ -14,7 +14,7 @@ config = MyConfig.load_json(sys.argv[1])
 
 
 # load model
-model_path = f"results/{config['dir']}/checkpoint-{MyUtils.get_latest_checkpoint(config['dir']) if config['checkpoint'] == 'latest' else config['checkpoint']}"
+model_path = f"results/{config['dir']}/checkpoint-{config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))}"
 file_path = f"{model_path}-test.results"  # for save test results files
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = Blip2ForConditionalGeneration.from_pretrained(

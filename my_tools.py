@@ -1,6 +1,8 @@
 from PIL import Image, ImageOps
 import json
 import sys
+from lightgbm import Dataset
+import pandas as pd
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
 from nltk.translate.meteor_score import meteor_score
@@ -10,6 +12,9 @@ import os
 import numpy as np
 from transformers import TrainerCallback
 import joblib
+from sentence_transformers import CrossEncoder
+from tqdm import tqdm
+
 
 class TrainerSaveLossCallback(TrainerCallback):
     def __init__(self, output_dir, output_file = "losses.json"):
@@ -85,12 +90,6 @@ class MyUtils:
         return latest
         
     class TestLogger():
-        @staticmethod
-        def get_llm_judge_dataset(output_dir, checkpoint = None, n_checks = None):
-            if checkpoint is None:
-                checkpoint = MyUtils.get_latest_checkpoint(f"results/{output_dir}")
-            raw_data = joblib.load(f"results/{output_dir}/checkpoint-{checkpoint}-test.results")["outputs"]
-        
         def __init__(self, processor):
             self.processor = processor
             self.scores = {
@@ -153,7 +152,49 @@ class MyUtils:
                 "outputs": self.outputs,
                 "scores": self.scores,
             }
+            
+        class LLMJudgeAgent():
+            def __init__(self, dir, checkpoint, model_name = "cross-encoder/stsb-roberta-large"):
+                file_path = f"results/{dir}/checkpoint-{checkpoint}-test.results"
+                raw_data = joblib.load(file_path)["outputs"]
+                
+                self.questions = raw_data["questions"]
+                self.labels = raw_data["questions"]
+                self.predictions = raw_data["predictions"][::, 0]
+                
+                norm_func = lambda s:  s[:-1:] if s[-1] == "," else s
+                norm_map = lambda a: np.array([norm_func(s) for s in a])
+                
+                self.questions = norm_map(self.questions)
+                self.labels = norm_map(self.labels)
+                self.predictions = norm_map(self.predictions)
 
+                self.model = CrossEncoder(model_name)
+                self.scores = []
+                
+            def calc_scores(self):
+                pbar = tqdm(zip(self.labels, self.predictions))
+                for l, p in pbar:
+                    score = self.model.predict([(l, p)])[0]
+                    self.scores.append(score)
+                    pbar.set_postfix(cur_score = score, avg_score = np.mean(self.scores))
+                    
+            def from_csv_to_csv(self, file1, file2):
+                prev_df = pd.read_csv(file1)
+                cur_df = pd.DataFrame({
+                    "img_id": prev_df["img_id"],
+                    "questions": self.questions,
+                    "labels": self.labels,
+                    "predictions": self.predictions,
+                    "scores": self.scores,
+                    "complexity": prev_df["complexity"],
+                    "question_class": prev_df["question_class"],
+                })
+                cur_df.to_csv(file2, index = False)
+                
+
+            
+            
 
 class MyText:
     @staticmethod
