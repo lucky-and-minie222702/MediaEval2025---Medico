@@ -1,7 +1,6 @@
 from PIL import Image, ImageOps
 import json
 import sys
-from lightgbm import Dataset
 import pandas as pd
 from sacrebleu import corpus_bleu
 from rouge_score import rouge_scorer
