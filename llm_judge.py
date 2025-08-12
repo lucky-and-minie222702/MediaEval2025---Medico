@@ -11,28 +11,30 @@ client = InferenceClient(
     provider = config["provider"],
 )
 
-SYSTEM = (
-    "You are a semantic equivalence judge. "
-    "Think privately, but put ALL thinking in your head (not in reasoning_content). "
-    "Output ONLY a JSON object in your final answer, in `content`. "
-    "The JSON must have keys: label ('SAME' or 'DIFFERENT'), confidence (0..1)."
+INSTRUCTIONS = (
+  "You are a semantic equivalence judge.\n"
+  "Think silently. Do NOT call tools.\n"
+  "At the very end, output exactly ONE line starting with:\n"
+  "FINAL_JSON: {\"label\":\"SAME|DIFFERENT\",\"confidence\":0..1}\n"
+  "No extra text after that line."
 )
 
-USER = (
-    "Sentence A: {a}\nSentence B: {b}\n"
-    "Return JSON only. Do not output reasoning."
+USER_TMPL = (
+  "Sentence A: {a}\nSentence B: {b}\n"
+  "Return only the FINAL_JSON line at the end."
 )
 
 def judge(a, b):
     messages = [
-        {"role": "system", "content": SYSTEM},
-        {"role": "user", "content": USER.format(a = a, b = b)}
+        {"role": "system", "content": INSTRUCTIONS},
+        {"role": "user", "content": USER_TMPL.format(a = a, b = b)}
     ]
     out = client.chat.completions.create(
         model = config["model_name"],
         messages = messages,
         temperature = 1.0,
         max_tokens = 64,
+        response_format = {"type": "json_object"}
     )
     print(out.choices[0].message)
     text = out.choices[0].message.content
