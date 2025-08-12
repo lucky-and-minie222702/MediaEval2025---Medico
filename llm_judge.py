@@ -30,7 +30,7 @@ def judge(a, b):
     out = client.chat.completions.create(
         model = config["model_name"],
         messages = messages,
-        temperature = 0.0,
+        temperature = 1.0,
         max_tokens = 64,
         response_format = {"type": "json_object"}
     )
