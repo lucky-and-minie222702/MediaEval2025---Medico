@@ -7,6 +7,7 @@ config = MyConfig.load_json(sys.argv[1])
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 
 client = InferenceClient(
+    model = config["model_name"],
     api_key = config["api_key"],
     provider = config["provider"],
 )
@@ -30,7 +31,6 @@ def judge(a, b):
         {"role": "user", "content": USER_TMPL.format(a = a, b = b)}
     ]
     out = client.chat.completions.create(
-        model = config["model_name"],
         messages = messages,
         temperature = 1.0,
         max_tokens = 64,
