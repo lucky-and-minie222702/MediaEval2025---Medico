@@ -152,7 +152,7 @@ class MyUtils:
                 "scores": self.scores,
             }
             
-        class LLMJudgeAgent():
+        class ResultsReader():
             def __init__(self, dir, checkpoint):
                 file_path = f"results/{dir}/checkpoint-{checkpoint}-test.results"
                 raw_data = joblib.load(file_path)["outputs"]

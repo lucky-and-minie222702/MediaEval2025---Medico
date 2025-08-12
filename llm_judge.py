@@ -4,6 +4,7 @@ from huggingface_hub import InferenceClient
 from my_tools import *
 
 config = MyConfig.load_json(sys.argv[1])
+checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 
 client = InferenceClient(
     api_key = config["api_key"],
@@ -17,7 +18,7 @@ SYSTEM = (
     "No extra text."
 )
 
-def judge(a: str, b: str):
+def judge(a, b):
     messages = [
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content":
@@ -36,7 +37,39 @@ def judge(a: str, b: str):
     text = out.choices[0].message.content
     s, e = text.find("{"), text.rfind("}")
     payload = text[s:e+1] if s != -1 and e != -1 else '{"label":"DIFFERENT","confidence":0.0}'
-    print(text)
+    payload = payload.lower()
     return json.loads(payload)
 
-print(judge("The meeting starts at 3 pm.", "The meeting begins at 3:00 in the afternoon."))
+reader = MyUtils.TestLogger.ResultsReader(
+    dir = config["dir"],
+    checkpoint = checkpoint,
+)
+
+pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
+results = {
+    "labels": [],
+    "confidence": []
+}
+for l, p in pbar:
+    res = judge(l, p)
+    results["labels"].append(1 if res["label"] == "same" else 0)
+    results["confidence"].append(res["confidence"])
+    
+    pbar.set_postfix(acc = np.mean(results["labels"]))
+
+df = pd.read_csv("data/test.csv")
+results_df = pd.DataFrame({
+    "img_id": df["img_id"],
+    "questions": reader.questions,
+    
+    "labels": reader.labels,
+    "predictions": reader.predictions,
+    
+    "labels": results["labels"],
+    "confidence": results["confidence"],
+
+    "complexity": df["complexity"],
+    "question_class": df["question_class"],
+})
+
+results_df.to_csv(f"results/{config['dir']}/checkpoint-{checkpoint}-llm-judge.csv", index = False)
