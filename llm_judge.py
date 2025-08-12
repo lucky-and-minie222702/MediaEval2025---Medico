@@ -8,7 +8,7 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 
 client = InferenceClient(
     api_key = config["api_key"],
-    provider = "hf-inference",
+    provider = config["provider"],
 )
 
 SYSTEM = (
