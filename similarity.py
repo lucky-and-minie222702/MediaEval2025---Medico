@@ -11,5 +11,5 @@ agent = MyUtils.TestLogger.SimilarityAgent(
 agent.calc_scores()
 agent.from_csv_to_csv(
     file1 = "data/test.csv",
-    file2 = f"results/{config['dir']}/checkpoint-{checkpoint}-test-stats.csv"
+    file2 = f"results/{config['dir']}/checkpoint-{checkpoint}-test-similarities.csv"
 )
