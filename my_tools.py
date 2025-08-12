@@ -158,7 +158,7 @@ class MyUtils:
                 raw_data = joblib.load(file_path)["outputs"]
                 
                 self.questions = raw_data["questions"]
-                self.labels = raw_data["questions"]
+                self.labels = raw_data["labels"]
                 self.predictions = raw_data["predictions"][::, 0]
                 
                 norm_func = lambda s:  s[:-1:] if s[-1] == "," else s
@@ -171,12 +171,13 @@ class MyUtils:
                 self.model = CrossEncoder(model_name)
                 self.scores = []
                 
-            def calc_scores(self):
-                pbar = tqdm(zip(self.labels, self.predictions))
+            def calc_scores(self, threshold = 0.5):
+                pbar = tqdm(zip(self.labels, self.predictions), total = len(self.labels))
                 for l, p in pbar:
                     score = self.model.predict([(l, p)])[0]
                     self.scores.append(score)
-                    pbar.set_postfix(cur_score = score, avg_score = np.mean(self.scores))
+                    acc = list(map(lambda s: int(s >= threshold), self.scores))
+                    pbar.set_postfix(cur_score = score, avg_score = np.mean(self.scores), acc = np.mean(acc))
                     
             def from_csv_to_csv(self, file1, file2):
                 prev_df = pd.read_csv(file1)
@@ -190,10 +191,7 @@ class MyUtils:
                     "question_class": prev_df["question_class"],
                 })
                 cur_df.to_csv(file2, index = False)
-                
 
-            
-            
 
 class MyText:
     @staticmethod
