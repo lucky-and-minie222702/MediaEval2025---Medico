@@ -13,17 +13,11 @@ client = InferenceClient(
 )
 
 SYSTEM = (
-    "You are a semantic equivalence judge. "
-    "Given two sentences, respond with STRICT JSON:"
-    "The JSON must have keys: label ('SAME' or 'DIFFERENT'), confidence (0..1)."
+    "You are a semantic equivalence judge. Given two sentences, respond with STRICT JSON: The JSON must have keys: label ('SAME' or 'DIFFERENT'), confidence (0..1)."
 )
 
 USER = (
-    "Sentence A: {a}\nSentence B: {b}\n"
-    "The rules are:"
-    "1) SAME if meanings are equivalent for a typical reader."
-    "2) DIFFERENT if facts conflict or meaning changes."
-    "Respond with JSON ONLY."
+    "Sentence A: {a}\nSentence B: {b}\n The rules are: \n 1) SAME if meanings are equivalent for a typical reader.\n 2) DIFFERENT if facts conflict or meaning changes. Respond with JSON ONLY."
 )
 
 def judge(a, b):
