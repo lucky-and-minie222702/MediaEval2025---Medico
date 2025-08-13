@@ -121,8 +121,8 @@ for start in pbar:
 
     pbar.set_postfix(
         accuracy = round(float(np.mean(results["labels"])), 3),
-        avg_confidence = round(float(np.mean(results["confidence"])), 3),
-        cur_confidence = round(results["confidence"][-1], 3)
+        avg_confidence = round(float(np.mean(results["confidence"])), 2),
+        cur_confidence = round(results["confidence"][-1], 2)
     )
     
 
