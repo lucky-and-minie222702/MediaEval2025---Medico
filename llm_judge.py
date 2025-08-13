@@ -1,79 +1,93 @@
-import os
 import json
-from huggingface_hub import InferenceClient
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_tools import *
-import requests
 
 config = MyConfig.load_json(sys.argv[1])
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 
-SYSTEM = (
+model_name = "Qwen/Qwen3-30B-A3B-Instruct-2507"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    device_map="auto",
+    torch_dtype="auto",
+    trust_remote_code=True
+)
+
+SYSTEM_PROMPT = (
     "You are a semantic equivalence judge. "
-    "Given two sentences, respond with STRICT JSON:"
-    "The JSON must have keys: label ('SAME' or 'DIFFERENT'), confidence (0..1)."
+    "Given two sentences, output STRICT JSON with keys: "
+    "label (SAME or DIFFERENT), confidence (0.00-1.00)."
 )
 
-USER = (
-    "Sentence A: {a}\nSentence B: {b}\n"
-    "The rules are:"
-    "1) SAME if meanings are equivalent for a typical reader."
-    "2) DIFFERENT if facts conflict or meaning changes."
-    "Respond with JSON ONLY."
+USER_TEMPLATE = (
+    "Sentence A: {a}\nSentence B: {b}\n\n"
+    "Rules:\n"
+    "1) SAME if their meanings are equivalent in everyday context.\n"
+    "2) DIFFERENT if meaning changes or facts conflict.\n"
+    "Respond with JSON ONLY, no extra text"
 )
 
-def judge(a, b):
-    url = "https://api.siliconflow.com/v1/chat/completions"
+def build_prompt(a, b):
     messages = [
-        {"role": "system", "content": SYSTEM},
-        {"role": "user", "content": USER.format(a = a, b = b)}
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_TEMPLATE.format(a=a, b=b)},
     ]
-    payload = {
-        "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-        "messages": messages,
-    }
-    headers = {
-        "Authorization": f"Bearer {config['api_key']}",
-        "Content-Type": "application/json"
-    }
+    return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
 
-    response = requests.post(url, json=payload, headers=headers)
-    print(response.json())
-    exit()
+@torch.inference_mode()
+def judge(a: str, b: str):
+    prompt = build_prompt(a, b)
+    inputs = tokenizer(prompt, return_tensors = "pt").to(model.device)
 
-reader = MyUtils.TestLogger.ResultsReader(
-    dir = config["dir"],
-    checkpoint = checkpoint,
-)
-
-pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
-results = {
-    "labels": [],
-    "confidence": []
-}
-for l, p in pbar:
-    res = judge(l, p)
-    results["labels"].append(1 if res["label"] == "same" else 0)
-    results["confidence"].append(res["confidence"])
-    
-    pbar.set_postfix(
-        accuracy = round(np.mean(results["labels"]), 4),
-        avg_confidence = round(np.mean(results["confidence"]), 4),
-        cur_confidence = round(results["confidence"][-1], 4)
+    output_ids = model.generate(
+        **inputs,
+        max_new_tokens = 64,
+        temperature = 0.0,
+        do_sample = False,
     )
 
-df = pd.read_csv("data/test.csv")
-results_df = pd.DataFrame({
-    "img_id": df["img_id"],
-    "questions": reader.questions,
-    
-    "labels": reader.labels,
-    "predictions": reader.predictions,
-    
-    "labels": results["labels"],
-    "confidence": results["confidence"],
+    out = tokenizer.decode(output_ids[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip().lower()
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return {"label": "DIFFERENT", "confidence": 0.0}
 
-    "complexity": df["complexity"],
-    "question_class": df["question_class"],
-})
+# reader = MyUtils.TestLogger.ResultsReader(
+#     dir = config["dir"],
+#     checkpoint = checkpoint,
+# )
 
-results_df.to_csv(f"results/{config['dir']}/checkpoint-{checkpoint}-llm-judge.csv", index = False)
+# pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
+# results = {
+#     "labels": [],
+#     "confidence": []
+# }
+# for l, p in pbar:
+#     res = judge(l, p)
+#     results["labels"].append(1 if res["label"] == "same" else 0)
+#     results["confidence"].append(res["confidence"])
+    
+#     pbar.set_postfix(
+#         accuracy = round(np.mean(results["labels"]), 4),
+#         avg_confidence = round(np.mean(results["confidence"]), 4),
+#         cur_confidence = round(results["confidence"][-1], 4)
+#     )
+
+# df = pd.read_csv("data/test.csv")
+# results_df = pd.DataFrame({
+#     "img_id": df["img_id"],
+#     "questions": reader.questions,
+    
+#     "labels": reader.labels,
+#     "predictions": reader.predictions,
+    
+#     "labels": results["labels"],
+#     "confidence": results["confidence"],
+
+#     "complexity": df["complexity"],
+#     "question_class": df["question_class"],
+# })
+
+# results_df.to_csv(f"results/{config['dir']}/checkpoint-{checkpoint}-llm-judge.csv", index = False)
