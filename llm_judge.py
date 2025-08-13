@@ -16,9 +16,9 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge. "
+    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences is the same or different in terms of meaning, aslo you need to give brief reason for your decision"
     "Given two sentences, output STRICT JSON with keys: "
-    "label (SAME or DIFFERENT), confidence (0.00-1.00)."
+    "label (SAME or DIFFERENT), confidence (0.00-1.00), reason (your decision's reason)"
 )
 
 USER_TEMPLATE = (
@@ -26,6 +26,7 @@ USER_TEMPLATE = (
     "Rules:\n"
     "1) SAME if their meanings are equivalent in everyday context.\n"
     "2) DIFFERENT if meaning changes or facts conflict.\n"
+    "3) Give a short reason why you give that answer.\n"
     "Respond with JSON ONLY, no extra text"
 )
 
@@ -53,6 +54,8 @@ def judge(a: str, b: str):
         return json.loads(out)
     except json.JSONDecodeError:
         return {"label": "DIFFERENT", "confidence": 0.0}
+    
+print(judge("i have two apples", "i have two ranges"))
 
 # reader = MyUtils.TestLogger.ResultsReader(
 #     dir = config["dir"],
