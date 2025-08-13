@@ -50,13 +50,13 @@ with torch.no_grad():
         predictions = model.generate(
             **batch,
             
-            do_sample = config["gen"].get("do_sample", True),
+            do_sample = config["gen"].get("do_sample", False),
             max_new_tokens = config["dataset"]["max_answer_length"],
             num_beams = config["gen"]["n_beams"],
             early_stopping = config["gen"].get("early_stopping", False),
             num_return_sequences = config["gen"]["n_returns"],
-            temperature = config["gen"].get("temperature", 1.0),
-            top_k = config["gen"].get("top_k", 50),
+            
+            **config["gen"].get("others", {})
         )
         
         logger.log_per_step(
