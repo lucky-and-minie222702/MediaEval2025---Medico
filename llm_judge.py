@@ -55,7 +55,7 @@ def judge(a: str, b: str):
     except json.JSONDecodeError:
         return {"label": "DIFFERENT", "confidence": 0.0}
     
-print(judge("i have two apples", "i have two ranges"))
+# print(judge("i have two apples", "i have two ranges"))
 
 # reader = MyUtils.TestLogger.ResultsReader(
 #     dir = config["dir"],
