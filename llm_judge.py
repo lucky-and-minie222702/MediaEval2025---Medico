@@ -110,11 +110,6 @@ for start in pbar:
     batch_pairs = list(zip(labels[start:end], preds[start:end]))
 
     batch_res = judge_batch(batch_pairs)
-    if start == 0:
-        print("Example input")
-        print(batch_pairs)
-        print("Example output:")
-        print(batch_res)
 
     for res in batch_res:
         label = res["label"].strip().lower()
