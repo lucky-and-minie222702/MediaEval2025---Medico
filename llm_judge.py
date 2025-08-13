@@ -15,6 +15,7 @@ bnb_4bit = BitsAndBytesConfig(
     bnb_4bit_compute_dtype = torch.bfloat16
 )
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map = "auto",
@@ -23,7 +24,7 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype = torch.bfloat16,
     quantization_config = bnb_4bit,
     low_cpu_mem_usage = True,
-)
+).to(device)
 tokenizer.padding_side = "left"
 
 SYSTEM_PROMPT = (
@@ -74,7 +75,7 @@ def judge_batch(pairs):
         return_tensors = "pt",
         padding = True,
         truncation = False,
-    ).to(model.device)
+    ).to(device)
 
     gen_ids = model.generate(
         **inputs,
