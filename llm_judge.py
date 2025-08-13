@@ -16,9 +16,10 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences is the same or different in terms of meaning, aslo you need to give brief reason for your decision"
+    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences is the same or different in terms of meaning."
+    "You need to provide the label which is SAME or DIFFERENT and your confidence."
     "Given two sentences, output STRICT JSON with keys: "
-    "label (SAME or DIFFERENT), confidence (0.00-1.00), reason (your decision's reason)"
+    "label (SAME or DIFFERENT), confidence (0.000-1.000)"
 )
 
 USER_TEMPLATE = (
@@ -26,8 +27,7 @@ USER_TEMPLATE = (
     "Rules:\n"
     "1) SAME if their meanings are equivalent in everyday context.\n"
     "2) DIFFERENT if meaning changes or facts conflict.\n"
-    "3) Give a short reason why you give that answer.\n"
-    "Respond with JSON ONLY, no extra text"
+    "Respond with JSON ONLY, no extra text."
 )
 
 def build_prompt(a, b):
@@ -54,43 +54,42 @@ def judge(a: str, b: str):
         return json.loads(out)
     except json.JSONDecodeError:
         return {"label": "DIFFERENT", "confidence": 0.0}
+
+
+reader = MyUtils.TestLogger.ResultsReader(
+    dir = config["dir"],
+    checkpoint = checkpoint,
+)
+
+pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
+results = {
+    "labels": [],
+    "confidence": [],
+}
+for l, p in pbar:
+    res = judge(l, p)
+    results["labels"].append(1 if res["label"] == "same" else 0)
+    results["confidence"].append(res["confidence"])
     
-# print(judge("i have two apples", "i have two ranges"))
+    pbar.set_postfix(
+        accuracy = round(np.mean(results["labels"]), 3),
+        avg_confidence = round(np.mean(results["confidence"]), 3),
+        cur_confidence = round(results["confidence"][-1], 3)
+    )
 
-# reader = MyUtils.TestLogger.ResultsReader(
-#     dir = config["dir"],
-#     checkpoint = checkpoint,
-# )
-
-# pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
-# results = {
-#     "labels": [],
-#     "confidence": []
-# }
-# for l, p in pbar:
-#     res = judge(l, p)
-#     results["labels"].append(1 if res["label"] == "same" else 0)
-#     results["confidence"].append(res["confidence"])
+df = pd.read_csv("data/test.csv")
+results_df = pd.DataFrame({
+    "img_id": df["img_id"],
+    "questions": reader.questions,
     
-#     pbar.set_postfix(
-#         accuracy = round(np.mean(results["labels"]), 4),
-#         avg_confidence = round(np.mean(results["confidence"]), 4),
-#         cur_confidence = round(results["confidence"][-1], 4)
-#     )
-
-# df = pd.read_csv("data/test.csv")
-# results_df = pd.DataFrame({
-#     "img_id": df["img_id"],
-#     "questions": reader.questions,
+    "labels": reader.labels,
+    "predictions": reader.predictions,
     
-#     "labels": reader.labels,
-#     "predictions": reader.predictions,
-    
-#     "labels": results["labels"],
-#     "confidence": results["confidence"],
+    "labels": results["labels"],
+    "confidence": results["confidence"],
 
-#     "complexity": df["complexity"],
-#     "question_class": df["question_class"],
-# })
+    "complexity": df["complexity"],
+    "question_class": df["question_class"],
+})
 
-# results_df.to_csv(f"results/{config['dir']}/checkpoint-{checkpoint}-llm-judge.csv", index = False)
+results_df.to_csv(f"results/{config['dir']}/checkpoint-{checkpoint}-llm-judge.csv", index = False)
