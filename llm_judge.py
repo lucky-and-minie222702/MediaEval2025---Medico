@@ -11,7 +11,13 @@ tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map = "auto",
-    trust_remote_code = True
+    trust_remote_code = True,
+    
+    torch_dtype = torch.bfloat16,
+    load_in_4bit = True,                   
+    bnb_4bit_compute_dtype = torch.float16,
+    bnb_4bit_use_double_quant = True,
+    low_cpu_mem_usage = True,
 )
 
 SYSTEM_PROMPT = (
