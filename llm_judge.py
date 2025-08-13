@@ -30,7 +30,7 @@ SYSTEM_PROMPT = (
     "You are a semantic equivalence judge, your task is to evaluate wether the two sentences are the same or different in terms of meaning."
     "You need to provide the label which is SAME or DIFFERENT and your confidence on the answer."
     "Given two sentences, output STRICT JSON with keys: "
-    "label (SAME or DIFFERENT), confidence (0.000-1.000)"
+    "label (SAME or DIFFERENT), confidence (0.00 - 1.00)"
 )
 
 USER_TEMPLATE = (
