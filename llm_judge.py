@@ -76,7 +76,6 @@ def judge_batch(pairs):
         truncation = False,
     ).to(model.device)
 
-    # Generate batched
     gen_ids = model.generate(
         **inputs,
         max_new_tokens = 64,
