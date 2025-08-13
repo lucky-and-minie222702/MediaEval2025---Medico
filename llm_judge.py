@@ -15,7 +15,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences is the same or different in terms of meaning."
+    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences are the same or different in terms of meaning."
     "You need to provide the label which is SAME or DIFFERENT and your confidence."
     "Given two sentences, output STRICT JSON with keys: "
     "label (SAME or DIFFERENT), confidence (0.000-1.000)"
