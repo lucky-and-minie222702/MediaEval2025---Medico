@@ -10,9 +10,8 @@ model_name = "Qwen/Qwen3-30B-A3B-Instruct-2507"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    device_map="auto",
-    torch_dtype="auto",
-    trust_remote_code=True
+    device_map = "auto",
+    trust_remote_code = True
 )
 
 SYSTEM_PROMPT = (
@@ -33,12 +32,12 @@ USER_TEMPLATE = (
 def build_prompt(a, b):
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": USER_TEMPLATE.format(a=a, b=b)},
+        {"role": "user", "content": USER_TEMPLATE.format(a = a, b = b)},
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
 
 @torch.inference_mode()
-def judge(a: str, b: str):
+def judge(a, b):
     prompt = build_prompt(a, b)
     inputs = tokenizer(prompt, return_tensors = "pt").to(model.device)
 
@@ -53,6 +52,7 @@ def judge(a: str, b: str):
     try:
         return json.loads(out)
     except json.JSONDecodeError:
+        print(f"Error: {out}")
         return {"label": "DIFFERENT", "confidence": 0.0}
 
 
