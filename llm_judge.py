@@ -1,5 +1,5 @@
 import json
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer,  BitsAndBytesConfig
 from my_tools import *
 
 config = MyConfig.load_json(sys.argv[1])
@@ -7,6 +7,12 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 
 model_name = "Qwen/Qwen3-30B-A3B-Instruct-2507"
 
+bnb_4bit = BitsAndBytesConfig(
+    load_in_4bit = True,
+    bnb_4bit_quant_type = "nf4",
+    bnb_4bit_use_double_quant = True,
+    bnb_4bit_compute_dtype = torch.bfloat16
+)
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
@@ -14,9 +20,7 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code = True,
     
     torch_dtype = torch.bfloat16,
-    load_in_4bit = True,                   
-    bnb_4bit_compute_dtype = torch.float16,
-    bnb_4bit_use_double_quant = True,
+    quantization_config = bnb_4bit,
     low_cpu_mem_usage = True,
 )
 
