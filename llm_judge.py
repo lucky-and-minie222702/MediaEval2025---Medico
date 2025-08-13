@@ -27,16 +27,15 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer.padding_side = "left"
 
 SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge, your task is to evaluate wether the two sentences are the same or different in terms of meaning."
-    "You need to provide the label which is SAME or DIFFERENT and your confidence on the answer."
-    "Given two sentences, output STRICT JSON with keys: "
+    "You are a semantic equivalence judge."
+    "Given two medical sentences, output STRICT JSON with keys: "
     "label (SAME or DIFFERENT), confidence (0.00 - 1.00)"
 )
 
 USER_TEMPLATE = (
     "Sentence A: {a}\nSentence B: {b}\n\n"
     "Rules:\n"
-    "1) SAME if their meanings are equivalent in everyday context.\n"
+    "1) SAME if their meanings are equivalent in medical or everyday context.\n"
     "2) DIFFERENT if meaning changes or facts conflict.\n"
     "Respond with JSON ONLY, no extra text."
 )
@@ -87,7 +86,7 @@ def judge_batch(pairs):
     outs = []
     for i in range(gen_ids.size(0)):
         gen_slice = gen_ids[i, input_lens[i]:]
-        text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
+        text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip().lower()
         outs.append(parse_json_safe(text))
     return outs
 
@@ -111,12 +110,15 @@ for start in pbar:
     batch_pairs = list(zip(labels[start:end], preds[start:end]))
 
     batch_res = judge_batch(batch_pairs)
+    if start == 0:
+        print("Example output:")
+        print(batch_res)
 
     for res in batch_res:
         label = res["label"].strip().upper()
         conf = res["confidence"]
 
-        results["labels"].append(1 if label == "SAME" else 0)
+        results["labels"].append(1 if label == "same" else 0)
         results["confidence"].append(conf)
 
     pbar.set_postfix(
