@@ -52,9 +52,9 @@ with torch.no_grad():
             
             do_sample = config["gen"].get("do_sample", False),
             max_new_tokens = config["dataset"]["max_answer_length"],
-            num_beams = config["gen"]["n_beams"],
+            num_beams = config["gen"].get("n_beams", 1),
             early_stopping = config["gen"].get("early_stopping", False),
-            num_return_sequences = config["gen"]["n_returns"],
+            num_return_sequences = config["gen"].get("n_returns", 1),
             
             **config["gen"].get("others", {})
         )
