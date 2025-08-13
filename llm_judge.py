@@ -113,12 +113,8 @@ for start in pbar:
     batch_res = judge_batch(batch_pairs)
 
     for res in batch_res:
-        label = str(res.get("label", "")).strip().upper()
-        conf = res.get("confidence", 0.0)
-        try:
-            conf = float(conf)
-        except Exception:
-            conf = 0.0
+        label = res["label"].strip().upper()
+        conf = res["confidence"]
 
         results["labels"].append(1 if label == "SAME" else 0)
         results["confidence"].append(conf)
