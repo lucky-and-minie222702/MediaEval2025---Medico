@@ -86,7 +86,7 @@ def judge_batch(pairs):
     outs = []
     for i in range(gen_ids.size(0)):
         gen_slice = gen_ids[i, input_lens[i]:]
-        text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip().lower()
+        text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         outs.append(parse_json_safe(text))
     return outs
 
@@ -111,11 +111,13 @@ for start in pbar:
 
     batch_res = judge_batch(batch_pairs)
     if start == 0:
+        print("Example input")
+        print(batch_pairs)
         print("Example output:")
         print(batch_res)
 
     for res in batch_res:
-        label = res["label"].strip().upper()
+        label = res["label"].strip().lower()
         conf = res["confidence"]
 
         results["labels"].append(1 if label == "same" else 0)
