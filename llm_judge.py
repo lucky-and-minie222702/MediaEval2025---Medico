@@ -1,6 +1,7 @@
 import json
 from transformers import AutoModelForCausalLM, AutoTokenizer,  BitsAndBytesConfig
 from my_tools import *
+import re
 
 config = MyConfig.load_json(sys.argv[1])
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
@@ -23,6 +24,7 @@ model = AutoModelForCausalLM.from_pretrained(
     quantization_config = bnb_4bit,
     low_cpu_mem_usage = True,
 )
+tokenizer.padding_side = "left"
 
 SYSTEM_PROMPT = (
     "You are a semantic equivalence judge, your task is to evaluate wether the two sentences are the same or different in terms of meaning."
@@ -39,6 +41,7 @@ USER_TEMPLATE = (
     "Respond with JSON ONLY, no extra text."
 )
 
+
 def build_prompt(a, b):
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -46,24 +49,47 @@ def build_prompt(a, b):
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
 
-@torch.inference_mode()
-def judge(a, b):
-    prompt = build_prompt(a, b)
-    inputs = tokenizer(prompt, return_tensors = "pt").to(model.device)
+def build_prompts_batch(batch_pairs):
+    return [build_prompt(a, b) for a, b in batch_pairs]
 
-    output_ids = model.generate(
+
+def parse_json_safe(text):
+    _json_re = re.compile(r"\{.*\}", re.DOTALL)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        m = _json_re.search(text)
+        if m:
+            try:
+                return json.loads(m.group(0))
+            except json.JSONDecodeError:
+                pass
+        return {"label": "DIFFERENT", "confidence": 0.0}
+
+
+@torch.inference_mode()
+def judge_batch(pairs):
+    prompts = build_prompts_batch(pairs)
+    inputs = tokenizer(
+        prompts,
+        return_tensors = "pt",
+        padding = True,
+        truncation = False,
+    ).to(model.device)
+
+    # Generate batched
+    gen_ids = model.generate(
         **inputs,
         max_new_tokens = 64,
-        temperature = 0.0,
-        do_sample = False,
     )
 
-    out = tokenizer.decode(output_ids[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip().lower()
-    try:
-        return json.loads(out)
-    except json.JSONDecodeError:
-        print(f"Error: {out}")
-        return {"label": "DIFFERENT", "confidence": 0.0}
+    input_lens = (inputs["input_ids"] != tokenizer.pad_token_id).sum(dim = 1)
+    outs = []
+    for i in range(gen_ids.size(0)):
+        gen_slice = gen_ids[i, input_lens[i]:]
+        text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
+        outs.append(parse_json_safe(text))
+    return outs
 
 
 reader = MyUtils.TestLogger.ResultsReader(
@@ -71,21 +97,38 @@ reader = MyUtils.TestLogger.ResultsReader(
     checkpoint = checkpoint,
 )
 
-pbar = tqdm(zip(reader.labels, reader.predictions), total = len(reader.labels))
-results = {
-    "labels": [],
-    "confidence": [],
-}
-for l, p in pbar:
-    res = judge(l, p)
-    results["labels"].append(1 if res["label"] == "same" else 0)
-    results["confidence"].append(res["confidence"])
-    
+labels = list(reader.labels)
+preds  = list(reader.predictions)
+n_samples = len(labels)
+
+batch_size = config["batch_size"]
+
+pbar = tqdm(range(0, n_samples, batch_size), total = (n_samples + batch_size - 1) // batch_size)
+results = {"labels": [], "confidence": []}
+
+for start in pbar:
+    end = min(start + batch_size, n_samples)
+    batch_pairs = list(zip(labels[start:end], preds[start:end]))
+
+    batch_res = judge_batch(batch_pairs)
+
+    for res in batch_res:
+        label = str(res.get("label", "")).strip().upper()
+        conf = res.get("confidence", 0.0)
+        try:
+            conf = float(conf)
+        except Exception:
+            conf = 0.0
+
+        results["labels"].append(1 if label == "SAME" else 0)
+        results["confidence"].append(conf)
+
     pbar.set_postfix(
-        accuracy = round(np.mean(results["labels"]), 3),
-        avg_confidence = round(np.mean(results["confidence"]), 3),
+        accuracy = round(float(np.mean(results["labels"])), 3),
+        avg_confidence = round(float(np.mean(results["confidence"])), 3),
         cur_confidence = round(results["confidence"][-1], 3)
     )
+    
 
 df = pd.read_csv("data/test.csv")
 results_df = pd.DataFrame({
