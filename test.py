@@ -56,6 +56,7 @@ with torch.no_grad():
             early_stopping = config["gen"].get("early_stopping", False),
             num_return_sequences = config["gen"]["n_returns"],
             temperature = config["gen"].get("temperature", 1.0),
+            top_k = config["gen"].get("top_k", 50),
         )
         
         logger.log_per_step(
