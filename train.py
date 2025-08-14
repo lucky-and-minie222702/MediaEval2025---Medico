@@ -80,7 +80,7 @@ training_args = Seq2SeqTrainingArguments(
     logging_steps = config["log_steps"],
     
     lr_scheduler_type = "constant_with_warmup",
-    lr_scheduler_kwargs = {"num_warmup_steps": config["warmup_step  s"]},
+    lr_scheduler_kwargs = {"num_warmup_steps": config["warmup_steps"]},
     
     fp16 = False,
     bf16 = True,
