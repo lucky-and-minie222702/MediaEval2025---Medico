@@ -38,12 +38,12 @@ lora_config = LoraConfig(
         "o",
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
-    inference_mode = False,
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
-print("Loading peft")
-model.language_model = get_peft_model(model.language_model, lora_config)
+model.add_adapter(lora_config, "lora")
+model.enable_adapters()
+
 
 # load dataset
 train_ds, val_ds = load_data(
