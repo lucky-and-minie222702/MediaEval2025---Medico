@@ -1,5 +1,5 @@
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
-from peft import LoraConfig, TaskType, prepare_model_for_kbit_training
+from peft import LoraConfig, TaskType, prepare_model_for_kbit_training, get_peft_model
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
@@ -42,8 +42,9 @@ lora_config = LoraConfig(
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
-model.add_adapter(lora_config, "lora")
-model.enable_adapters()
+model = get_peft_model(model, lora_config)
+# model.add_adapter(lora_config, "lora")
+# model.enable_adapters()
 
 
 # load dataset
