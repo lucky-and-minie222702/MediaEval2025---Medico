@@ -44,7 +44,6 @@ lora_config = LoraConfig(
 )
 print("Loading peft")
 model.language_model = get_peft_model(model.language_model, lora_config)
-model.print_trainable_parameters()
 
 # load dataset
 train_ds, val_ds = load_data(
