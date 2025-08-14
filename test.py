@@ -63,7 +63,7 @@ with torch.no_grad():
             quest = batch["input_ids"],
             pred = predictions,
             label = labels,
-            n_returns = config["gen"]["n_returns"],
+            n_returns = config["gen"].get("n_returns", 1),
         )
         
         pbar.set_postfix(**logger.cur_scores)
