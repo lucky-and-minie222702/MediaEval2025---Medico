@@ -42,9 +42,9 @@ lora_config = LoraConfig(
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
+print("Loading peft")
 model.language_model = get_peft_model(model.language_model, lora_config)
 model.print_trainable_parameters()
-
 
 # load dataset
 train_ds, val_ds = load_data(
