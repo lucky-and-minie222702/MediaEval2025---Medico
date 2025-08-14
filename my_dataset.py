@@ -36,8 +36,7 @@ TRAIN_TRANSFORM = transforms.Compose([
 
 
 def norm_text(text):
-    out = text.lower()
-    
+    out = text
     out = out.replace("/", " ")
     out = out.replace(";", ",")
     
@@ -55,7 +54,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if transform is not None:
         image = transform(image)
     
-    quest = f"Answer this question: {norm_text(d['question'])}"
+    quest = QUESTION_PROMPT.format(question = norm_text(d['question']))
     
     inputs = processor(
         images = image,
