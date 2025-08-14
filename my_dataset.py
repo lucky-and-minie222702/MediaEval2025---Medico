@@ -26,9 +26,8 @@ BASE_TRANSFORM = transforms.Compose([
 
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
-        brightness = 0.1,
-        contrast = 0.1,
-        saturation = 0.025,
+        brightness = 0.05,
+        contrast = 0.05,
     ),
     *BASE_TRANSFORM.transforms,
 ])
