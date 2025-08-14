@@ -1,6 +1,5 @@
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
-from transformers import BitsAndBytesConfig
-from peft import LoraConfig, TaskType, get_peft_model
+from peft import LoraConfig, TaskType, prepare_model_for_kbit_training
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
@@ -28,6 +27,7 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     torch_dtype = torch.bfloat16,
     quantization_config = QUANT_CONFIG,
 )
+model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
