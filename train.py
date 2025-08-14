@@ -69,19 +69,18 @@ training_args = Seq2SeqTrainingArguments(
     eval_accumulation_steps = config.get("val_grad_accum", config["grad_accum"]),
     
     eval_strategy = "steps",
-    eval_steps = config["n_steps"],
+    eval_steps = config["val_steps"],
     
-    save_strategy = "steps",
-    save_steps = config["n_steps"],
-    
+    save_strategy = "best",
     metric_for_best_model = "eval_loss",
+
     save_total_limit = 1,
     
     logging_strategy = "steps",
     logging_steps = config["log_steps"],
     
     lr_scheduler_type = "constant_with_warmup",
-    lr_scheduler_kwargs = {"num_warmup_steps": 100},
+    lr_scheduler_kwargs = {"num_warmup_steps": config["warmup_stepss"]},
     
     fp16 = False,
     bf16 = True,
