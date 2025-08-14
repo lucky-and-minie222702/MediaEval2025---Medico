@@ -28,7 +28,7 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer.padding_side = "left"
 
 SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge."
+    "You are a semantic equivalence judge about medical fields."
     "Given two medical sentences, output STRICT JSON with keys: "
     "label (SAME or DIFFERENT), confidence (0.00 - 1.00)"
 )
@@ -36,7 +36,7 @@ SYSTEM_PROMPT = (
 USER_TEMPLATE = (
     "Sentence A: {a}\nSentence B: {b}\n\n"
     "Rules:\n"
-    "1) SAME if their meanings are equivalent, do not be strictly with extra information.\n"
+    "1) SAME if their meanings are equivalent in medical contexts, do not be strictly with extra information.\n"
     "2) DIFFERENT only if meaning changes or facts conflict.\n"
     "Respond with JSON ONLY, no extra text."
 )
@@ -133,7 +133,7 @@ results_df = pd.DataFrame({
     "labels": reader.labels,
     "predictions": reader.predictions,
     
-    "labels": results["labels"],
+    "scores": results["labels"],
     "confidence": results["confidence"],
 
     "complexity": df["complexity"],
