@@ -60,6 +60,8 @@ train_ds, val_ds = load_data(
 training_args = Seq2SeqTrainingArguments(
     output_dir = model_path,
     
+    optim = "adamw_torch_4bit",
+    
     num_train_epochs = config["epochs"],
     learning_rate = config["lr"],
     
