@@ -43,7 +43,7 @@ def norm_text(text):
     
     return out
 
-QUESTION_PROMPT = "You are a medical information assistant. Answer the question using only verifiable, evidence-based medical facts from the image. Do not provide speculative, anecdotal or creative content. Question: {question}"
+QUESTION_PROMPT = "You are a medical information assistant. Answer the question using only verifiable, evidence-based visual medical features from the image. Do not provide any speculative, anecdotal, creative or extra content. Question: {question}"
 
 def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
