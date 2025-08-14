@@ -28,7 +28,7 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     quantization_config = QUANT_CONFIG,
 )
 model.enable_input_require_grads()
-model.language_model = prepare_model_for_kbit_training(model.language_model)
+model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
@@ -42,11 +42,8 @@ lora_config = LoraConfig(
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
-model.language_model = get_peft_model(model.language_model, lora_config)
-# model.add_adapter(lora_config, "lora")
-# model.enable_adapters()
-
-model.train()
+model.add_adapter(lora_config, "lora")
+model.enable_adapters()
 
 # load dataset
 train_ds, val_ds = load_data(
