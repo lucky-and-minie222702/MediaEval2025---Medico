@@ -24,8 +24,11 @@ processor = Blip2Processor.from_pretrained(model_name)
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
+    torch_dtype = torch.bfloat16,
     quantization_config = QUANT_CONFIG,
 )
+model.train()
+model.enable_input_require_grads()
 model.gradient_checkpointing_enable()
 model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
@@ -85,8 +88,8 @@ training_args = Seq2SeqTrainingArguments(
     lr_scheduler_type = "linear",
     warmup_steps = config["warmup_steps"],  
     
-    bf16 = False,
-    fp16 = True,
+    bf16 = True,
+    fp16 = False,
     
     report_to = "none",
     
