@@ -13,6 +13,7 @@ from transformers import TrainerCallback
 import joblib
 from sentence_transformers import CrossEncoder
 from tqdm import tqdm
+from transformers import BitsAndBytesConfig
 
 
 class TrainerSaveLossCallback(TrainerCallback):
@@ -32,6 +33,14 @@ class TrainerSaveLossCallback(TrainerCallback):
         with open(self.output_file, "w") as f:
             json.dump(self.loss_data, f)
         print(f"Losses saved to {self.output_dir}-{self.output_file}")
+        
+
+QUANT_CONFIG = BitsAndBytesConfig(
+    load_in_4bit = True,
+    bnb_4bit_use_double_quant = True,
+    bnb_4bit_quant_type = "nf4",
+    bnb_4bit_compute_dtype = torch.bfloat16,
+)
 
 
 class MyConfig:

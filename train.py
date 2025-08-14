@@ -1,5 +1,6 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, BlipImageProcessor
-from peft import LoraConfig, TaskType
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import BitsAndBytesConfig
+from peft import LoraConfig, TaskType, get_peft_model
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
@@ -25,8 +26,8 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
     torch_dtype = torch.bfloat16,
+    quantization_config = QUANT_CONFIG,
 )
-
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
@@ -39,10 +40,10 @@ lora_config = LoraConfig(
     lora_dropout = config["lora"].get("dropout", 0.0),
     inference_mode = False,
     bias = "none",
-    task_type = TaskType.QUESTION_ANS
+    task_type = TaskType.SEQ_2_SEQ_LM
 )
-model.add_adapter(lora_config, adapter_name = "lora_1")
-model.enable_adapters()
+model.language_model = get_peft_model(model.language_model, lora_config)
+model.print_trainable_parameters()
 
 
 # load dataset
@@ -79,11 +80,11 @@ training_args = Seq2SeqTrainingArguments(
     logging_strategy = "steps",
     logging_steps = config["log_steps"],
     
-    lr_scheduler_type = "constant_with_warmup",
-    warmup_steps = config["warmup_steps"],
+    lr_scheduler_type = "linear",
+    warmup_steps = config["warmup_steps"],  
     
-    fp16 = False,
     bf16 = True,
+    fp16 = False,
     
     report_to = "none",
     
