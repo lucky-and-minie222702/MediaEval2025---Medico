@@ -27,9 +27,6 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     torch_dtype = torch.bfloat16,
     quantization_config = QUANT_CONFIG,
 )
-model.train()
-model.enable_input_require_grads()
-model.gradient_checkpointing_enable()
 model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
@@ -48,6 +45,8 @@ model = get_peft_model(model, lora_config)
 # model.add_adapter(lora_config, "lora")
 # model.enable_adapters()
 
+model.train()
+model.enable_input_require_grads()
 
 # load dataset
 train_ds, val_ds = load_data(
