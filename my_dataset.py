@@ -41,8 +41,6 @@ def norm_text(text):
     
     return out
 
-QUESTION_PROMPT = "Answer this question: {question}"
-
 def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = get_img_dict()
@@ -53,7 +51,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if transform is not None:
         image = transform(image)
 
-    quest = QUESTION_PROMPT.format(question = norm_text(d['question']))
+    quest = norm_text(d['question'])
     
     inputs = processor(
         images = image,
