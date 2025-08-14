@@ -36,7 +36,7 @@ SYSTEM_PROMPT = (
 USER_TEMPLATE = (
     "Sentence A: {a}\nSentence B: {b}\n\n"
     "Rules:\n"
-    "1) SAME if their meanings are equivalent in medical contexts, do not be strictly with extra information.\n"
+    "1) SAME if their meanings are equivalent in medical contexts.\n"
     "2) DIFFERENT only if meaning changes or facts conflict.\n"
     "Respond with JSON ONLY, no extra text."
 )

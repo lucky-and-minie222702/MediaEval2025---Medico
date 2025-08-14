@@ -31,7 +31,7 @@ class TrainerSaveLossCallback(TrainerCallback):
     def on_train_end(self, args, state, control, **kwargs):
         with open(self.output_file, "w") as f:
             json.dump(self.loss_data, f)
-        print(f"Losses saved to {self.output_dir}/{self.output_file}")
+        print(f"Losses saved to {self.output_dir}-{self.output_file}")
 
 
 class MyConfig:
@@ -230,7 +230,7 @@ class MyImage:
     def change_size(img, target_size, fill_color = (0, 0, 0)):
         target_h, target_w = target_size
         img_h, img_w = img.size
-        img = img.resize((target_w * img_w // img_h, target_h), resample = Image.BICUBIC)
+        img = img.resize((target_w, target_w * img_h // img_w), resample = Image.BICUBIC)
         img_h, img_w = img.size
 
         w, h = img.size

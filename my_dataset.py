@@ -38,13 +38,12 @@ TRAIN_TRANSFORM = transforms.Compose([
 def norm_text(text):
     out = text.lower()
     
-    out = out.replace("?", "")
     out = out.replace("/", " ")
-    out = out.replace(".", ",")
     out = out.replace(";", ",")
     
     return out
 
+QUESTION_PROMPT = "You are a medical information assistant. Answer the question using only verifiable, evidence-based medical facts from the image. Do not provide speculative, anecdotal or creative content. Question: {question}"
 
 def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
@@ -84,7 +83,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, transform = None, mask_answer = -100):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, include_answer = True, transform = None, mask_answer = -100):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
@@ -93,13 +92,17 @@ class MyDataset(Dataset):
         self.data = df.to_dict(orient = 'records')
         self.img_dict = get_img_dict()
         self.mask_answer = mask_answer
+        self.include_answer = include_answer
         
     def __len__(self):
         return len(self.data)
         
     def __getitem__(self, index):
         return preprocess(
-            self.processor, self.data[index], self.max_length, 
+            processor = self.processor, 
+            d = self.data[index], 
+            include_answer = self.include_answer,
+            max_length = self.max_length,
             img_dict = self.img_dict, 
             mask_answer = self.mask_answer,
             transform = self.transform

@@ -1,4 +1,4 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, BitsAndBytesConfig
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BlipImageProcessor
 from peft import LoraConfig, TaskType
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
@@ -79,6 +79,9 @@ training_args = Seq2SeqTrainingArguments(
     
     logging_strategy = "steps",
     logging_steps = config["log_steps"],
+    
+    lr_scheduler_type = "constant_with_warmup",
+    lr_scheduler_kwargs = {"num_warmup_steps": 100},
     
     fp16 = False,
     bf16 = True,
