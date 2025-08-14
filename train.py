@@ -25,10 +25,7 @@ model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
     torch_dtype = torch.bfloat16,
-    quantization_config = QUANT_CONFIG,
 )
-model.enable_input_require_grads()
-model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
@@ -42,6 +39,7 @@ lora_config = LoraConfig(
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
+model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
 

@@ -33,11 +33,6 @@ class TrainerSaveLossCallback(TrainerCallback):
         with open(self.output_file, "w") as f:
             json.dump(self.loss_data, f)
         print(f"Losses saved to {self.output_dir}-{self.output_file}")
-        
-
-QUANT_CONFIG = BitsAndBytesConfig(
-    load_in_8bit = True
-)
 
 
 class MyConfig:
