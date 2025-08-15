@@ -5,6 +5,7 @@ from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
 from transformers import logging
+torch.set_float32_matmul_precision("high")
 
 os.makedirs("results", exist_ok = True)
 
@@ -24,10 +25,8 @@ processor = Blip2Processor.from_pretrained(model_name)
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
-    quantization_config = QUANT_CONFIG,
     torch_dtype = torch.bfloat16,
 )
-model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
@@ -44,6 +43,7 @@ lora_config = LoraConfig(
 model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
+MyUtils.print_trainable_params(model)
 
 # load dataset
 train_ds, val_ds = load_data(

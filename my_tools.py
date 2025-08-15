@@ -65,6 +65,16 @@ class MyUtils:
         return MyText.get_scores(pred, label)
     
     @staticmethod
+    def print_trainable_params(model):
+        trainable, total = 0, 0
+        for _, param in model.named_parameters():
+            total += param.numel()
+            if param.requires_grad:
+                trainable += param.numel()
+        print(f"Trainable params: {trainable:,} | Total params: {total:,} "
+            f"({100 * trainable / total:.2f}% trainable)")
+    
+    @staticmethod
     def get_dataloader(dataset, batch_size, shuffle = True):
         def collate_fn(batch):
             return {
