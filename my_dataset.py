@@ -77,7 +77,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if include_answer:
         assistant_msg = {
             "role": "assistant",
-            "content": [{"type": "text", "text": norm_text(d["answer"])}]
+            "content": [{"type": "text", "text": ans}]
         }
         messages_full = [system_msg, user_msg, assistant_msg]
         messages_user = [system_msg, user_msg]
