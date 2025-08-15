@@ -1,5 +1,5 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
-from peft import LoraConfig, TaskType, prepare_model_for_kbit_training, get_peft_model
+from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
+from peft import LoraConfig, TaskType
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
@@ -18,11 +18,11 @@ if config.get("debug_mode", False):
 
 
 # load model
-model_name = config["model_name"]
+model_name = "Salesforce/instructblip-flan-t5-xxl"
 model_path = f"results/{config['dir']}"
 
-processor = Blip2Processor.from_pretrained(model_name)
-model = Blip2ForConditionalGeneration.from_pretrained(
+processor = InstructBlipProcessor.from_pretrained(model_name)
+model = InstructBlipForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
     torch_dtype = torch.bfloat16,
@@ -43,6 +43,7 @@ lora_config = LoraConfig(
 model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
+model.gradient_checkpointing_disable()
 MyUtils.print_trainable_params(model)
 
 # load dataset

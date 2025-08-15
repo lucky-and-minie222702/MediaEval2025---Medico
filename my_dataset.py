@@ -26,11 +26,17 @@ BASE_TRANSFORM = transforms.Compose([
 
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
-        brightness = 0.05,
-        contrast = 0.05,
+        brightness = 0.2,
+        contrast = 0.2,
     ),
+    transforms.RandomRotation(12)
     *BASE_TRANSFORM.transforms,
 ])
+
+
+INSTRUCTION = (
+    "You are a medical vision-language assistant. Answer the given question using only verifiable, evidence-based medical facts from the image. Do not provide speculative, anecdotal or creative content. Response all parts of the question in natural-sounding medical language as if spoken by a doctor in a single sentence"
+)
 
 
 def norm_text(text):
@@ -51,10 +57,46 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
         image = transform(image)
 
     quest = norm_text(d['question'])
+    ans = norm_text(d["answer"])
+    
+    system_msg = {
+        "role": "system",
+        "content": [{"type": "text", "text": INSTRUCTION}]
+    }
+    
+    user_msg = {
+        "role": "user",
+        "content": [
+            {"type": "image", "image": image},
+            {"type": "text",  "text": quest}
+        ]
+    }
+    
+    add_generation_prompt = None
+    
+    if include_answer:
+        assistant_msg = {
+            "role": "assistant",
+            "content": [{"type": "text", "text": norm_text(d["answer"])}]
+        }
+        messages_full = [system_msg, user_msg, assistant_msg]
+        messages_user = [system_msg, user_msg]
+        add_generation_prompt = False
+    else:
+        messages_full = [system_msg, user_msg]
+        messages_user = [system_msg, user_msg]
+        add_generation_prompt = True
+        
+    prompt_full = processor.apply_chat_template(
+        messages_full, tokenize = False, add_generation_prompt = add_generation_prompt
+    )
+    prompt_user_only = processor.apply_chat_template(
+        messages_user, tokenize = False, add_generation_prompt = False
+    )
     
     inputs = processor(
         images = image,
-        text = quest,
+        text = prompt_full,
         return_tensors = "pt",
         max_length = max_length[0],
         padding = "max_length",
@@ -63,7 +105,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     
     if include_answer:
         inputs["labels"] = processor.tokenizer(
-            norm_text(d["answer"]), 
+            prompt_user_only, 
             return_tensors = "pt",
             max_length = max_length[1],
             padding = "max_length",

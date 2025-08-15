@@ -1,5 +1,5 @@
 import joblib
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
 from my_tools import *
 from my_dataset import *
 import torch
@@ -18,12 +18,12 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 model_path = f"results/{config['dir']}/checkpoint-{checkpoint}"
 file_path = f"{model_path}-test.results"  # for save test results files
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = Blip2ForConditionalGeneration.from_pretrained(
+model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
     device_map = "auto",
     torch_dtype = torch.bfloat16,
 ).to(device)
-processor = Blip2Processor.from_pretrained(model_path)
+processor = InstructBlipProcessor.from_pretrained(model_path)
 
 
 # load dataset
