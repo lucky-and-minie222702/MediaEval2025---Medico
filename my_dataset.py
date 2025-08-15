@@ -29,7 +29,7 @@ TRAIN_TRANSFORM = transforms.Compose([
         brightness = 0.2,
         contrast = 0.2,
     ),
-    transforms.RandomRotation(12)
+    transforms.RandomRotation(12),
     *BASE_TRANSFORM.transforms,
 ])
 
