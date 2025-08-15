@@ -35,6 +35,10 @@ class TrainerSaveLossCallback(TrainerCallback):
         print(f"Losses saved to {self.output_dir}-{self.output_file}")
 
 
+QUANT_CONFIG = BitsAndBytesConfig(
+    load_in_8bit = True,
+)
+
 class MyConfig:
     @staticmethod
     def load_json(p):

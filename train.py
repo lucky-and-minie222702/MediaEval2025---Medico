@@ -24,8 +24,10 @@ processor = Blip2Processor.from_pretrained(model_name)
 model = Blip2ForConditionalGeneration.from_pretrained(
     model_name,
     device_map = "auto",
+    quantization_config = QUANT_CONFIG,
     torch_dtype = torch.bfloat16,
 )
+model = prepare_model_for_kbit_training(model)
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
@@ -56,8 +58,6 @@ train_ds, val_ds = load_data(
 # train
 training_args = Seq2SeqTrainingArguments(
     output_dir = model_path,
-    
-    optim = "adamw_torch_4bit",
     
     num_train_epochs = config["epochs"],
     learning_rate = config["lr"],
