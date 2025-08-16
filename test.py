@@ -7,6 +7,7 @@ from tqdm import tqdm
 import pandas as pd
 from my_tools import *
 from my_dataset import *
+torch.set_float32_matmul_precision("high")
 
 
 # load config
@@ -21,7 +22,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
     device_map = "auto",
-    torch_dtype = torch.bfloat16,
 ).to(device)
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
