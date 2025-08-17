@@ -84,15 +84,12 @@ training_args = Seq2SeqTrainingArguments(
     warmup_steps = config["warmup_steps"],  
     
     bf16 = True,
-    fp16 = False,
     
     report_to = "none",
     
     dataloader_num_workers = 4,
     dataloader_persistent_workers = True,
     dataloader_pin_memory = False,
-    
-    remove_unused_columns = False,
 
     disable_tqdm = not config["tqdm"],
     logging_first_step = True,
