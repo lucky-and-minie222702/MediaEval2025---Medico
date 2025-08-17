@@ -67,6 +67,7 @@ training_args = Seq2SeqTrainingArguments(
     per_device_eval_batch_size = config.get("val_batch_size", config["batch_size"]),
 
     gradient_accumulation_steps = config["grad_accum"],
+    eval_accumulation_steps = config.get("val_accum", None),
     
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
