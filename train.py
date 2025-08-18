@@ -105,5 +105,5 @@ trainer = Seq2SeqTrainer(
     callbacks = [TrainerSaveLossCallback(model_path)]
 )
 
-# trainer.model_accepts_loss_kwargs = False
+trainer.model_accepts_loss_kwargs = False
 trainer.train()
