@@ -7,7 +7,6 @@ from tqdm import tqdm
 import pandas as pd
 from my_tools import *
 from my_dataset import *
-torch.set_float32_matmul_precision("high")
 
 
 # load config

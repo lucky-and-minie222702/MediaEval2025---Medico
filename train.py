@@ -5,7 +5,6 @@ from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
 from transformers import logging
-torch.set_float32_matmul_precision("high")
 
 os.makedirs("results", exist_ok = True)
 
@@ -74,8 +73,7 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
     
-    save_strategy = "steps",
-    save_steps = 1,
+    save_strategy = "best",
     metric_for_best_model = "eval_loss",
 
     save_total_limit = 1,
