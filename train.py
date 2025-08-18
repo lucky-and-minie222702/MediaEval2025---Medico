@@ -79,7 +79,7 @@ training_args = Seq2SeqTrainingArguments(
     logging_strategy = "steps",
     logging_steps = config["log_steps"],
     
-    lr_scheduler_type = "linear",
+    lr_scheduler_type = config["lr_scheduler"],
     warmup_steps = config["warmup_steps"],  
     
     bf16 = True,
