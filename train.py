@@ -70,8 +70,8 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
     
-    save_strategy = "best",
-    metric_for_best_model = "eval_loss",
+    save_strategy = "steps",
+    save_steps = 1,
 
     save_total_limit = 1,
     
