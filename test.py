@@ -19,17 +19,9 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 model_path = f"results/{config['dir']}/checkpoint-{checkpoint}"
 file_path = f"{model_path}-test.results"  # for save test results files
 
-bnb_4bit = BitsAndBytesConfig(
-    load_in_4bit = True,
-    bnb_4bit_quant_type = "nf4",
-    bnb_4bit_use_double_quant = True,
-    bnb_4bit_compute_dtype = torch.bfloat16
-)
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
-    quantization_config = bnb_4bit,
 ).to(device)
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
