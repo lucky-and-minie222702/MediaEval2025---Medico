@@ -37,7 +37,7 @@ lora_config = LoraConfig(
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
     bias = "none",
-    task_type = TaskType.SEQ_2_SEQ_LM
+    task_type = TaskType.QUESTION_ANS
 )
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
