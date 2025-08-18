@@ -1,6 +1,5 @@
 import joblib
 from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
-from peft import PeftModel
 from my_tools import *
 from my_dataset import *
 import torch
@@ -17,15 +16,14 @@ config = MyConfig.load_json(sys.argv[1])
 
 # load model
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
-model_name = "Salesforce/instructblip-flan-t5-xxl"
 model_path = f"results/{config['dir']}/checkpoint-{checkpoint}"
 file_path = f"{model_path}-test.results"  # for save test results files
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = InstructBlipForConditionalGeneration.from_pretrained(model_name)
-model = PeftModel.from_pretrained(model, model_path)
-model = model.to(device)
-
+model = InstructBlipForConditionalGeneration.from_pretrained(
+    model_path,
+    use_safetensors = True,
+).to(device)
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
 
