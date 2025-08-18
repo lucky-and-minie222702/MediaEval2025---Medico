@@ -1,5 +1,5 @@
 from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
-from peft import LoraConfig, TaskType, get_peft_model
+from peft import LoraConfig, TaskType, LoraModel, get_peft_model
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
@@ -37,13 +37,14 @@ lora_config = LoraConfig(
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
     bias = "none",
-    task_type = TaskType.QUESTION_ANS
+    task_type = TaskType.SEQ_2_SEQ_LM
 )
 model.enable_input_require_grads()
-# model.add_adapter(lora_config, "lora")
-# model.enable_adapters()
 model = get_peft_model(model, lora_config)
+# model.add_adapter(lora_config, "lora_1")
+# model.enable_adapters()
 MyUtils.print_trainable_params(model)
+
 
 # load dataset
 train_ds, val_ds = load_data(
@@ -72,8 +73,8 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
     
-    save_strategy = "best",
-    metric_for_best_model = "eval_loss",
+    save_strategy = "no",
+    # metric_for_best_model = "eval_loss",
 
     save_total_limit = 1,
     
@@ -104,5 +105,5 @@ trainer = Seq2SeqTrainer(
     callbacks = [TrainerSaveLossCallback(model_path)]
 )
 
-trainer.model_accepts_loss_kwargs = False
+# trainer.model_accepts_loss_kwargs = False
 trainer.train()
