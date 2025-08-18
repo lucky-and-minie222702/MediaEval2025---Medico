@@ -8,12 +8,6 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 
 model_name = "Qwen/Qwen3-30B-A3B-Instruct-2507"
 
-bnb_4bit = BitsAndBytesConfig(
-    load_in_4bit = True,
-    bnb_4bit_quant_type = "nf4",
-    bnb_4bit_use_double_quant = True,
-    bnb_4bit_compute_dtype = torch.bfloat16
-)
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
@@ -22,7 +16,7 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code = True,
     
     torch_dtype = torch.bfloat16,
-    quantization_config = bnb_4bit,
+    quantization_config = QUANT_CONFIG,
     low_cpu_mem_usage = True,
 ).to(device)
 tokenizer.padding_side = "left"
