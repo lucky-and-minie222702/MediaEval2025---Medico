@@ -58,7 +58,8 @@ train_ds, val_ds = load_data(
 training_args = Seq2SeqTrainingArguments(
     output_dir = model_path,
     
-    num_train_epochs = config["epochs"],
+    # num_train_epochs = config["epochs"],
+    max_steps = 1,
     learning_rate = config["lr"],
     
     per_device_train_batch_size = config["batch_size"],
