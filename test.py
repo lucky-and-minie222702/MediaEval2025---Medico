@@ -22,7 +22,9 @@ file_path = f"{model_path}-test.results"  # for save test results files
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
-).to(device)
+    torch_dtype = torch.bfloat16,
+)
+model.eval()
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
 
