@@ -30,9 +30,10 @@ class TrainerSaveLossCallback(TrainerCallback):
                 self.loss_data["eval"].append({"step": state.global_step, "eval_loss": logs["eval_loss"]})
 
     def on_train_end(self, args, state, control, **kwargs):
-        with open(self.output_file, "w") as f:
-            json.dump(self.loss_data, f)
-        print(f"Losses saved to {self.output_dir}-{self.output_file}")
+        p = f"{self.output_dir}-{self.output_file}"
+        with open(p, "w") as f:
+            json.dump(p, f)
+        print(f"Losses saved to {p}")
 
 
 QUANT_CONFIG = BitsAndBytesConfig(
