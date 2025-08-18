@@ -42,7 +42,6 @@ lora_config = LoraConfig(
 model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
-model.gradient_checkpointing_disable()
 MyUtils.print_trainable_params(model)
 
 # load dataset
