@@ -39,7 +39,6 @@ lora_config = LoraConfig(
     bias = "none",
     task_type = TaskType.SEQ_2_SEQ_LM
 )
-model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
 MyUtils.print_trainable_params(model)
