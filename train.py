@@ -30,15 +30,16 @@ lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
     target_modules = [
-        "q",
-        "k",
-        "v",
-        "o",
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
     ],
     lora_dropout = config["lora"].get("dropout", 0.0),
     bias = "none",
     task_type = TaskType.QUESTION_ANS
 )
+model.enable_input_require_grads()
 model.add_adapter(lora_config, "lora")
 model.enable_adapters()
 MyUtils.print_trainable_params(model)
@@ -70,8 +71,8 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
     
-    save_strategy = "steps",
-    save_steps = 1,
+    save_strategy = "best",
+    metric_for_best_model = "eval_loss",
 
     save_total_limit = 1,
     
