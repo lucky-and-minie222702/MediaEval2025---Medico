@@ -1,4 +1,4 @@
-from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration
+from transformers import InstructBlipProcessor, InstructBlipForConditionalGeneration, BitsAndBytesConfig
 from peft import LoraConfig, TaskType, LoraModel, get_peft_model
 import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
@@ -24,6 +24,7 @@ model_path = f"results/{config['dir']}"
 processor = InstructBlipProcessor.from_pretrained(model_name)
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_name,
+    device_map = "auto",
     torch_dtype = torch.bfloat16,
 )
 lora_config = LoraConfig(
