@@ -71,8 +71,8 @@ training_args = Seq2SeqTrainingArguments(
     eval_strategy = "steps",
     eval_steps = config["val_steps"],
     
-    save_strategy = "best",
-    metric_for_best_model = "eval_loss",
+    save_strategy = "no",
+    # metric_for_best_model = "eval_loss",
 
     save_total_limit = 1,
     
@@ -105,3 +105,4 @@ trainer = Seq2SeqTrainer(
 
 trainer.model_accepts_loss_kwargs = False
 trainer.train()
+trainer.save_model(output_dir = model_path)
