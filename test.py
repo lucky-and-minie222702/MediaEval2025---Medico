@@ -16,10 +16,9 @@ config = MyConfig.load_json(sys.argv[1])
 
 
 # load model
+checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 model_name = "Salesforce/instructblip-flan-t5-xxl"
 model_path = f"results/{config['dir']}/checkpoint-{checkpoint}"
-
-checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 file_path = f"{model_path}-test.results"  # for save test results files
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
