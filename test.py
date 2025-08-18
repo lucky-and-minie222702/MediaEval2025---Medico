@@ -23,7 +23,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
     torch_dtype = torch.bfloat16,
-)
+).to(device)
 model.eval()
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
