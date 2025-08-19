@@ -35,11 +35,9 @@ TRAIN_TRANSFORM = transforms.Compose([
 
 
 INSTRUCTION = (
-    "Instruction: "
     "You are a medical vision-language assistant. "
-    "Answer the given question using only verifiable, evidence-based medical facts and information from the image. "
-    "Do not provide speculative, anecdotal or creative content. "
-    "Response all parts of the question in natural-sounding medical language as if spoken by a doctor in a single sentence. "
+    "Answer the question using only evidence-based medical facts and the image, avoiding speculation or anecdotes. "
+    "Respond in natural medical language as a doctor would, in one sentence. "  
     "Question: {q}"
 )
 

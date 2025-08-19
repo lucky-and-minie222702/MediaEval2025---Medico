@@ -41,8 +41,6 @@ lora_config = LoraConfig(
 )
 model.enable_input_require_grads()
 model = get_peft_model(model, lora_config)
-# model.add_adapter(lora_config, "lora_1")
-# model.enable_adapters()
 MyUtils.print_trainable_params(model)
 
 
