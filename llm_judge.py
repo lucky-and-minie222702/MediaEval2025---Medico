@@ -8,7 +8,7 @@ checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir'
 
 model_name = "Qwen/Qwen3-30B-A3B-Instruct-2507"
 
-tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
@@ -19,7 +19,6 @@ model = AutoModelForCausalLM.from_pretrained(
     quantization_config = QUANT_CONFIG,
     low_cpu_mem_usage = True,
 ).to(device)
-tokenizer.padding_side = "left"
 
 SYSTEM_PROMPT = (
     "You are a semantic equivalence judge about medical fields."
@@ -31,8 +30,7 @@ USER_TEMPLATE = (
     "Sentence A: {a}\nSentence B: {b}\n\n"
     "Rules:\n"
     "1) SAME if their meanings are equivalent in medical contexts.\n"
-    "2) DIFFERENT only if meaning changes or facts conflict.\n"
-    "Respond with JSON ONLY, no extra text."
+    "2) DIFFERENT if meaning changes or facts conflict.\n"
 )
 
 
@@ -76,10 +74,9 @@ def judge_batch(pairs):
         max_new_tokens = 64,
     )
 
-    input_lens = (inputs["input_ids"] != tokenizer.pad_token_id).sum(dim = 1)
     outs = []
     for i in range(gen_ids.size(0)):
-        gen_slice = gen_ids[i, input_lens[i]:]
+        gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         outs.append(parse_json_safe(text))
     return outs
