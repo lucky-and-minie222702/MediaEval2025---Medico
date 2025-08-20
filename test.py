@@ -60,7 +60,7 @@ with torch.no_grad():
             
             **config["gen"].get("others", {})
         )
-        predictions[predictions == -100] = processor.tokenizer.pad_token_id
+        labels[labels == -100] = processor.tokenizer.pad_token_id
         
         logger.log_per_step(
             quest = batch["input_ids"],
