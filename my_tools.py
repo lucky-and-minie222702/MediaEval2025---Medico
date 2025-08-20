@@ -107,6 +107,7 @@ class MyUtils:
     class TestLogger():
         def __init__(self, processor):
             self.processor = processor
+            self.loss = []
             self.scores = {
                 "bleu": [],
                 "rouge1": [],
@@ -120,7 +121,9 @@ class MyUtils:
                 "labels": [],
             }
             
-        def log_per_step(self, quest, pred, label, n_returns):
+        def log_per_step(self, quest, pred, label, loss, n_returns):
+            self.loss.append(loss)
+            
             quest = MyUtils.get_sentences_from_ids(self.processor, quest, to_numpy = True)
             pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
@@ -155,6 +158,8 @@ class MyUtils:
             for k, v in self.scores.items():
                 self.scores[k] = np.mean(v, axis = 0)
                 
+            self.loss = np.mean(self.loss)
+                
         @property
         def cur_scores(self):
             cur_scores = self.scores.copy()
@@ -169,6 +174,7 @@ class MyUtils:
             return {
                 "outputs": self.outputs,
                 "scores": self.scores,
+                "loss": self.loss,
             }
             
         class ResultsReader():
