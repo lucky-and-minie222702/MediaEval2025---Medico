@@ -70,7 +70,7 @@ with torch.no_grad():
             n_returns = config["gen"].get("n_returns", 1),
         )
         
-        pbar.set_postfix(loss = np.mean(logger.loss), **logger.cur_scores)
+        pbar.set_postfix(loss = round(np.mean(logger.loss), 3), **{round(v, 3) for v in logger.cur_scores.values()})
 logger.end()
 joblib.dump(logger.results, file_path)
         
