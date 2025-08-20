@@ -129,7 +129,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
         drop_invalid_char_df(test_df)
         mask = test_df["complexity"].map(lambda x: x in test_complexities)
         test_df = test_df[mask]
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM, mask_answer = None)
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM)
         return test_ds
 
     # load df

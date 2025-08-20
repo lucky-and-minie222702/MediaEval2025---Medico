@@ -45,6 +45,7 @@ with torch.no_grad():
     pbar = tqdm(test_dl)
     for batch in pbar:
         batch = {k: v.to(device) for k, v in batch.items()}
+        loss = model(**batch).loss.item()
         
         labels = batch.pop("labels", None)
         
@@ -59,15 +60,17 @@ with torch.no_grad():
             
             **config["gen"].get("others", {})
         )
+        predictions[predictions == -100] = processor.tokenizer.pad_token_id
         
         logger.log_per_step(
             quest = batch["input_ids"],
             pred = predictions,
             label = labels,
+            loss = loss,
             n_returns = config["gen"].get("n_returns", 1),
         )
         
-        pbar.set_postfix(**logger.cur_scores)
+        pbar.set_postfix(loss = np.mean(logger.loss), **logger.cur_scores)
 logger.end()
 joblib.dump(logger.results, file_path)
         
