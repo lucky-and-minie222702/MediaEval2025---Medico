@@ -32,7 +32,7 @@ class TrainerSaveLossCallback(TrainerCallback):
     def on_train_end(self, args, state, control, **kwargs):
         p = f"{self.output_dir}-{self.output_file}"
         with open(p, "w") as f:
-            json.dump(p, f)
+            json.dump(self.loss_data, f)
         print(f"Losses saved to {p}")
 
 
