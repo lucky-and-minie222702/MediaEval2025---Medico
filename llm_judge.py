@@ -12,11 +12,9 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    device_map = "auto",
     trust_remote_code = True,
     
     torch_dtype = torch.bfloat16,
-    quantization_config = QUANT_CONFIG,
     low_cpu_mem_usage = True,
 ).to(device)
 
