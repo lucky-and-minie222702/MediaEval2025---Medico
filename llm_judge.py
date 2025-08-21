@@ -13,10 +13,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     trust_remote_code = True,
-    
+    device_map="auto",  
     torch_dtype = torch.bfloat16,
     low_cpu_mem_usage = True,
-).to(device)
+)
 
 SYSTEM_PROMPT = (
     "You are a semantic equivalence judge about medical fields."
@@ -65,7 +65,8 @@ def judge_batch(pairs):
         return_tensors = "pt",
         padding = True,
         truncation = False,
-    ).to(device)
+    )
+    inputs = {k: v.to("cuda:1") for k, v in inputs.items()}
 
     gen_ids = model.generate(
         **inputs,
