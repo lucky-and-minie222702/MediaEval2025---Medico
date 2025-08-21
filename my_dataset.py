@@ -20,17 +20,12 @@ def get_img_dict():
         
     return images
 
-
-BASE_TRANSFORM = transforms.Compose([
-])
-
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
         brightness = 0.2,
         contrast = 0.2,
     ),
     transforms.RandomRotation(12),
-    *BASE_TRANSFORM.transforms,
 ])
 
 
@@ -114,7 +109,16 @@ class MyDataset(Dataset):
         )
     
     
-def load_data(processor, max_question_length, max_answer_length, train_ratio = None, train_complexities = [1, 2, 3], test_complexities = [1, 2, 3], test_only = False, seed = 27022009):
+def load_data(
+    processor, 
+    max_question_length, 
+    max_answer_length, 
+    train_ratio = None, 
+    train_complexities = [1, 2, 3], 
+    train_augment = True, 
+    test_complexities = [1, 2, 3], 
+    test_only = False, 
+    seed = 27022009):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
@@ -129,7 +133,7 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
         drop_invalid_char_df(test_df)
         mask = test_df["complexity"].map(lambda x: x in test_complexities)
         test_df = test_df[mask]
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM)
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = None)
         return test_ds
 
     # load df
@@ -140,8 +144,8 @@ def load_data(processor, max_question_length, max_answer_length, train_ratio = N
 
     train_df, val_df = train_test_split(df, train_size = train_ratio, shuffle = True, random_state = seed)
 
-    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, transform = TRAIN_TRANSFORM)
-    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, transform = BASE_TRANSFORM)
+    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, transform = TRAIN_TRANSFORM if train_augment else None)
+    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, transform = None)
     
     return train_ds, val_ds
 

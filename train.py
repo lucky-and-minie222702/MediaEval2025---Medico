@@ -50,7 +50,8 @@ train_ds, val_ds = load_data(
     max_question_length = config["dataset"]["max_question_length"], 
     max_answer_length = config["dataset"]["max_answer_length"], 
     train_ratio = config["dataset"]["train_ratio"],
-    train_complexities = config["dataset"]["complexities"]
+    train_complexities = config["dataset"]["complexities"],
+    train_augment = config["dataset"]["augment"],
 )
 
 
