@@ -17,6 +17,7 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype = torch.bfloat16,
     low_cpu_mem_usage = True,
 )
+tokenizer.padding_side = 'left'
 
 SYSTEM_PROMPT = (
     "You are a semantic equivalence judge about medical fields."
