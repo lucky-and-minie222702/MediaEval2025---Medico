@@ -95,7 +95,6 @@ training_args = Seq2SeqTrainingArguments(
     logging_first_step = True,
     
     prediction_loss_only = True,
-    eval_accumulation_steps = 8,
 )
 model.config.use_cache = False
 trainer = Seq2SeqTrainer(
