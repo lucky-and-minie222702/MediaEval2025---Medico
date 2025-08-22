@@ -93,6 +93,8 @@ training_args = Seq2SeqTrainingArguments(
 
     disable_tqdm = not config["tqdm"],
     logging_first_step = True,
+    
+    ddp_find_unused_parameters = False,
 )
 
 trainer = Seq2SeqTrainer(
