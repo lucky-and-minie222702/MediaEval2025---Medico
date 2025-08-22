@@ -23,6 +23,8 @@ model_path = f"results/{config['dir']}"
 processor = InstructBlipProcessor.from_pretrained(model_name)
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_name,
+    device_map = "auto",
+    trust_remote_code = True,
     torch_dtype = torch.bfloat16,
 )
 lora_config = LoraConfig(
