@@ -89,12 +89,15 @@ training_args = Seq2SeqTrainingArguments(
     
     dataloader_num_workers = 4,
     dataloader_persistent_workers = True,
-    dataloader_pin_memory = False,
+    dataloader_pin_memory = True,
 
     disable_tqdm = not config["tqdm"],
     logging_first_step = True,
+    
+    prediction_loss_only = True,
+    eval_accumulation_steps = 8,
 )
-
+model.config.use_cache = False
 trainer = Seq2SeqTrainer(
     model = model,
     args = training_args,

@@ -17,12 +17,12 @@ config = MyConfig.load_json(sys.argv[1])
 checkpoint = config.get("checkpoint", MyUtils.get_latest_checkpoint(config['dir']))
 model_path = f"results/{config['dir']}/checkpoint-{checkpoint}"
 file_path = f"{model_path}-test.results"  # for save test results files
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_path,
-    device_map = "auto",
+    device_map = None,
     torch_dtype = torch.bfloat16,
-)
+).to(device)
 model.eval()
 processor = InstructBlipProcessor.from_pretrained(model_path)
 
@@ -44,7 +44,7 @@ logger = MyUtils.TestLogger(processor)
 with torch.no_grad():
     pbar = tqdm(test_dl)
     for batch in pbar:
-        batch = {k: v.to("cuda:1" if torch.cuda.device_count() > 1 else model.device) for k, v in batch.items()}
+        batch = {k: v.to(model.device) for k, v in batch.items()}
         loss = model(**batch).loss.item()
         
         labels = batch.pop("labels", None)
