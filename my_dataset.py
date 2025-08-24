@@ -1,3 +1,4 @@
+from tkinter.messagebox import QUESTION
 from torchvision import transforms
 from torch.utils.data import Dataset
 from PIL import Image
@@ -28,13 +29,13 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomRotation(12),
 ])
 
-
 INSTRUCTION = (
     "You are a medical vision-language assistant. "
     "Answer the question using only evidence-based medical facts and the image, avoiding speculation or anecdotes. "
     "Respond in natural medical language as a doctor would, in one sentence. "  
-    "Question: {q}"
 )
+
+QUESTION_PROMPT = INSTRUCTION + "Question: {q}"
 
 
 def norm_text(text):
@@ -54,7 +55,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if transform is not None:
         image = transform(image)
 
-    quest = INSTRUCTION.format(q = norm_text(d['question']))    
+    quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
     ans = norm_text(d["answer"])
     
     inputs = processor(
