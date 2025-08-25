@@ -14,6 +14,7 @@ import joblib
 from sentence_transformers import CrossEncoder
 from tqdm import tqdm
 from transformers import BitsAndBytesConfig
+from os import path
 
 
 class TrainerSaveLossCallback(TrainerCallback):
@@ -251,6 +252,19 @@ class MyText:
     
 
 class MyImage:
+    @staticmethod
+    def get_img_dict():
+        file_ids = os.listdir("data/images")
+        file_ids = [path.splitext(s)[0] for s in file_ids if s[-4::] == ".jpg"]
+        file_paths = [f"data/images/{s}.jpg" for s in file_ids]
+
+        images = dict({})
+
+        for file_path, file_id in zip(file_paths, file_ids):
+            images[file_id] = file_path
+            
+        return images
+    
     @staticmethod
     def change_size(img, target_size, fill_color = (0, 0, 0)):
         target_h, target_w = target_size

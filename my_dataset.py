@@ -9,18 +9,6 @@ from os import path
 from sklearn.model_selection import train_test_split
 
 
-def get_img_dict():
-    file_ids = os.listdir("data/images")
-    file_ids = [path.splitext(s)[0] for s in file_ids if s[-4::] == ".jpg"]
-    file_paths = [f"data/images/{s}.jpg" for s in file_ids]
-
-    images = dict({})
-
-    for file_path, file_id in zip(file_paths, file_ids):
-        images[file_id] = file_path
-        
-    return images
-
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
         brightness = 0.2,
@@ -47,9 +35,9 @@ def norm_text(text):
 
 def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
-        img_dict = get_img_dict()
+        img_dict = MyImage.get_img_dict()
 
-    image = Image.open(img_dict[d["img_id"]])
+    image = Image.open(img_dict[d["img_id"]]).convert("RGB")
     image = MyImage.change_size(image, (224, 224))
 
     if transform is not None:
@@ -91,7 +79,7 @@ class MyDataset(Dataset):
         self.processor = processor
         self.transform = transform
         self.data = df.to_dict(orient = 'records')
-        self.img_dict = get_img_dict()
+        self.img_dict = MyImage.get_img_dict()
         self.mask_answer = mask_answer
         self.include_answer = include_answer
         
