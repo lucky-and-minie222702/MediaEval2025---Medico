@@ -102,3 +102,6 @@ for ep in range(epochs):
         
         ep_loss.append(loss.item())
         pbar.set_postfix(cur_loss = round(ep_loss[-1], 3), avg_loss = round(np.mean(ep_loss), 3))
+        
+
+torch.save(model, "results/image_encoder")
