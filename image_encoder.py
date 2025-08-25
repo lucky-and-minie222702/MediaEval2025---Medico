@@ -86,7 +86,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
 
-epochs = 5
+epochs = 10
 total_steps = epochs * len(train_dl)
 for ep in range(epochs):
     print(f"Epoch {ep+1}/{epochs}")
