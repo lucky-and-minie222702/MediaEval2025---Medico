@@ -214,14 +214,14 @@ trainer = ImgTrainer()
 print("Contrastive:")
 trainer.train(
     mode = "contrastive", 
-    batch_size = 64, 
+    batch_size = 128, 
     epochs = 5,
     lr = 0.001,
 )
 print("\nMatching:")
 trainer.train(
     mode = "matching", 
-    batch_size = 64, 
+    batch_size = 32, 
     epochs = 5,
     lr = 0.0005,
 )
