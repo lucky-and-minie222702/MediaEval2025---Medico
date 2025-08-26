@@ -133,7 +133,7 @@ class ImgTrainer():
         
         self.model.to(device)
         optimizer = optim.Adam(self.model.parameters(), lr = lr)
-        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = "min", facotr = 0.2, patience = 5)
+        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = "min", factor = 0.2, patience = 5)
         if mode == "classify":
             criterion = nn.CrossEntropyLoss()
         elif mode == "match":
