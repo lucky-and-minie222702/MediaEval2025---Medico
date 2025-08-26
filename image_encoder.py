@@ -38,7 +38,7 @@ class ImgDataset(Dataset):
     def __getitem__(self, index):
         d = self.data[index]
         img = Image.open(self.dict[d]).convert("RGB")
-        img = MyImage.change_size(img, (236, 236))
+        img = MyImage.change_size(img, (224, 224))
         label = self.label[d]
         label = self.label_map[label]
         
@@ -53,10 +53,9 @@ class ImgModel(nn.Module):
         super().__init__()
         
         self.transform = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size = 7),
-            nn.SiLU(),
-            nn.Conv2d(32, 3, kernel_size = 7),
-            nn.Sigmoid()
+            nn.Conv2d(3, 32, kernel_size = 7, padding = 5),
+            nn.Conv2d(32, 3, kernel_size = 7, padding = 5),
+            nn.Sigmoid(),
         )
 
         self.encoder = nn.Sequential(
@@ -82,6 +81,7 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
+        transformed = transformed * x
         assert transformed.shape[-1] == 224 and transformed.shape[-2] == 224
         
         if mode == "transform":
