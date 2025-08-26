@@ -214,15 +214,15 @@ trainer = ImgTrainer()
 print("Contrastive:")
 trainer.train(
     mode = "contrastive", 
-    batch_size = 256, 
-    epochs = 10,
+    batch_size = 64, 
+    epochs = 5,
     lr = 0.001,
 )
 print("\nMatching:")
 trainer.train(
     mode = "matching", 
     batch_size = 64, 
-    epochs = 10,
+    epochs = 5,
     lr = 0.0005,
 )
 joblib.dump(trainer.logs, "results/image-encoder-logs")
