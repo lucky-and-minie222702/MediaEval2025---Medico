@@ -253,8 +253,8 @@ print("\nMatch:")
 trainer.train(
     mode = "match", 
     batch_size = 100, 
-    epochs = 20,
-    lr = 0.0005,
+    epochs = 10,
+    lr = 0.0001,
 )
 
 print("\nRestore:")
