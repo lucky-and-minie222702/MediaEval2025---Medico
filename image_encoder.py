@@ -91,8 +91,7 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         encoded = self.encoder(x)
-        print(x.shape, encoded.shape)
-        encoded = (encoded * 255).to(torch.int8)
+        encoded = torch.round(encoded * 255).float()
         assert encoded.shape == x.shape
         
         if mode == "encode":
