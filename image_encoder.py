@@ -84,9 +84,9 @@ class ImgModel(nn.Module):
         
         # for matching
         self.mch_head = nn.Sequential(
-            nn.Linear(128, 64),
+            nn.Linear(128, 128),
             nn.Dropout(0.1),
-            nn.Linear(64, 1)
+            nn.Linear(128, 1)
         )
         
         # for classifier
@@ -239,7 +239,7 @@ print("\nClassify:")
 trainer.train(
     mode = "classify", 
     batch_size = 32, 
-    epochs = 5,
+    epochs = 7,
     lr = 0.001,
 )
 
