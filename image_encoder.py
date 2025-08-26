@@ -189,7 +189,7 @@ class ImgTrainer():
             for img, label in pbar:
                 img, label = img.to(device), label.to(device)
                 optimizer.zero_grad()
-                out = self.model(img)
+                out = self.model(img, mode = mode)
                 
                 if mode == "classify":
                     pass
@@ -218,9 +218,13 @@ class ImgTrainer():
                     img, label = img.to(device), label.to(device)
                     out = self.model(img)
                     
-                    label = label.contiguous().view(batch_size // 2, 2)
-                    label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
-                    loss = criterion(out, label)
+                    if mode == "classify":
+                        pass
+                    elif mode == "match":
+                        label = label.contiguous().view(batch_size // 2, 2)
+                        label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
+                    elif mode == "restore":
+                        label = img
                     
                     losses.append(loss.item())
                     
