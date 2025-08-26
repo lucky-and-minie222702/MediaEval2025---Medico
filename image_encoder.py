@@ -129,7 +129,7 @@ class ImgTrainer():
         data_keys = list(img_dict.keys())
         random.shuffle(data_keys)
         
-        train_keys, val_keys = data_keys[:5000:], data_keys[5000::]
+        train_keys, val_keys = data_keys[:5500:], data_keys[5500::]
         
         self.train_ds = ImgDataset(img_dict, img_classes, train_keys)
         self.val_ds = ImgDataset(img_dict, img_classes, val_keys)
@@ -211,19 +211,19 @@ class ImgTrainer():
         })
         
 trainer = ImgTrainer()
-print("Contrastive:")
-trainer.train(
-    mode = "contrastive", 
-    batch_size = 128, 
-    epochs = 5,
-    lr = 0.001,
-)
 print("\nMatching:")
 trainer.train(
     mode = "matching", 
     batch_size = 32, 
     epochs = 5,
     lr = 0.0005,
+)
+print("\nContrastive:")
+trainer.train(
+    mode = "contrastive", 
+    batch_size = 128, 
+    epochs = 5,
+    lr = 0.001,
 )
 joblib.dump(trainer.logs, "results/image-encoder-logs")
 joblib.dump(trainer.checkpoints, "results/image-encoder-checkpoints")
