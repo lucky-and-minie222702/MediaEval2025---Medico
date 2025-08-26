@@ -243,7 +243,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "classify", 
         batch_size = 100, 
-        epochs = 50,
+        epochs = 25,
         lr = 0.001,
     )
 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "match", 
         batch_size = 100, 
-        epochs = 50,
+        epochs = 25,
         lr = 0.0001,
     )
 
