@@ -133,6 +133,7 @@ class ImgTrainer():
         
         self.model.to(device)
         optimizer = optim.Adam(self.model.parameters(), lr = lr)
+        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = "min", facotr = 0.2, patience = 5)
         if mode == "classify":
             criterion = nn.CrossEntropyLoss()
         elif mode == "match":
@@ -193,6 +194,8 @@ class ImgTrainer():
                     losses.append(loss.item())
                     
                     pbar.set_postfix(avg_loss = np.mean(losses), cur_loss = losses[-1])
+                    
+            lr_scheduler.step(np.mean(losses))
                 
             logs["val"].extend(losses)
         
@@ -208,7 +211,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "classify", 
         batch_size = 100, 
-        epochs = 5,
+        epochs = 50,
         lr = 0.001,
     )
 
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "match", 
         batch_size = 100, 
-        epochs = 5,
+        epochs = 50,
         lr = 0.0001,
     )
 
