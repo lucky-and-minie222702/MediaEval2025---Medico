@@ -33,7 +33,7 @@ class ImgDataset(Dataset):
             self.data = list(img_dict.keys())
         
     def __len__(self):
-        return 6500
+        return len(self.data)
     
     def __getitem__(self, index):
         d = self.data[index]
