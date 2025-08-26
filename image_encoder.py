@@ -111,7 +111,7 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
-        assert transformed.shape[-2::] == [224, 224]
+        assert transformed.shape == x.shape
         
         if mode == "transform":
             return transformed
