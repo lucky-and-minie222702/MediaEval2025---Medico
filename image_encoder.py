@@ -216,7 +216,7 @@ class ImgTrainer():
             with torch.no_grad():
                 for img, label in pbar:
                     img, label = img.to(device), label.to(device)
-                    out = self.model(img)
+                    out = self.model(img, mode = mode)
                     
                     if mode == "classify":
                         pass
