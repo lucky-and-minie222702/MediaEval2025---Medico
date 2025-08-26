@@ -174,7 +174,7 @@ class ImgTrainer():
             "val": []
         }
 
-        for ep in  epochs:
+        for ep in range(epochs):
             print(f"Epochs {ep+1}/{epochs}")
             
             self.model.train()
