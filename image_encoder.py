@@ -143,7 +143,6 @@ class ImgTrainer():
         self.train_ds = ImgDataset(img_dict, img_classes, train_keys)
         self.val_ds = ImgDataset(img_dict, img_classes, val_keys)
         
-        self.checkpoints = []
         self.logs = []
         self.phase = 0
         
@@ -228,11 +227,6 @@ class ImgTrainer():
                     pbar.set_postfix(avg_loss = np.mean(losses), cur_loss = losses[-1])
                 
             logs["val"].extend(losses)
-            
-        self.checkpoints.append({
-            "name": f"[{self.phase}] {mode}",
-            "model": copy.deepcopy(self.model)
-        })
         
         self.logs.append({
             "name": f"[{self.phase}] {mode}",
@@ -265,5 +259,5 @@ trainer.train(
     lr = 0.001,
 )
 
-joblib.dump(trainer.logs, "results/image-encoder-logs")
-joblib.dump(trainer.checkpoints, "results/image-encoder-checkpoints")
+joblib.dump(trainer.logs, "results/image-encoder.logs")
+torch.save(trainer.model, "results/image-encoder.model")
