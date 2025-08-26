@@ -239,7 +239,7 @@ print("\nClassify:")
 trainer.train(
     mode = "classify", 
     batch_size = 32, 
-    epochs = 15,
+    epochs = 5,
     lr = 0.001,
 )
 
@@ -255,7 +255,7 @@ print("\nRestore:")
 trainer.train(
     mode = "restore", 
     batch_size = 32, 
-    epochs = 20,
+    epochs = 15,
     lr = 0.01,
 )
 
