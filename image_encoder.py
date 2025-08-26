@@ -52,11 +52,11 @@ class ImgModel(nn.Module):
         super().__init__()
         
         self.encoder = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size = 3, padding = 2),
+            nn.Conv2d(3, 64, kernel_size = 3, padding = 1),
             nn.SiLU(),
-            nn.Conv2d(64, 64, kernel_size = 3, padding = 2),
+            nn.Conv2d(64, 64, kernel_size = 3, padding = 1),
             nn.SiLU(),
-            nn.Conv2d(64, 3, kernel_size = 3, padding = 2),
+            nn.Conv2d(64, 3, kernel_size = 3, padding = 1),
             nn.Sigmoid(),
         )
         
@@ -92,8 +92,8 @@ class ImgModel(nn.Module):
 
         encoded = self.encoder(x)
         print(x.shape, encoded.shape)
-        assert encoded.shape == x.shape
         encoded = (encoded * 255).to(torch.int8)
+        assert encoded.shape == x.shape
         
         if mode == "encode":
             return encoded
@@ -159,7 +159,7 @@ class ImgTrainer():
             
             self.model.train()
             losses = [] 
-            pbar = tqdm(train_dl, desc = " Val  ")
+            pbar = tqdm(train_dl, desc = " Train")
             for img, label in pbar:
                 img, label = img.to(device), label.to(device)
                 optimizer.zero_grad()
@@ -185,7 +185,7 @@ class ImgTrainer():
             
             self.model.eval()
             losses = [] 
-            pbar = tqdm(val_dl, desc = " Train")
+            pbar = tqdm(val_dl, desc = " Val  ")
             with torch.no_grad():
                 for img, label in pbar:
                     img, label = img.to(device), label.to(device)
