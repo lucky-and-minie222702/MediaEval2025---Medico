@@ -38,7 +38,7 @@ class ImgDataset(Dataset):
     def __getitem__(self, index):
         d = self.data[index]
         img = Image.open(self.dict[d]).convert("RGB")
-        img = MyImage.change_size(img, (224, 224))
+        img = MyImage.change_size(img, (236, 236))
         label = self.label[d]
         label = self.label_map[label]
         
@@ -47,45 +47,17 @@ class ImgDataset(Dataset):
         
         return img, label
 
-class ImgTransform(nn.Module):
-    def __init__(self):
-        super().__init__()
-        
-        spawn = lambda d: nn.Sequential(
-            nn.Conv2d(3, d, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(d, d, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(d, 3, kernel_size = 3, padding = 1),
-        )
-        
-        self.silu = nn.SiLU()
-        self.sigmoid = nn.Sigmoid()
-        
-        self.layers = nn.ModuleList([
-            spawn(d) for d in [8, 16, 32]
-        ])
-        
-        self.dropout = nn.Dropout2d(0.1)
-        
-    def forward(self, x):
-        indentity = x
-        out = x
-        for i, layer in enumerate(self.layers):
-            out = layer(x) + indentity
-            if i == 2:
-                out = self.sigmoid(out)
-            else:
-                out = self.silu(out)
-                out = self.dropout(out)
-        return out
-	
 
 class ImgModel(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.transform = ImgTransform()
+        self.transform = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size = 7),
+            nn.SiLU(),
+            nn.Conv2d(32, 3, kernel_size = 7),
+            nn.Sigmoid()
+        )
 
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, stride = 2),
@@ -110,7 +82,7 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
-        assert transformed.shape == x.shape
+        assert transformed.shape[-1] == 224 and transformed.shape[-2] == 224
         
         if mode == "transform":
             return transformed
@@ -236,7 +208,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "classify", 
         batch_size = 32, 
-        epochs = 10,
+        epochs = 5,
         lr = 0.001,
     )
 
@@ -244,7 +216,7 @@ if __name__ == "__main__":
     trainer.train(
         mode = "match", 
         batch_size = 100, 
-        epochs = 10,
+        epochs = 5,
         lr = 0.0001,
     )
 
