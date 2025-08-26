@@ -53,6 +53,7 @@ train_ds, val_ds = load_data(
     train_ratio = config["dataset"]["train_ratio"],
     train_complexities = config["dataset"]["complexities"],
     train_augment = config["dataset"]["augment"],
+    caption_prompt = config["dataset"]["caption_prompt"],
 )
 
 
