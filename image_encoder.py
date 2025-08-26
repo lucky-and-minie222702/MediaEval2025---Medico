@@ -129,7 +129,7 @@ class ImgTrainer():
         data_keys = list(img_dict.keys())
         random.shuffle(data_keys)
         
-        train_keys, val_keys = data_keys[:6000:], data_keys[6000::]
+        train_keys, val_keys = data_keys[:5000:], data_keys[5000::]
         
         self.train_ds = ImgDataset(img_dict, img_classes, train_keys)
         self.val_ds = ImgDataset(img_dict, img_classes, val_keys)
