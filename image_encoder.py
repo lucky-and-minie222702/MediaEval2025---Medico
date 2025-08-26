@@ -214,7 +214,7 @@ trainer = ImgTrainer()
 print("\nMatching:")
 trainer.train(
     mode = "matching", 
-    batch_size = 128, 
+    batch_size = 100, 
     epochs = 5,
     lr = 0.0005,
 )
