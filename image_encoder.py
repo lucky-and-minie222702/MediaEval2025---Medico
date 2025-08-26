@@ -106,7 +106,7 @@ class ImgModel(nn.Module):
             emb = self.emb_norm(emb)
             return emb
         if mode == "matching":
-            pairs = decoded.contiguous().view(B, 128)
+            pairs = decoded.contiguous().view(B // 2, 128)
             return self.mch_head(pairs)
 
     
@@ -169,7 +169,7 @@ class ImgTrainer():
                     logits = contrastive_logits(out, temperature = 0.1)
                     loss = contrastive_loss(logits)
                 elif mode == "matching":
-                    label = label.contiguous().view(batch_size, 2)
+                    label = label.contiguous().view(batch_size // 2, 2)
                     label = (label[:, 0] == label[:, 1]).int()
                     loss = criterion(out, label)
                 
