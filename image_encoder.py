@@ -117,6 +117,7 @@ class ImgModel(nn.Module):
 
         transformed = self.transform(x)
         transformed = transformed * (2 * x)
+        transformed = torch.clip(transformed, min = 0, max = 1)
         assert transformed.shape[-1] == 224 and transformed.shape[-2] == 224
         
         if mode == "transform":
