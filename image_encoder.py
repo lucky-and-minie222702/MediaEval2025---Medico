@@ -248,7 +248,7 @@ trainer.train(
     mode = "match", 
     batch_size = 100, 
     epochs = 10,
-    lr = 0.005,
+    lr = 0.0005,
 )
 
 print("\nRestore:")
@@ -256,7 +256,7 @@ trainer.train(
     mode = "restore", 
     batch_size = 32, 
     epochs = 15,
-    lr = 0.01,
+    lr = 0.001,
 )
 
 joblib.dump(trainer.logs, "results/image-encoder-logs")
