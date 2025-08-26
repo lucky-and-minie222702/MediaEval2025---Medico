@@ -39,7 +39,7 @@ class ImgDataset(Dataset):
     def __getitem__(self, index):
         d = self.data[index]
         img = Image.open(self.dict[d]).convert("RGB")
-        img = MyImage.change_size(img, (230, 230))
+        img = MyImage.change_size(img, (224, 224))
         label = self.label[d]
         label = self.label_map[label]
         
@@ -57,7 +57,7 @@ class ImgTransform(nn.Module):
             nn.SiLU(),
             nn.Conv2d(d, d, kernel_size = 3, padding = 1),
             nn.SiLU(),
-            nn.Conv2d(3, 3, kernel_size = 3, padding = 1),
+            nn.Conv2d(d, 3, kernel_size = 3, padding = 1),
         )
         
         self.silu = nn.SiLU()
