@@ -47,19 +47,50 @@ class ImgDataset(Dataset):
         
         return img, label
 
+class ImgTransform(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        spawn = lambda d: nn.Sequential(
+            nn.Conv2d(3, d, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(d, d, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(d, 3, kernel_size = 3, padding = 1),
+        )
+        
+        self.silu = nn.SiLU()
+        self.sigmoid = nn.Sigmoid()
+        
+        self.layers = nn.ModuleList([
+            spawn(d) for d in [8, 16, 32, 64]
+        ])
+        
+        self.dropout = nn.Dropout2d(0.1)
+        
+    def forward(self, x):
+        indentity = x
+        out = x
+        for i, layer in enumerate(self.layers):
+            out = layer(x) + indentity
+            if i == 2:
+                out = self.sigmoid(out)
+            else:
+                out = self.silu(out)
+                out = self.dropout(out)
+        return out
+
 
 class ImgModel(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.transform = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size = 7, padding = 3),
-            nn.Conv2d(32, 3, kernel_size = 7, padding = 3),
-            nn.Sigmoid(),
-        )
+        self.transform = ImgTransform()
 
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, stride = 2),
+            nn.SiLU(),
+            nn.Conv2d(64, 64, kernel_size = 3, stride = 2),
             nn.SiLU(),
             nn.Dropout2d(0.1),
             nn.Conv2d(64, 64, kernel_size = 3, stride = 2),
@@ -69,11 +100,15 @@ class ImgModel(nn.Module):
         
         # for matching
         self.mch_head = nn.Sequential(
+            nn.Linear(128, 128),
+            nn.Dropout(0.1),
             nn.Linear(128, 1),
         )
         
         # for classifier
         self.cls_head = nn.Sequential(
+            nn.Linear(64, 64),
+            nn.Dropout(0.1),
             nn.Linear(64, 5),
         )
         
@@ -81,7 +116,7 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
-        transformed = transformed * x
+        transformed = transformed * (2 * x)
         assert transformed.shape[-1] == 224 and transformed.shape[-2] == 224
         
         if mode == "transform":
