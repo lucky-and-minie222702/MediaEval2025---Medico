@@ -89,8 +89,8 @@ reader = MyUtils.TestLogger.ResultsReader(
 
 labels = list(reader.labels)
 preds  = list(reader.predictions)
-n_samples = len(labels)
 
+n_samples = len(labels)
 batch_size = config["batch_size"]
 
 pbar = tqdm(range(0, n_samples, batch_size), total = (n_samples + batch_size - 1) // batch_size)

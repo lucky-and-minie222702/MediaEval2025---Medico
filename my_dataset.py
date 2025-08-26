@@ -17,13 +17,18 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomRotation(12),
 ])
 
-INSTRUCTION = (
+QUESTION_INSTRUCTION = (
     "You are a medical vision-language assistant. "
     "Answer the question using only evidence-based medical facts and the image, avoiding speculation or anecdotes. "
-    "Respond in natural medical language as a doctor would, in one sentence. "  
+    "Respond in natural medical language as a doctor would, in one sentence. "
 )
+QUESTION_PROMPT = QUESTION_INSTRUCTION + "Question: {q}"
 
-QUESTION_PROMPT = INSTRUCTION + "Question: {q}"
+CAPTION_INSTRUCTION = (
+    "You are a medical vision-language assistant. "
+    "Write a caption for the given image. "
+    "Respond in natural medical language as a doctor would, in one sentence. "
+)
 
 
 def norm_text(text):
@@ -33,7 +38,7 @@ def norm_text(text):
     
     return out
 
-def preprocess(processor, d, max_length, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
+def preprocess(processor, d, max_length, caption_prompt = False, include_answer = True, mask_answer = -100, img_dict = None, transform = None):
     if img_dict is None:
         img_dict = MyImage.get_img_dict()
 
@@ -43,7 +48,10 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
     if transform is not None:
         image = transform(image)
 
-    quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
+    if caption_prompt:
+        quest = CAPTION_INSTRUCTION
+    else:
+        quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
     ans = norm_text(d["answer"])
     
     inputs = processor(
@@ -72,7 +80,7 @@ def preprocess(processor, d, max_length, include_answer = True, mask_answer = -1
 
 
 class MyDataset(Dataset):
-    def __init__(self, df, max_question_legnth, max_answer_length, processor, include_answer = True, transform = None, mask_answer = -100):
+    def __init__(self, df, max_question_legnth, max_answer_length, processor, include_answer = True, caption_prompt = False, transform = None, mask_answer = -100):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
@@ -82,6 +90,7 @@ class MyDataset(Dataset):
         self.img_dict = MyImage.get_img_dict()
         self.mask_answer = mask_answer
         self.include_answer = include_answer
+        self.caption_prompt = caption_prompt
         
     def __len__(self):
         return len(self.data)
@@ -90,6 +99,7 @@ class MyDataset(Dataset):
         return preprocess(
             processor = self.processor, 
             d = self.data[index], 
+            caption_prompt = self.caption_prompt,
             include_answer = self.include_answer,
             max_length = self.max_length,
             img_dict = self.img_dict, 
@@ -107,6 +117,7 @@ def load_data(
     train_augment = True, 
     test_complexities = [1, 2, 3], 
     test_only = False, 
+    caption_prompt = False,
     seed = 27022009):
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
@@ -122,7 +133,7 @@ def load_data(
         drop_invalid_char_df(test_df)
         mask = test_df["complexity"].map(lambda x: x in test_complexities)
         test_df = test_df[mask]
-        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, transform = None)
+        test_ds = MyDataset(test_df, max_question_length, max_answer_length, processor, caption_prompt = caption_prompt, transform = None)
         return test_ds
 
     # load df
@@ -133,8 +144,8 @@ def load_data(
 
     train_df, val_df = train_test_split(df, train_size = train_ratio, shuffle = True, random_state = seed)
 
-    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, transform = TRAIN_TRANSFORM if train_augment else None)
-    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, transform = None)
+    train_ds = MyDataset(train_df, max_question_length, max_answer_length, processor, caption_prompt = caption_prompt, transform = TRAIN_TRANSFORM if train_augment else None)
+    val_ds = MyDataset(val_df, max_question_length, max_answer_length, processor, caption_prompt = caption_prompt, transform = None)
     
     return train_ds, val_ds
 

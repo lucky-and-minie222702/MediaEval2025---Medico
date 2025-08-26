@@ -17,7 +17,7 @@ if config.get("debug_mode", False):
 
 
 # load model
-model_name = "Salesforce/instructblip-flan-t5-xxl"
+model_name = config["model"]
 model_path = f"results/{config['dir']}"
 
 processor = InstructBlipProcessor.from_pretrained(model_name)
