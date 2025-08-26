@@ -170,7 +170,7 @@ class ImgTrainer():
                     loss = contrastive_loss(logits)
                 elif mode == "matching":
                     label = label.contiguous().view(batch_size // 2, 2)
-                    label = (label[:, 0] == label[:, 1]).int()
+                    label = (label[:, 0] == label[:, 1]).int().contiguous().view(-1)
                     loss = criterion(out, label)
                 
                 losses.append(loss.item())
