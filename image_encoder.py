@@ -195,8 +195,8 @@ class ImgTrainer():
                         logits = contrastive_logits(out, temperature = 0.1)
                         loss = contrastive_loss(logits)
                     elif mode == "matching":
-                        label = label.contiguous().view(batch_size, 2)
-                        label = (label[:, 0] == label[:, 1]).int()
+                        label = label.contiguous().view(batch_size // 2, 2)
+                        label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
                         loss = criterion(out, label)
                     
                     losses.append(loss.item())
