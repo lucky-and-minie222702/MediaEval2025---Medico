@@ -30,42 +30,21 @@ class ImgDataset(Dataset):
         
         self.data = data
         self.data = list(img_dict.keys())
-            
         
     def __len__(self):
         return 6500
     
     def __getitem__(self, index):
         d = self.data[index]
-        if self.for_mathcing:
-            img1 = Image.open(self.dict[d[0]]).convert("RGB")
-            img1 = MyImage.change_size(img1, (224, 224))
-            
-            img2 = Image.open(self.dict[d[1]]).convert("RGB")
-            img2 = MyImage.change_size(img2, (224, 224))
-            
-            label1 = self.label[d[0]]
-            label1 = self.label_map[label1]
-            
-            label2 = self.label[d[1]]
-            label2 = self.label_map[label2]
-            
-            img1 = self.to_tensor(img1)
-            img2 = self.to_tensor(img2)
-            label = int(label1 == label2)
-            label = torch.tensor(label, dtype = torch.long)
-            
-            return img1, img2, label
-        else:
-            img = Image.open(self.dict[d]).convert("RGB")
-            img = MyImage.change_size(img, (224, 224))
-            label = self.label[d]
-            label = self.label_map[label]
-            
-            img = self.to_tensor(img)
-            label = torch.tensor(label, dtype = torch.long)
-            
-            return img, label
+        img = Image.open(self.dict[d]).convert("RGB")
+        img = MyImage.change_size(img, (224, 224))
+        label = self.label[d]
+        label = self.label_map[label]
+        
+        img = self.to_tensor(img)
+        label = torch.tensor(label, dtype = torch.long)
+        
+        return img, label
 
 	
 class ImgModel(nn.Module):
