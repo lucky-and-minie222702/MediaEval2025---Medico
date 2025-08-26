@@ -53,8 +53,8 @@ class ImgModel(nn.Module):
         super().__init__()
         
         self.transform = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size = 7, padding = 5),
-            nn.Conv2d(32, 3, kernel_size = 7, padding = 5),
+            nn.Conv2d(3, 32, kernel_size = 7, padding = 3),
+            nn.Conv2d(32, 3, kernel_size = 7, padding = 3),
             nn.Sigmoid(),
         )
 
