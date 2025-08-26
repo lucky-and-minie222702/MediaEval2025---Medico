@@ -166,7 +166,7 @@ class ImgTrainer():
         optimizer = optim.Adam(self.model.parameters(), lr = lr)
         if mode == "classify":
             criterion = nn.CrossEntropyLoss()
-        elif mode == "matching":
+        elif mode == "match":
             criterion = nn.BCEWithLogitsLoss()
         elif mode == "restore":
             criterion = nn.MSELoss()
@@ -239,7 +239,7 @@ print("\nClassify:")
 trainer.train(
     mode = "classify", 
     batch_size = 32, 
-    epochs = 10,
+    epochs = 15,
     lr = 0.001,
 )
 
