@@ -215,15 +215,15 @@ print("\nMatching:")
 trainer.train(
     mode = "matching", 
     batch_size = 100, 
-    epochs = 5,
-    lr = 0.0005,
+    epochs = 10,
+    lr = 0.001,
 )
 print("\nContrastive:")
 trainer.train(
     mode = "contrastive", 
     batch_size = 128, 
     epochs = 5,
-    lr = 0.001,
+    lr = 0.0005,
 )
 joblib.dump(trainer.logs, "results/image-encoder-logs")
 joblib.dump(trainer.checkpoints, "results/image-encoder-checkpoints")
