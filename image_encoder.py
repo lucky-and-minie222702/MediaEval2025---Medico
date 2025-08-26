@@ -132,18 +132,6 @@ class ImgModel(nn.Module):
         if mode == "classify":
             return self.cls_head(encoded)
 
-    
-def contrastive_logits(x, temperature):
-    x = F.normalize(x, dim = -1)
-    return (x @ x.t()) / temperature 
-
-
-def contrastive_loss(logits):
-    B = logits.shape[0]
-    target = torch.arange(B, device = logits.device)
-    loss = F.cross_entropy(logits, target)
-    return loss
-
 
 class ImgTrainer():
     def __init__(self):
@@ -158,6 +146,7 @@ class ImgTrainer():
         self.val_ds = ImgDataset(img_dict, img_classes, val_keys)
         
         self.logs = []
+        self.checkpoints = []
         self.phase = 0
         
     def train(self, mode, batch_size, epochs, lr):
@@ -234,7 +223,12 @@ class ImgTrainer():
         
         self.logs.append({
             "name": f"[{self.phase}] {mode}",
-            "log": copy.deepcopy(self.model)
+            "log": logs,
+        })
+        
+        self.checkpoints.append({
+            "name": f"[{self.phase}] {mode}",
+            "model": copy.deepcopy(self.model.state_dict())
         })
         
 if __name__ == "__main__":
@@ -252,8 +246,8 @@ if __name__ == "__main__":
     trainer.train(
         mode = "match", 
         batch_size = 100, 
-        epochs = 25,
-        lr = 0.0001,
+        epochs = 75,
+        lr = 0.0002,
     )
 
     joblib.dump(trainer.logs, "results/image-encoder.logs")
