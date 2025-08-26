@@ -113,7 +113,7 @@ class ImgModel(nn.Module):
             restore = self.to_rgb(restore)
             return restore
         
-        encoded = self.decoder(transformed)
+        encoded = self.encoder(transformed)
         encoded = self.pool(encoded).squeeze([-1, -2])  # B, 64
         
         if mode == "match":
