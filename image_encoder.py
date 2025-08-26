@@ -1,4 +1,3 @@
-from lightgbm import train
 import numpy as np
 from PIL import Image, ImageOps
 import pandas as pd
