@@ -70,8 +70,6 @@ class ImgModel(nn.Module):
             nn.Sigmoid(),
         )
         
-        self.to_rgb = lambda a: torch.round(a * 255).float()
-        
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, stride = 2),
             nn.SiLU(),
@@ -102,7 +100,6 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
-        transformed = self.to_rgb(transformed)
         assert transformed.shape == x.shape
         
         if mode == "transform":
@@ -110,7 +107,6 @@ class ImgModel(nn.Module):
         
         if mode == "restore":
             restore = self.restore(transformed)
-            restore = self.to_rgb(restore)
             return restore
         
         encoded = self.encoder(transformed)
