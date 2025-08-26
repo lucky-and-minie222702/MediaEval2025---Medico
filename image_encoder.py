@@ -52,7 +52,7 @@ class ImgModel(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.encoder = nn.Sequential(
+        self.transform = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, padding = 1),
             nn.SiLU(),
             nn.Conv2d(64, 64, kernel_size = 3, padding = 1),
@@ -61,7 +61,18 @@ class ImgModel(nn.Module):
             nn.Sigmoid(),
         )
         
-        self.decoder = nn.Sequential(
+        self.restore = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(64, 64, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(64, 3, kernel_size = 3, padding = 1),
+            nn.Sigmoid(),
+        )
+        
+        self.to_rgb = lambda a: torch.round(a * 255).float()
+        
+        self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, stride = 2),
             nn.SiLU(),
             nn.Dropout2d(0.1),
@@ -73,14 +84,6 @@ class ImgModel(nn.Module):
         
         self.pool = nn.AdaptiveAvgPool2d(1)
         
-        # for contrastive
-        self.ctr_head = nn.Sequential(
-            nn.Linear(64, 64),
-            nn.Dropout(0.1),
-            nn.Linear(64, 64)
-        )
-        self.emb_norm = lambda emb: F.normalize(emb, dim = -1)
-        
         # for matching
         self.mch_head = nn.Sequential(
             nn.Linear(128, 64),
@@ -88,26 +91,36 @@ class ImgModel(nn.Module):
             nn.Linear(64, 1)
         )
         
+        # for classifier
+        self.cls_head = nn.Sequential(
+            nn.Linear(64, 64),
+            nn.Dropout(0.1),
+            nn.Linear(64, 5)
+        )
+        
     def forward(self, x, mode):
         B = x.shape[0]
 
-        encoded = self.encoder(x)
-        encoded = torch.round(encoded * 255).float()
-        assert encoded.shape == x.shape
+        transformed = self.transform(x)
+        transformed = self.to_rgb(transformed)
+        assert transformed.shape == x.shape
         
-        if mode == "encode":
-            return encoded
+        if mode == "transform":
+            return transformed
         
-        decoded = self.decoder(encoded)
-        decoded = self.pool(decoded).squeeze([-1, -2])  # B, 64
+        if mode == "restore":
+            restore = self.restore(transformed)
+            restore = self.to_rgb(restore)
+            return restore
         
-        if mode == "contrastive":
-            emb = self.ctr_head(decoded)
-            emb = self.emb_norm(emb)
-            return emb
-        if mode == "matching":
-            pairs = decoded.contiguous().view(B // 2, 128)
+        encoded = self.decoder(transformed)
+        encoded = self.pool(encoded).squeeze([-1, -2])  # B, 64
+        
+        if mode == "match":
+            pairs = encoded.contiguous().view(B // 2, 128)
             return self.mch_head(pairs)
+        if mode == "classify":
+            return self.cls_head(encoded)
 
     
 def contrastive_logits(x, temperature):
@@ -141,13 +154,26 @@ class ImgTrainer():
     def train(self, mode, batch_size, epochs, lr):
         self.phase += 1
         
+        # freeze transform layer
+        if mode == "restore":
+            for param in self.model.transform.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.model.transform.parameters():
+                param.requires_grad = True
+        
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         train_dl = DataLoader(self.train_ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(self.val_ds, batch_size = batch_size, shuffle = True)
         
         self.model.to(device)
         optimizer = optim.Adam(self.model.parameters(), lr = lr)
-        criterion = nn.BCEWithLogitsLoss()
+        if mode == "classify":
+            criterion = nn.CrossEntropyLoss()
+        elif mode == "matching":
+            criterion = nn.BCEWithLogitsLoss()
+        elif mode == "restore":
+            criterion = nn.MSELoss()
         
         logs = {
             "train": [],
@@ -163,16 +189,17 @@ class ImgTrainer():
             for img, label in pbar:
                 img, label = img.to(device), label.to(device)
                 optimizer.zero_grad()
-                out = self.model(img, mode = mode)
+                out = self.model(img)
                 
-                if mode == "contrastive":
-                    logits = contrastive_logits(out, temperature = 0.1)
-                    loss = contrastive_loss(logits)
-                elif mode == "matching":
+                if mode == "classify":
+                    pass
+                elif mode == "match":
                     label = label.contiguous().view(batch_size // 2, 2)
                     label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
-                    loss = criterion(out, label)
-                
+                elif mode == "restore":
+                    label = img
+                    
+                loss = criterion(out, label)
                 losses.append(loss.item())
                 
                 loss.backward()
@@ -189,15 +216,11 @@ class ImgTrainer():
             with torch.no_grad():
                 for img, label in pbar:
                     img, label = img.to(device), label.to(device)
-                    out = self.model(img, mode = mode)
+                    out = self.model(img)
                     
-                    if mode == "contrastive":
-                        logits = contrastive_logits(out, temperature = 0.1)
-                        loss = contrastive_loss(logits)
-                    elif mode == "matching":
-                        label = label.contiguous().view(batch_size // 2, 2)
-                        label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
-                        loss = criterion(out, label)
+                    label = label.contiguous().view(batch_size // 2, 2)
+                    label = (label[:, 0] == label[:, 1]).float().unsqueeze(-1)
+                    loss = criterion(out, label)
                     
                     losses.append(loss.item())
                     
@@ -206,24 +229,35 @@ class ImgTrainer():
             logs["val"].extend(losses)
             
         self.checkpoints.append({
-            "name": f"[{self.phase}] - {mode}",
+            "name": f"[{self.phase}] {mode}",
             "model": copy.deepcopy(self.model)
         })
         
 trainer = ImgTrainer()
-print("\nMatching:")
+
+print("\nClassify:")
 trainer.train(
-    mode = "matching", 
-    batch_size = 100, 
+    mode = "classify", 
+    batch_size = 32, 
     epochs = 10,
     lr = 0.001,
 )
-print("\nContrastive:")
+
+print("\nMatch:")
 trainer.train(
-    mode = "contrastive", 
-    batch_size = 128, 
-    epochs = 5,
-    lr = 0.0005,
+    mode = "match", 
+    batch_size = 100, 
+    epochs = 10,
+    lr = 0.005,
 )
+
+print("\nRestore:")
+trainer.train(
+    mode = "restore", 
+    batch_size = 32, 
+    epochs = 20,
+    lr = 0.01,
+)
+
 joblib.dump(trainer.logs, "results/image-encoder-logs")
 joblib.dump(trainer.checkpoints, "results/image-encoder-checkpoints")
