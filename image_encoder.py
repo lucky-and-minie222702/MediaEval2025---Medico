@@ -7,7 +7,7 @@ from torch import optim, nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from tqdm import tqdm
-import torch.functional as F
+import torch.nn.functional as F
 import random
 import copy
 
