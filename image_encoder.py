@@ -29,7 +29,8 @@ class ImgDataset(Dataset):
         self.to_tensor = transforms.ToTensor()
         
         self.data = data
-        self.data = list(img_dict.keys())
+        if data is None:
+            self.data = list(img_dict.keys())
         
     def __len__(self):
         return 6500
@@ -199,7 +200,6 @@ class ImgTrainer():
                         loss = criterion(out, label)
                     
                     losses.append(loss.item())
-                    
                     
                     pbar.set_postfix(avg_loss = round(np.mean(losses), 3), cur_loss = round(losses[-1], 3))
                 
