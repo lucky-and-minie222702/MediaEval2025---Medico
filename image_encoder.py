@@ -178,7 +178,7 @@ class ImgTrainer():
                 loss.backward()
                 optimizer.step()
                 
-                pbar.set_postfix(avg_loss = round(np.mean(losses), 3), cur_loss = round(losses[-1], 3))    
+                pbar.set_postfix(avg_loss = losses, cur_loss = losses[-1])    
 
             logs["train"].extend(losses)
 
@@ -201,7 +201,7 @@ class ImgTrainer():
                     
                     losses.append(loss.item())
                     
-                    pbar.set_postfix(avg_loss = round(np.mean(losses), 3), cur_loss = round(losses[-1], 3))
+                    pbar.set_postfix(avg_loss = np.mean(losses), cur_loss = losses[-1])
                 
             logs["val"].extend(losses)
             
