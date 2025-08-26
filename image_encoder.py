@@ -1,3 +1,4 @@
+from turtle import forward
 import numpy as np
 from PIL import Image, ImageOps
 import pandas as pd
@@ -38,7 +39,7 @@ class ImgDataset(Dataset):
     def __getitem__(self, index):
         d = self.data[index]
         img = Image.open(self.dict[d]).convert("RGB")
-        img = MyImage.change_size(img, (224, 224))
+        img = MyImage.change_size(img, (230, 230))
         label = self.label[d]
         label = self.label_map[label]
         
@@ -47,29 +48,46 @@ class ImgDataset(Dataset):
         
         return img, label
 
+class ImgTransform(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        spawn = lambda d: nn.Sequential(
+            nn.Conv2d(3, d, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(d, d, kernel_size = 3, padding = 1),
+            nn.SiLU(),
+            nn.Conv2d(3, 3, kernel_size = 3, padding = 1),
+        )
+        
+        self.silu = nn.SiLU()
+        self.sigmoid = nn.Sigmoid()
+        
+        self.layers = nn.ModuleList([
+            spawn(d) for d in [16, 32, 64]
+        ])
+        
+        self.dropout = nn.Dropout2d(0.1)
+        
+    def forward(self, x):
+        indentity = x
+        out = x
+        for i, layer in enumerate(self.layers):
+            out = layer(x) + indentity
+            if i == 2:
+                out = self.sigmoid(out)
+            else:
+                out = self.silu(out)
+                out = self.dropout(out)
+        return out
 	
+
 class ImgModel(nn.Module):
     def __init__(self):
         super().__init__()
         
-        self.transform = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(64, 64, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(64, 3, kernel_size = 3, padding = 1),
-            nn.Sigmoid(),
-        )
-        
-        self.restore = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(64, 64, kernel_size = 3, padding = 1),
-            nn.SiLU(),
-            nn.Conv2d(64, 3, kernel_size = 3, padding = 1),
-            nn.Sigmoid(),
-        )
-        
+        self.transform = ImgTransform()
+
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size = 3, stride = 2),
             nn.SiLU(),
@@ -100,14 +118,10 @@ class ImgModel(nn.Module):
         B = x.shape[0]
 
         transformed = self.transform(x)
-        assert transformed.shape == x.shape
+        assert transformed.shape[-2::] == [224, 224]
         
         if mode == "transform":
             return transformed
-        
-        if mode == "restore":
-            restore = self.restore(transformed)
-            return restore
         
         encoded = self.encoder(transformed)
         encoded = self.pool(encoded).squeeze([-1, -2])  # B, 64
@@ -167,8 +181,6 @@ class ImgTrainer():
             criterion = nn.CrossEntropyLoss()
         elif mode == "match":
             criterion = nn.BCEWithLogitsLoss()
-        elif mode == "restore":
-            criterion = nn.MSELoss()
         
         logs = {
             "train": [],
@@ -233,31 +245,24 @@ class ImgTrainer():
             "log": copy.deepcopy(self.model)
         })
         
-trainer = ImgTrainer()
+if __name__ == "__main__":
+    trainer = ImgTrainer()
 
-print("\nClassify:")
-trainer.train(
-    mode = "classify", 
-    batch_size = 32, 
-    epochs = 10,
-    lr = 0.001,
-)
+    print("\nClassify:")
+    trainer.train(
+        mode = "classify", 
+        batch_size = 32, 
+        epochs = 10,
+        lr = 0.001,
+    )
 
-print("\nMatch:")
-trainer.train(
-    mode = "match", 
-    batch_size = 100, 
-    epochs = 10,
-    lr = 0.0001,
-)
+    print("\nMatch:")
+    trainer.train(
+        mode = "match", 
+        batch_size = 100, 
+        epochs = 10,
+        lr = 0.0001,
+    )
 
-print("\nRestore:")
-trainer.train(
-    mode = "restore", 
-    batch_size = 32, 
-    epochs = 20,
-    lr = 0.001,
-)
-
-joblib.dump(trainer.logs, "results/image-encoder.logs")
-torch.save(trainer.model, "results/image-encoder.model")
+    joblib.dump(trainer.logs, "results/image-encoder.logs")
+    torch.save(trainer.model.state_dict(), "results/image-encoder.model")
