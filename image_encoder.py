@@ -207,7 +207,7 @@ if __name__ == "__main__":
     print("\nClassify:")
     trainer.train(
         mode = "classify", 
-        batch_size = 32, 
+        batch_size = 100, 
         epochs = 5,
         lr = 0.001,
     )
