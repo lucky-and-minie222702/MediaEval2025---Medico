@@ -64,7 +64,7 @@ class ImgTransform(nn.Module):
         self.sigmoid = nn.Sigmoid()
         
         self.layers = nn.ModuleList([
-            spawn(d) for d in [16, 32, 64]
+            spawn(d) for d in [8, 16, 32]
         ])
         
         self.dropout = nn.Dropout2d(0.1)
@@ -93,25 +93,18 @@ class ImgModel(nn.Module):
             nn.SiLU(),
             nn.Dropout2d(0.1),
             nn.Conv2d(64, 64, kernel_size = 3, stride = 2),
-            nn.SiLU(),
-            nn.Dropout2d(0.1),
-            nn.Conv2d(64, 64, kernel_size = 3, stride = 2),
         )
         
         self.pool = nn.AdaptiveAvgPool2d(1)
         
         # for matching
         self.mch_head = nn.Sequential(
-            nn.Linear(128, 128),
-            nn.Dropout(0.1),
-            nn.Linear(128, 1)
+            nn.Linear(128, 1),
         )
         
         # for classifier
         self.cls_head = nn.Sequential(
-            nn.Linear(64, 64),
-            nn.Dropout(0.1),
-            nn.Linear(64, 5)
+            nn.Linear(64, 5),
         )
         
     def forward(self, x, mode):
@@ -162,14 +155,6 @@ class ImgTrainer():
         
     def train(self, mode, batch_size, epochs, lr):
         self.phase += 1
-        
-        # freeze transform layer
-        if mode == "restore":
-            for param in self.model.transform.parameters():
-                param.requires_grad = False
-        else:
-            for param in self.model.transform.parameters():
-                param.requires_grad = True
         
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         train_dl = DataLoader(self.train_ds, batch_size = batch_size, shuffle = True)
