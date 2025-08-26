@@ -222,6 +222,7 @@ class ImgTrainer():
                     elif mode == "restore":
                         label = img
                     
+                    loss = criterion(out, label)
                     losses.append(loss.item())
                     
                     pbar.set_postfix(avg_loss = np.mean(losses), cur_loss = losses[-1])
@@ -233,13 +234,18 @@ class ImgTrainer():
             "model": copy.deepcopy(self.model)
         })
         
+        self.logs.append({
+            "name": f"[{self.phase}] {mode}",
+            "log": copy.deepcopy(self.model)
+        })
+        
 trainer = ImgTrainer()
 
 print("\nClassify:")
 trainer.train(
     mode = "classify", 
     batch_size = 32, 
-    epochs = 7,
+    epochs = 10,
     lr = 0.001,
 )
 
@@ -247,7 +253,7 @@ print("\nMatch:")
 trainer.train(
     mode = "match", 
     batch_size = 100, 
-    epochs = 10,
+    epochs = 20,
     lr = 0.0005,
 )
 
@@ -255,7 +261,7 @@ print("\nRestore:")
 trainer.train(
     mode = "restore", 
     batch_size = 32, 
-    epochs = 15,
+    epochs = 20,
     lr = 0.001,
 )
 
