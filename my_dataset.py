@@ -140,7 +140,7 @@ class MyDataset(Dataset):
             ans = " ".join(ans)
             return ans
         
-        df["caption"] = [tqdm(to_caption(d), desc = "Generating caption") for d in df.iloc]
+        df["caption"] = [to_caption(d) for d in tqdm(df.iloc, desc = "Generating caption")]
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
         self.question_dict = question_dict
