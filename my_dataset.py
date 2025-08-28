@@ -64,14 +64,18 @@ def preprocess(
 
     if caption_prompt:
         ids = d["qid"]
-        all_samples = all_data[all_data["qid"].apply(lambda x: set(x).isdisjoint(ids))].index
-        n_samples = np.random.choice(all_samples, n_captions)
-        captions = all_data["answer"][n_samples].tolist()
         ans = []
-        for c in captions:
-            if c[-1] != ".":
-                c += "."
-            ans.append(c)
+        for _ in range(n_captions):
+            all_samples = all_data[all_data["qid"].apply(lambda x: set(x).isdisjoint(ids))].index
+            idx = np.random.randint(len(all_samples))
+            
+            cap = all_data["answer"][idx]
+            if cap[-1] != ".":
+                cap += "."
+
+            ans.append(cap)
+            ids.extend(all_data["qid"])
+
         ans = " ".join(ans)
     else:
         ans = norm_text(d["answer"])
