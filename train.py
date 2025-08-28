@@ -54,6 +54,7 @@ train_ds, val_ds = load_data(
     train_complexities = config["dataset"]["complexities"],
     train_augment = config["dataset"]["augment"],
     caption_prompt = config["dataset"]["caption_prompt"],
+    n_captions = config["dataset"].get("n_captions", None),
 )
 
 
