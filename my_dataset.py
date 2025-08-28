@@ -64,17 +64,18 @@ def preprocess(
 
     if caption_prompt:
         ids = d["qid"]
+        df_ = all_data.reset_index(drop = True)
         ans = []
         for _ in range(n_captions):
-            all_samples = all_data[all_data["qid"].apply(lambda x: set(x).isdisjoint(ids))].index
-            idx = np.random.randint(len(all_samples))
+            df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True).index
+            idx = np.random.randint(len(df_))
             
             cap = all_data["answer"][idx]
             if cap[-1] != ".":
                 cap += "."
 
             ans.append(cap)
-            ids.extend(all_data["qid"])
+            ids.extend(df_["qid"])
 
         ans = " ".join(ans)
     else:
@@ -135,7 +136,6 @@ class MyDataset(Dataset):
         question_dict.update({v: k for k, v in question_dict.items()})
         to_ids  = lambda o: sorted([question_dict[p["q"]] for p in o])
         df["qid"] = org.apply(to_ids)
-        print(df["qid"])
         	
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
