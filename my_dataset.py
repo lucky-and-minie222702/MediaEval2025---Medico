@@ -72,7 +72,7 @@ def preprocess(
             
             cap = df_["answer"][idx]
             if cap[-1] != ".":
-                cap += "."
+                cap += ". "
 
             ans.append(cap)
             ids = df_["qid"][idx]
