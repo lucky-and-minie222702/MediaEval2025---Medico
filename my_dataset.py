@@ -135,6 +135,7 @@ class MyDataset(Dataset):
         question_dict.update({v: k for k, v in question_dict.items()})
         to_ids  = lambda o: sorted([question_dict[p["q"]] for p in o])
         df["qid"] = org.apply(to_ids)
+        print(df["qid"])
         	
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
