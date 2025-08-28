@@ -70,7 +70,7 @@ def preprocess(
             df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True)
             idx = np.random.randint(len(df_))
             
-            cap = all_data["answer"][idx]
+            cap = df_["answer"][idx]
             if cap[-1] != ".":
                 cap += "."
 
