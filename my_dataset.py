@@ -45,9 +45,7 @@ def preprocess(
     include_answer = True, 
     mask_answer = -100, 
     img_dict = None, 
-    transform = None, 
-    all_data = None, 
-    n_captions = None):
+    transform = None):
     if img_dict is None:
         img_dict = MyImage.get_img_dict()
 
@@ -63,21 +61,7 @@ def preprocess(
         quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
 
     if caption_prompt:
-        ids = d["qid"]
-        df_ = all_data.reset_index(drop = True)
-        ans = []
-        for _ in range(n_captions):
-            df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True)
-            idx = np.random.randint(len(df_))
-            
-            cap = df_["answer"][idx]
-            if cap[-1] != ".":
-                cap += ". "
-
-            ans.append(cap)
-            ids = df_["qid"][idx]
-
-        ans = " ".join(ans)
+        ans = norm_text(d["caption"])
     else:
         ans = norm_text(d["answer"])
 
@@ -136,7 +120,27 @@ class MyDataset(Dataset):
         question_dict.update({v: k for k, v in question_dict.items()})
         to_ids  = lambda o: sorted([question_dict[p["q"]] for p in o])
         df["qid"] = org.apply(to_ids)
-        	
+        
+        def to_caption(d):
+            ids = d["qid"]
+            df_ =df.reset_index(drop = True)
+            ans = []
+            for i in range(n_captions):
+                df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True)
+                idx = np.random.randint(len(df_))
+                
+                cap = df_["answer"][idx]
+                if cap[-1] != ".":
+                    cap += "."
+                if i != n_captions - 1:
+                    cap += " "
+
+                ans.append(cap)
+                ids = df_["qid"][idx]
+            ans = " ".join(ans)
+            return ans
+        
+        df["caption"] = [to_caption(d) for d in df.iloc]
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
         self.question_dict = question_dict
