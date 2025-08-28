@@ -67,7 +67,7 @@ def preprocess(
         df_ = all_data.reset_index(drop = True)
         ans = []
         for _ in range(n_captions):
-            df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True).index
+            df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True)
             idx = np.random.randint(len(df_))
             
             cap = all_data["answer"][idx]
