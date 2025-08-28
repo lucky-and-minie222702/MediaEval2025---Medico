@@ -75,7 +75,7 @@ def preprocess(
                 cap += "."
 
             ans.append(cap)
-            ids.extend(df_["qid"])
+            ids = df_["qid"][idx]
 
         ans = " ".join(ans)
     else:
