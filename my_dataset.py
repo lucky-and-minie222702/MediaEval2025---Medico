@@ -125,7 +125,7 @@ class MyDataset(Dataset):
         question_dict = set({})
         org = df["original"].apply(json.loads)
         for pairs in org:
-            for pair in pair:
+            for pair in pairs:
                 question_dict.add(pair["q"])
         question_dict = dict(enumerate(question_dict))
         question_dict.update({v: k for k, v in question_dict.items()})
