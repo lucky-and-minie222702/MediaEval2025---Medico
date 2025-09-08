@@ -87,7 +87,7 @@ def to_q(s):
         "Respond in natural medical language as a doctor would, in one sentence. "
     )
     QUESTION_PROMPT = QUESTION_INSTRUCTION + "Question: {q}"
-    return QUESTION_PROMPT.format(s)
+    return QUESTION_PROMPT.format(q = s)
 
 
 for idx, ex in enumerate(tqdm(val_dataset, desc="Validating")):
