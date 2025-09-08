@@ -1,6 +1,11 @@
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, create_repo
 
 api = HfApi()
+create_repo(
+    name = "mediaeval-medico-submission",
+    private = False,
+    exist_ok = True,
+)
 
 api.upload_file(
     path_or_fileobj = "submission_task1.py",
