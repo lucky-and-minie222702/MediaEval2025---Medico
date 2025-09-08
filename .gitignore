@@ -9,4 +9,4 @@ slurm*
 results*
 *_temp*
 *_config.json
-*_config.json
+predictions_1.json

@@ -19,5 +19,4 @@ api.create_repo(repo_id, repo_type="model", exist_ok=True)
 api.upload_folder(
     repo_id = repo_id,
     folder_path = model_path,
-    repo_type = "model",
 )
