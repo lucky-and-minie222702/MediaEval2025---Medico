@@ -2,7 +2,7 @@ from huggingface_hub import HfApi
 
 api = HfApi()
 api.create_repo(
-    repo_id = "trietbui/mediaeval-medico-submissio",
+    repo_id = "trietbui/mediaeval-medico-submission",
     private = False,
     exist_ok = True,
 )
