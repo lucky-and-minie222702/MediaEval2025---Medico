@@ -1,8 +1,8 @@
-from huggingface_hub import HfApi, create_repo
+from huggingface_hub import HfApi
 
 api = HfApi()
-create_repo(
-    name = "mediaeval-medico-submission",
+api.create_repo(
+    repo_id = "trietbui/mediaeval-medico-submissio",
     private = False,
     exist_ok = True,
 )
