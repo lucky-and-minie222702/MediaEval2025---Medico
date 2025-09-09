@@ -16,17 +16,11 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomRotation(12),
 ])
 
-QUESTION_INSTRUCTION = (
-    "You are a medical vision-language assistant. "
-    "Answer the question using only evidence-based medical facts and the image, avoiding speculation or anecdotes. "
-    "Respond in natural medical language as a doctor would, in one sentence. "
-)
-QUESTION_PROMPT = QUESTION_INSTRUCTION + "Question: {q}"
+QUESTION_INSTRUCTION = ""
+QUESTION_PROMPT = QUESTION_INSTRUCTION + "{q}"
 
 CAPTION_INSTRUCTION = (
-    "You are a medical vision-language assistant. "
-    "Write a caption for the given image. "
-    "Respond in natural medical language as a doctor would."
+    "Write a caption for the given gastrointestinal image."
 )
 
 
