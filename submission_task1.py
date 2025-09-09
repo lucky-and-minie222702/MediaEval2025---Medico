@@ -84,12 +84,8 @@ def change_size(img, target_size, fill_color = (0, 0, 0)):
         return ImageOps.pad(img, target_size, method = Image.BICUBIC, color = fill_color, centering = (0.5, 0.5))
 
 def to_q(s):
-    QUESTION_INSTRUCTION = (
-        "You are a medical vision-language assistant. "
-        "Answer the question using only evidence-based medical facts and the image, avoiding speculation or anecdotes. "
-        "Respond in natural medical language as a doctor would, in one sentence. "
-    )
-    QUESTION_PROMPT = QUESTION_INSTRUCTION + "Question: {q}"
+    QUESTION_INSTRUCTION = "Answer the question: "
+    QUESTION_PROMPT = QUESTION_INSTRUCTION + "{q}"
     return QUESTION_PROMPT.format(q = s)
 
 
