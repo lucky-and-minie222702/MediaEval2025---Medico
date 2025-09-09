@@ -53,7 +53,10 @@ SUBMISSION_INFO = {
 # can add necessary library imports here
 
 model_hf = InstructBlipForConditionalGeneration.from_pretrained(
-    "trietbui/instructblip-flan-t5-xxl-kvasir-vqa-x1", trust_remote_code=True).to(device)
+    "trietbui/instructblip-flan-t5-xxl-kvasir-vqa-x1", 
+    device_map = None,
+    torch_dtype = torch.bfloat16, 
+    trust_remote_code=True).to(device)
 processor = InstructBlipProcessor.from_pretrained(
     "Salesforce/instructblip-flan-t5-xxl", trust_remote_code=True)
 
