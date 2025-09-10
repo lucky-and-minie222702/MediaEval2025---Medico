@@ -158,8 +158,6 @@ class MyDataset(Dataset):
             img_dict = self.img_dict, 
             mask_answer = self.mask_answer,
             transform = self.transform,
-            all_data = self.raw_data,
-            n_captions = self.n_captions,
         )
     
     
