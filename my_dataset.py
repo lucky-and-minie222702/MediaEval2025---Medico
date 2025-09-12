@@ -16,7 +16,7 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomRotation(12),
 ])
 
-QUESTION_INSTRUCTION = "Answer the question: "
+QUESTION_INSTRUCTION = ""
 QUESTION_PROMPT = QUESTION_INSTRUCTION + "{q}"
 
 CAPTION_INSTRUCTION = (
