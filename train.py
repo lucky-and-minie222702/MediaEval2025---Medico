@@ -88,7 +88,7 @@ training_args = Seq2SeqTrainingArguments(
     
     report_to = "none",
     
-    dataloader_num_workers = 4,
+    dataloader_num_workers = 8,
     dataloader_persistent_workers = True,
     dataloader_pin_memory = True,
 
