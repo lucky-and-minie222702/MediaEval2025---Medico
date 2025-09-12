@@ -84,7 +84,7 @@ def change_size(img, target_size, fill_color = (0, 0, 0)):
         return ImageOps.pad(img, target_size, method = Image.BICUBIC, color = fill_color, centering = (0.5, 0.5))
 
 def to_q(s):
-    QUESTION_INSTRUCTION = ""
+    QUESTION_INSTRUCTION = "Answer the question: "
     QUESTION_PROMPT = QUESTION_INSTRUCTION + "{q}"
     return QUESTION_PROMPT.format(q = s)
 
