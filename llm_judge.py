@@ -78,25 +78,24 @@ def parse_json_safe(text):
 
 @torch.inference_mode()
 def judge_batch(prompts):
-    inputs = tokenizer(
+    input_ids = tokenizer(
         prompts,
         return_tensors = "pt",
         padding = True,
         truncation = False,
     )
-    inputs = {k: v.to("cuda:1") for k, v in inputs.items()}
+    input_ids = {k: v.to("cuda:1") for k, v in input_ids.items()}
 
     gen_ids = model.generate(
-        **inputs,
+        **input_ids,
         max_new_tokens = 512,
     )
+    gen_ids = gen_ids[::, input_ids.shape[-1]::]
 
     outs = []
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
-        text = text[len(prompts[i])::]
-        print(text)
         outs.append(parse_json_safe(text))
     return outs
 
