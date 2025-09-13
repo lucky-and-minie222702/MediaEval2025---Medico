@@ -95,6 +95,7 @@ def judge_batch(prompts):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         text = text[len(INSTRUCTION)::]
+        print(text)
         outs.append(parse_json_safe(text))
     return outs
 
