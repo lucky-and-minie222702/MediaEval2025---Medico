@@ -24,7 +24,7 @@ processor = InstructBlipProcessor.from_pretrained(model_name)
 model = InstructBlipForConditionalGeneration.from_pretrained(
     model_name,
     trust_remote_code = True,
-    torch_dtype = torch.bfloat16,
+    dtype = torch.bfloat16,
 )
 lora_config = LoraConfig(
     r = config["lora"]["r"],
