@@ -28,6 +28,8 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 - Evaluation Aspects (Clinical Categories): {eval_aspects}
 - Complexity Level: {complexity}
 - Original Atomic QA Pairs: {atomic_pairs}
+
+### Response
 """
     return prompt
 
@@ -51,8 +53,6 @@ Return your evaluation as structured JSON with the following format:
 }}
 
 Return only JSON, no extra text.
-
-### Response
 """
 
 def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
