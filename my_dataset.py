@@ -98,7 +98,8 @@ class MyDataset(Dataset):
         caption_prompt = False, 
         n_captions = None, 
         transform = None,
-        mask_answer = -100):
+        mask_answer = -100,
+        seed = 27022009):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
@@ -135,6 +136,7 @@ class MyDataset(Dataset):
             return ans
         
         if n_captions is not None:
+            np.random.seed(seed)
             df["caption"] = [to_caption(d) for d in tqdm(df.iloc, desc = "Generating caption", total = len(df))]
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
@@ -195,7 +197,8 @@ def load_data(
             processor, 
             caption_prompt = caption_prompt, 
             n_captions = n_captions, 
-            transform = None)
+            transform = None,
+            seed = seed)
         return test_ds
 
     # load df
@@ -213,7 +216,8 @@ def load_data(
         processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
-        transform = TRAIN_TRANSFORM if train_augment else None)
+        transform = TRAIN_TRANSFORM if train_augment else None,
+        seed = seed)
     val_ds = MyDataset(
         val_df, 
         max_question_length, 
@@ -221,7 +225,8 @@ def load_data(
         processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
-        transform = None)
+        transform = None,
+        seed = seed)
     
     return train_ds, val_ds
 
