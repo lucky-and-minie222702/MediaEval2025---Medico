@@ -29,13 +29,6 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 - Complexity Level: {complexity}
 - Original Atomic QA Pairs: {atomic_pairs}
 
-### Output Format
-Return your evaluation strictly as structured JSON with the following format:
-{{
-    "score": 0 or 1,
-    "justification": "<short explanation>"
-}}
-
 ### Output
 """
     return prompt
@@ -46,12 +39,18 @@ You are a medical examiner grading an exam response.
 Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
 
 ### Instructions
-For each Evaluation Aspect:
 1. Compare the model's response against the ground-truth.
 2. Assign a binary score:
    - 1 = Correct and complete
    - 0 = Incorrect, incomplete, or not addressed
 3. Provide a brief justification for your score.
+
+### Output Format
+Return your evaluation strictly as structured JSON with the following format:
+{{
+    "score": 0 or 1,
+    "justification": "<short explanation>"
+}}
 """
 
 def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
@@ -92,6 +91,7 @@ def judge_batch(prompts):
         **inputs,
         max_new_tokens = 512,
     )
+    print(tokenizer.decode_batch(gen_ids, skip_special_tokens = True))
     gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
