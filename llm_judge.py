@@ -41,7 +41,7 @@ For each Evaluation Aspect:
 3. Provide a brief justification for your score.
 
 ### Output Format
-Return your evaluation as structured JSON with the following format:
+Return your evaluation strictly as structured JSON with the following format:
 {{
     "score": 0 or 1,
     "justification": "<short explanation>"
@@ -87,9 +87,10 @@ def judge_batch(prompts):
     )
 
     outs = []
-    for i in range(gen_ids.size(0)):
+    for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
+        print(text)
         outs.append(parse_json_safe(text))
     return outs
 
