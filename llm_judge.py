@@ -29,7 +29,16 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 - Complexity Level: {complexity}
 - Original Atomic QA Pairs: {atomic_pairs}
 
-### Response
+### Output Format
+Return your evaluation as structured JSON with the following format:
+{{
+    "score": 0 or 1,
+    "justification": "<short explanation>"
+}}
+
+Return only JSON, no extra text.
+
+### Output
 """
     return prompt
 
@@ -44,15 +53,6 @@ For each Evaluation Aspect:
    - 1 = Correct and complete
    - 0 = Incorrect, incomplete, or not addressed
 3. Provide a brief justification for your score.
-
-### Output Format
-Return your evaluation as structured JSON with the following format:
-{{
-    "score": 0 or 1,
-    "justification": "<short explanation>"
-}}
-
-Return only JSON, no extra text.
 """
 
 def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
