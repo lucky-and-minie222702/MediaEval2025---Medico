@@ -30,13 +30,11 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 - Original Atomic QA Pairs: {atomic_pairs}
 
 ### Output Format
-Return your evaluation as structured JSON with the following format:
+Return your evaluation strictly as structured JSON with the following format:
 {{
     "score": 0 or 1,
     "justification": "<short explanation>"
 }}
-
-Return only JSON, no extra text.
 
 ### Output
 """
@@ -89,15 +87,14 @@ def judge_batch(prompts):
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 256,
+        max_new_tokens = 512,
     )
 
     outs = []
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
-        print(text)
-        exit()
+        text = text[len(INSTRUCTION)::]
         outs.append(parse_json_safe(text))
     return outs
 
