@@ -21,13 +21,13 @@ tokenizer.padding_side = 'left'
 
 def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
     prompt = f"""
-### Context
-- **Endoscopic Image Question**: {question}
-- **Model’s Generated Response**: {model_response}
-- **Ground-Truth Answer**: {ground_truth}
-- **Evaluation Aspects (Clinical Categories)**: {eval_aspects}
-- **Complexity Level**: {complexity}
-- **Original Atomic QA Pairs**: {atomic_pairs}
+Context
+- Endoscopic Image Question: {question}
+- Model’s Generated Response: {model_response}
+- Ground-Truth Answer: {ground_truth}
+- Evaluation Aspects (Clinical Categories): {eval_aspects}
+- Complexity Level: {complexity}
+- Original Atomic QA Pairs: {atomic_pairs}
 """
     return prompt
 
@@ -35,7 +35,7 @@ INSTRUCTION = f"""
 You are a medical examiner grading an exam response. 
 Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
 
-### Instructions
+Instructions
 For each Evaluation Aspect:
 1. Compare the model's response against the ground-truth.
 2. Assign a binary score:
@@ -43,7 +43,7 @@ For each Evaluation Aspect:
    - 0 = Incorrect, incomplete, or not addressed
 3. Provide a brief justification for your score.
 
-### Output Format
+Output Format
 Return your evaluation strictly as structured JSON with the following format:
 {{
     "score": 0 or 1,
