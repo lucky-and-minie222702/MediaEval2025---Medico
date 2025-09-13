@@ -62,8 +62,6 @@ def build_prompt(question, model_response, ground_truth, eval_aspects, complexit
 
 
 def parse_json_safe(text):
-    print(text)
-    print(json.loads(text))
     _json_re = re.compile(r"\{.*\}", re.DOTALL)
     try:
         return json.loads(text)
