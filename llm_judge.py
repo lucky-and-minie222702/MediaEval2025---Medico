@@ -19,29 +19,42 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer.padding_side = 'left'
 
-SYSTEM_PROMPT = (
-    "You are a semantic equivalence judge about medical fields."
-    "Given two medical sentences, output STRICT JSON with keys: "
-    "label (SAME or DIFFERENT), confidence (0.00 - 1.00)"
-)
+def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
+    prompt = f"""
+You are a medical examiner grading an exam response. 
+Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
 
-USER_TEMPLATE = (
-    "Sentence A: {a}\nSentence B: {b}\n\n"
-    "Rules:\n"
-    "1) SAME if their meanings are equivalent in medical contexts.\n"
-    "2) DIFFERENT if meaning changes or facts conflict.\n"
-)
+### Context
+- **Endoscopic Image Question**: {question}
+- **Model’s Generated Response**: {model_response}
+- **Ground-Truth Answer**: {ground_truth}
+- **Evaluation Aspects (Clinical Categories)**: {", ".join(eval_aspects.split("_"))}
+- **Complexity Level**: {complexity}
+- **Original Atomic QA Pairs**: {atomic_pairs}
+
+### Instructions
+For each Evaluation Aspect:
+1. Compare the model's response against the ground-truth.
+2. Assign a binary score:
+   - 1 = Correct and complete
+   - 0 = Incorrect, incomplete, or not addressed
+3. Provide a brief justification for your score.
+
+### Output Format
+Return your evaluation as structured JSON with the following format:
+{{
+    "score": 0 or 1,
+    "justification": "<short explanation>"
+}}
+"""
+    return prompt
 
 
-def build_prompt(a, b):
+def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": USER_TEMPLATE.format(a = a, b = b)},
+        {"role": "user", "content": build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs)},
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
-
-def build_prompts_batch(batch_pairs):
-    return [build_prompt(a, b) for a, b in batch_pairs]
 
 
 def parse_json_safe(text):
@@ -55,12 +68,11 @@ def parse_json_safe(text):
                 return json.loads(m.group(0))
             except json.JSONDecodeError:
                 pass
-        return {"label": "DIFFERENT", "confidence": 0.0}
+        return None
 
 
 @torch.inference_mode()
-def judge_batch(pairs):
-    prompts = build_prompts_batch(pairs)
+def judge_batch(prompts):
     inputs = tokenizer(
         prompts,
         return_tensors = "pt",
@@ -71,7 +83,7 @@ def judge_batch(pairs):
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 64,
+        max_new_tokens = 256,
     )
 
     outs = []
@@ -81,6 +93,8 @@ def judge_batch(pairs):
         outs.append(parse_json_safe(text))
     return outs
 
+
+df = pd.read_csv("data/test.csv")
 
 reader = MyUtils.TestLogger.ResultsReader(
     dir = config["dir"],
@@ -94,38 +108,38 @@ n_samples = len(labels)
 batch_size = config["batch_size"]
 
 pbar = tqdm(range(0, n_samples, batch_size), total = (n_samples + batch_size - 1) // batch_size)
-results = {"labels": [], "confidence": []}
+results = {"score": [], "justification": []}
 
 for start in pbar:
     end = min(start + batch_size, n_samples)
-    batch_pairs = list(zip(labels[start:end], preds[start:end]))
+    batch = list(zip(
+        df["question"][start:end:], 
+        preds[start:end:], 
+        labels[start:end:], 
+        df["question_class"][start:end:],
+        df["complexity"][start:end:],
+        df["original"][start:end:],
+    ))
 
-    batch_res = judge_batch(batch_pairs)
+    batch_res = judge_batch([build_adjudicator_prompt(*x) for x in batch])
 
     for res in batch_res:
-        label = res["label"].strip().lower()
-        conf = res["confidence"]
-
-        results["labels"].append(1 if label == "same" else 0)
-        results["confidence"].append(conf)
+        label = int(res["score"])
 
     pbar.set_postfix(
-        accuracy = round(float(np.mean(results["labels"])), 3),
-        avg_confidence = round(float(np.mean(results["confidence"])), 2),
-        cur_confidence = round(results["confidence"][-1], 2)
+        accuracy = round(float(np.mean(results["score"])), 3),
     )
     
 
-df = pd.read_csv("data/test.csv")
 results_df = pd.DataFrame({
     "img_id": df["img_id"],
-    "questions": reader.questions,
+    "question": reader.questions,
     
-    "labels": reader.labels,
-    "predictions": reader.predictions,
+    "label": reader.labels,
+    "prediction": reader.predictions,
     
-    "scores": results["labels"],
-    "confidence": results["confidence"],
+    "scores": results["score"],
+    "justification": results["justification"],
 
     "complexity": df["complexity"],
     "question_class": df["question_class"],

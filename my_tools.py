@@ -11,10 +11,10 @@ import os
 import numpy as np
 from transformers import TrainerCallback
 import joblib
-from sentence_transformers import CrossEncoder
 from tqdm import tqdm
 from transformers import BitsAndBytesConfig
 from os import path
+from my_dataset import QUESTION_INSTRUCTION
 
 
 class TrainerSaveLossCallback(TrainerCallback):
@@ -129,7 +129,7 @@ class MyUtils:
             pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            extract_quest = lambda a: a[a.find(": ") + 2::]
+            extract_quest = lambda a: a[a.find(QUESTION_INSTRUCTION) + len(QUESTION_INSTRUCTION)::]
             quest = np.array([extract_quest(a) for a in quest])
             
             self.outputs["questions"].append(quest)
