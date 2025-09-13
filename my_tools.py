@@ -129,7 +129,7 @@ class MyUtils:
             pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            extract_quest = lambda a: a[a.rfind("Question: ") + 10::]
+            extract_quest = lambda a: a[a.find(": ") + 2::]
             quest = np.array([extract_quest(a) for a in quest])
             
             self.outputs["questions"].append(quest)
