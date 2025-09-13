@@ -40,6 +40,7 @@ Return your evaluation strictly as structured JSON with the following format:
 """
     return prompt
 
+
 INSTRUCTION = f"""
 You are a medical examiner grading an exam response. 
 Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
@@ -94,7 +95,7 @@ def judge_batch(prompts):
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
-        text = text[len(INSTRUCTION)::]
+        text = text[len(prompts[i])::]
         print(text)
         outs.append(parse_json_safe(text))
     return outs
