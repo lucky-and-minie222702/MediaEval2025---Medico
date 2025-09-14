@@ -47,8 +47,8 @@ Your task: Judge how similar the model’s prediction is to the correct answer.
 
 Guidelines:
     - Consider similar credit if the prediction captures the main meanings or intents, addresses all parts of the question.
-    - Accept paraphrases, synonyms, or partial overlaps if they preserve the essential ideas.
     - Consider it dissimilar if the prediction is clearly wrong, contradictory, or unrelated.
+    - Accept paraphrases, synonyms, or partial overlaps if they preserve the essential ideas.
     - Assigning a binary score: 1 = similar, 0 = dissimilar.
     - Giving a brief justification for your response.
 
