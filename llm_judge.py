@@ -42,8 +42,8 @@ You are a medical examiner grading an exam response.
 Following these instructions:
     1. Compare the model's response against the ground-truth based on the given context.
     2. Assign a binary score:
-        - 1 = Correctly address the all the main ideas in the question
-        - 0 = Inacurrectly or partially address the main ideas in the question
+        - 1 If the meanings are equivalent or close in real-world interpretation.
+        - 0 If the meanings clearly differ.
     3. Provide a brief justification for your score.
 
 Return your evaluation strictly as structured JSON with the following format:
