@@ -21,10 +21,10 @@ tokenizer.padding_side = 'left'
 
 def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
     def qa_format(a):
-        return str({k: v for k,v in json.loads((a)).items() if k == "q"})
+        return str([x["q"] for x in json.loads((a)).items()])
     
     def list_format(a):
-        return list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a)))
+        return str(list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a))))
 
     prompt = f"""
 Context:
