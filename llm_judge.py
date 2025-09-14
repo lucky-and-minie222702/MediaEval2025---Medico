@@ -19,7 +19,7 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer.padding_side = 'left'
 
-def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
+def build_adjudicator_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs):
     def qa_format(a):
         return str(json.loads((a)))
     
@@ -29,41 +29,40 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
     prompt = f"""
 Context:
     - Endoscopic Image Question: {question}
-    - Model’s Generated Response: {model_response}
     - Ground-Truth Answer: {ground_truth}
+    - Model’s Generated Prediction: {model_prediction}
     - Original Atomic QA Pair: {qa_format(atomic_pairs)}
 """
     return prompt
 
 
 INSTRUCTION = f"""
-You are a medical examiner grading an exam response.
+You are given:
+    1. A question.
+    2. The correct answer to the question.
+    3. A model’s prediction (which was merged and derived from an original set of QA pairs).
+    4. The original QA pair set.
+    
 Your task: Judge how similar the model’s prediction is to the correct answer.
+
 Guidelines:
     - Be lenient: Give credit if the prediction captures the main meaning or intent, even if the wording or details differ.
     - Accept paraphrases, synonyms, or partial overlaps if they preserve the essential idea.
-    - Ignore small mistakes, missing minor details, or differences in phrasing.
     - Only consider it dissimilar if the prediction is clearly wrong, contradictory, or unrelated.
-
-Following these instructions:
-    1. Compare the model's response against the ground-truth based on the given context.
-    2. Assign a binary score:
-        - 1 = similar
-        - 0 = dissimilar
-    3. Provide a brief justification for your score.
+    - Assigning a binary score: 1 = similar, 0 = dissimilar.
+    - Giving a brief justification for your response.
 
 Return your evaluation strictly as structured JSON with the following format:
     {{
-        "score": 0 or 1,
+        "score": 0 or 1 ,
         "justification": "<short explanation>"
     }}
-No extra text.
 """
 
-def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
+def build_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs):
     messages = [
         {"role": "system", "content": INSTRUCTION},
-        {"role": "user", "content": build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs)},
+        {"role": "user", "content": build_adjudicator_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs)},
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
 
