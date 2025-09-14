@@ -46,7 +46,7 @@ You are given:
 Your task: Judge how similar the model’s prediction is to the correct answer.
 
 Guidelines:
-    - Be lenient: Give credit if the prediction captures the main meaning or intent, even if the wording or details differ.
+    - Be lenient: Give credit if the prediction captures the main meaning or intent, addresses all parts of the question.
     - Accept paraphrases, synonyms, or partial overlaps if they preserve the essential idea.
     - Only consider it dissimilar if the prediction is clearly wrong, contradictory, or unrelated.
     - Assigning a binary score: 1 = similar, 0 = dissimilar.
