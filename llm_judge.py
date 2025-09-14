@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     trust_remote_code = True,
-    device_map="auto",  
+    device_map = "auto",  
     dtype = torch.bfloat16,
     low_cpu_mem_usage = True,
 )
@@ -82,7 +82,7 @@ def judge_batch(prompts):
         padding = True,
         truncation = False,
     )
-    inputs = {k: v.to("cuda:1") for k, v in inputs.items()}
+    inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
     gen_ids = model.generate(
         **inputs,
