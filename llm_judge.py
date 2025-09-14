@@ -86,7 +86,7 @@ def judge_batch(prompts):
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 512,
+        max_new_tokens = 768,
     )
     gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
@@ -94,7 +94,6 @@ def judge_batch(prompts):
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
-        print(text)
         outs.append(parse_json_safe(text))
     return outs
 
@@ -129,10 +128,11 @@ for start in pbar:
     batch_res = judge_batch([build_prompt(*x) for x in batch])
 
     for res in batch_res:
-        label = int(res["score"])
+        results["score"].append(int(res["score"]))
+        results["justification"].append(res["justification"])
 
     pbar.set_postfix(
-        accuracy = round(float(np.mean(results["score"])), 3),
+        accuracy = round(float(np.mean(results["score"])), 4),
     )
     
 
@@ -143,7 +143,7 @@ results_df = pd.DataFrame({
     "label": reader.labels,
     "prediction": reader.predictions,
     
-    "scores": results["score"],
+    "score": results["score"],
     "justification": results["justification"],
 
     "complexity": df["complexity"],
