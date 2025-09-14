@@ -89,7 +89,7 @@ def judge_batch(prompts):
         **inputs,
         max_new_tokens = 512,
     )
-    print(tokenizer.decode_batch(gen_ids, skip_special_tokens = True))
+    print(tokenizer.batch_decode(gen_ids, skip_special_tokens = True))
     gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
