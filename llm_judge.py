@@ -28,6 +28,7 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 
     prompt = f"""
 Context:
+    - Endoscopic Image Question: {question}
     - Model’s Generated Response: {model_response}
     - Evaluation Aspects (Clinical Categories): {list_format(eval_aspects)}
     - Original Atomic QA Pairs: {qa_format(atomic_pairs)}
@@ -130,6 +131,7 @@ for start in pbar:
     for res in batch_res:
         results["score"].append(int(res["score"]))
         results["justification"].append(res["justification"])
+        tqdm.write(results["justification"])
 
     pbar.set_postfix(
         accuracy = round(float(np.mean(results["score"])), 4),
