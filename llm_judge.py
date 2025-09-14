@@ -13,51 +13,35 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     trust_remote_code = True,
-    device_map = "auto",  
-    dtype = torch.bfloat16,
+    device_map="auto",  
+    torch_dtype = torch.bfloat16,
     low_cpu_mem_usage = True,
 )
 tokenizer.padding_side = 'left'
 
-def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
-    prompt = f"""
-### Context
-- Endoscopic Image Question: {question}
-- Model’s Generated Response: {model_response}
-- Ground-Truth Answer: {ground_truth}
-- Evaluation Aspects (Clinical Categories): {eval_aspects}
-- Complexity Level: {complexity}
-- Original Atomic QA Pairs: {atomic_pairs}
-"""
-    return prompt
+SYSTEM_PROMPT = (
+    "You are a semantic equivalence judge about medical fields."
+    "Given two medical sentences, output STRICT JSON with keys: "
+    "label (SAME or DIFFERENT), confidence (0.00 - 1.00)"
+)
+
+USER_TEMPLATE = (
+    "Sentence A: {a}\nSentence B: {b}\n\n"
+    "Rules:\n"
+    "1) SAME if their meanings are equivalent in medical contexts.\n"
+    "2) DIFFERENT if meaning changes or facts conflict.\n"
+)
 
 
-INSTRUCTION = f"""
-You are a medical examiner grading an exam response. 
-Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
-
-### Instructions
-1. Compare the model's response against the ground-truth based on the given context.
-2. Assign a binary score:
-   - 1 = Correct and complete
-   - 0 = Incorrect, incomplete, or not addressed
-3. Provide a brief justification for your score.
-
-### Output Format
-Return your evaluation strictly as structured JSON with the following format:
-{{
-    "score": 0 or 1,
-    "justification": "<short explanation>"
-}}
-No extra text.
-"""
-
-def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
+def build_prompt(a, b):
     messages = [
-        {"role": "system", "content": INSTRUCTION},
-        {"role": "user", "content": build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs)},
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_TEMPLATE.format(a = a, b = b)},
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
+
+def build_prompts_batch(batch_pairs):
+    return [build_prompt(a, b) for a, b in batch_pairs]
 
 
 def parse_json_safe(text):
@@ -75,30 +59,28 @@ def parse_json_safe(text):
 
 
 @torch.inference_mode()
-def judge_batch(prompts):
+def judge_batch(pairs):
+    prompts = build_prompts_batch(pairs)
     inputs = tokenizer(
         prompts,
         return_tensors = "pt",
         padding = True,
         truncation = False,
     )
-    inputs = {k: v.to(model.device) for k, v in inputs.items()}
+    inputs = {k: v.to("cuda:1") for k, v in inputs.items()}
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 768,
+        max_new_tokens = 64,
     )
-    gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
-    for i in range(len(gen_ids)):
+    for i in range(gen_ids.size(0)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         outs.append(parse_json_safe(text))
     return outs
 
-
-df = pd.read_csv("data/test.csv")
 
 reader = MyUtils.TestLogger.ResultsReader(
     dir = config["dir"],
@@ -112,30 +94,29 @@ n_samples = len(labels)
 batch_size = config["batch_size"]
 
 pbar = tqdm(range(0, n_samples, batch_size), total = (n_samples + batch_size - 1) // batch_size)
-results = {"score": [], "justification": []}
+results = {"labels": [], "confidence": []}
 
 for start in pbar:
     end = min(start + batch_size, n_samples)
-    batch = list(zip(
-        df["question"][start:end:], 
-        preds[start:end:], 
-        labels[start:end:], 
-        df["question_class"][start:end:],
-        df["complexity"][start:end:],
-        df["original"][start:end:],
-    ))
+    batch_pairs = list(zip(labels[start:end], preds[start:end]))
 
-    batch_res = judge_batch([build_prompt(*x) for x in batch])
+    batch_res = judge_batch(batch_pairs)
 
     for res in batch_res:
-        results["score"].append(int(res["score"]))
-        results["justification"].append(res["justification"])
+        label = res["label"].strip().lower()
+        conf = res["confidence"]
+
+        results["labels"].append(1 if label == "same" else 0)
+        results["confidence"].append(conf)
 
     pbar.set_postfix(
-        accuracy = round(float(np.mean(results["score"])), 4),
+        accuracy = round(float(np.mean(results["labels"])), 4),
+        avg_confidence = round(float(np.mean(results["confidence"])), 2),
+        cur_confidence = round(results["confidence"][-1], 2)
     )
     
 
+df = pd.read_csv("data/test.csv")
 results_df = pd.DataFrame({
     "img_id": df["img_id"],
     "question": reader.questions,
@@ -143,8 +124,8 @@ results_df = pd.DataFrame({
     "label": reader.labels,
     "prediction": reader.predictions,
     
-    "score": results["score"],
-    "justification": results["justification"],
+    "score": results["labels"],
+    "confidence": results["confidence"],
 
     "complexity": df["complexity"],
     "question_class": df["question_class"],
