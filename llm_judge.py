@@ -30,7 +30,6 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 Context:
     - Endoscopic Image Question: {question}
     - Model’s Generated Response: {model_response}
-    - Evaluation Aspects (Clinical Categories): {list_format(eval_aspects)}
     - Original Atomic QA Pairs: {qa_format(atomic_pairs)}
 """
     return prompt
@@ -41,8 +40,8 @@ You are a medical examiner grading an exam response.
 Following these instructions:
     1. Compare the model's response against the ground-truth based on the given context.
     2. Assign a binary score:
-        - 1 = Correct, complete and fully addressed
-        - 0 = Incorrect, incomplete, or not addressed
+        - 1 = Similar to the orignal atomic pairs
+        - 0 = Conflict with the original atomic pairs
     3. Provide a brief justification for your score.
 
 Return your evaluation strictly as structured JSON with the following format:
