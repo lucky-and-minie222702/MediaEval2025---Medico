@@ -21,19 +21,15 @@ tokenizer.padding_side = 'left'
 
 def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
     def qa_format(a):
-        b = json.loads((a))
-        return str({"question" if k == "q" else "answer": v for k, v in b.item})
+        return str(json.loads((a)))
     
     def list_format(a):
         return list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a)))
 
     prompt = f"""
 Context:
-    - Endoscopic Image Question: {question}
     - Model’s Generated Response: {model_response}
-    - Ground-Truth Answer: {ground_truth}
     - Evaluation Aspects (Clinical Categories): {list_format(eval_aspects)}
-    - Complexity Level: {complexity}
     - Original Atomic QA Pairs: {qa_format(atomic_pairs)}
 """
     return prompt
