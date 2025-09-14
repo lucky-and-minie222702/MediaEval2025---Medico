@@ -10,7 +10,6 @@ ds = load_dataset("SimulaMet/Kvasir-VQA-x1")
 
 df = ds['train'].to_pandas()
 df.to_csv(f"data/train.csv", index=False)
-exit()
 
 df = ds['test'].to_pandas()
 df.to_csv(f"data/test.csv", index=False)
