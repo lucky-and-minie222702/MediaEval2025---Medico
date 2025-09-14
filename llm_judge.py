@@ -51,6 +51,7 @@ Return your evaluation strictly as structured JSON with the following format:
     "score": 0 or 1,
     "justification": "<short explanation>"
 }}
+No extra text.
 """
 
 def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
@@ -89,13 +90,12 @@ def judge_batch(prompts):
         **inputs,
         max_new_tokens = 512,
     )
-    print(tokenizer.batch_decode(gen_ids, skip_special_tokens = True))
-    gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
+        print(text)
         outs.append(parse_json_safe(text))
     return outs
 
@@ -127,7 +127,7 @@ for start in pbar:
         df["original"][start:end:],
     ))
 
-    batch_res = judge_batch([build_adjudicator_prompt(*x) for x in batch])
+    batch_res = judge_batch([build_prompt(*x) for x in batch])
 
     for res in batch_res:
         label = int(res["score"])
