@@ -130,7 +130,7 @@ for start in pbar:
     for res in batch_res:
         results["score"].append(int(res["score"]))
         results["justification"].append(res["justification"])
-    tqdm.write(results["justification"][-1])
+    tqdm.write(f"{results["justification"][-1]}")
 
     pbar.set_postfix(
         accuracy = round(float(np.mean(results["score"])), 4),
