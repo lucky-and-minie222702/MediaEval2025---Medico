@@ -20,35 +20,39 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer.padding_side = 'left'
 
 def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
+    def qa_format(a):
+        b = json.loads((a))
+        return str({"question" if k == "q" else "answer": v for k, v in b.item})
+    
+    def list_format(a):
+        return list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a)))
+
     prompt = f"""
-### Context
-- Endoscopic Image Question: {question}
-- Model’s Generated Response: {model_response}
-- Ground-Truth Answer: {ground_truth}
-- Evaluation Aspects (Clinical Categories): {eval_aspects}
-- Complexity Level: {complexity}
-- Original Atomic QA Pairs: {atomic_pairs}
+Context:
+    - Endoscopic Image Question: {question}
+    - Model’s Generated Response: {model_response}
+    - Ground-Truth Answer: {ground_truth}
+    - Evaluation Aspects (Clinical Categories): {list_format(eval_aspects)}
+    - Complexity Level: {complexity}
+    - Original Atomic QA Pairs: {qa_format(atomic_pairs)}
 """
     return prompt
 
 
 INSTRUCTION = f"""
-You are a medical examiner grading an exam response. 
-Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
+You are a medical examiner grading an exam response.
+Following these instructions:
+    1. Compare the model's response against the ground-truth based on the given context.
+    2. Assign a binary score:
+        - 1 = Correct, complete and fully addressed
+        - 0 = Incorrect, incomplete, or not addressed
+    3. Provide a brief justification for your score.
 
-### Instructions
-1. Compare the model's response against the ground-truth based on the given context.
-2. Assign a binary score:
-   - 1 = Correct and complete
-   - 0 = Incorrect, incomplete, or not addressed
-3. Provide a brief justification for your score.
-
-### Output Format
 Return your evaluation strictly as structured JSON with the following format:
-{{
-    "score": 0 or 1,
-    "justification": "<short explanation>"
-}}
+    {{
+        "score": 0 or 1,
+        "justification": "<short explanation>"
+    }}
 No extra text.
 """
 
