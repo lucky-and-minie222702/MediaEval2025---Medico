@@ -31,17 +31,25 @@ Context:
     - Endoscopic Image Question: {question}
     - Model’s Generated Response: {model_response}
     - Ground-Truth Answer: {ground_truth}
+    - Original Atomic QA Pair: {qa_format(atomic_pairs)}
 """
     return prompt
 
 
 INSTRUCTION = f"""
 You are a medical examiner grading an exam response.
+Your task: Judge how similar the model’s prediction is to the correct answer.
+Guidelines:
+    - Be lenient: Give credit if the prediction captures the main meaning or intent, even if the wording or details differ.
+    - Accept paraphrases, synonyms, or partial overlaps if they preserve the essential idea.
+    - Ignore small mistakes, missing minor details, or differences in phrasing.
+    - Only consider it dissimilar if the prediction is clearly wrong, contradictory, or unrelated.
+
 Following these instructions:
     1. Compare the model's response against the ground-truth based on the given context.
     2. Assign a binary score:
-        - 1 If the meanings are equivalent or close in real-world interpretation.
-        - 0 If the meanings clearly differ.
+        - 1 = similar
+        - 0 = dissimilar
     3. Provide a brief justification for your score.
 
 Return your evaluation strictly as structured JSON with the following format:
