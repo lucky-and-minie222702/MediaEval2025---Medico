@@ -86,7 +86,7 @@ def judge_batch(prompts):
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 768,
+        max_new_tokens = 1024,
     )
     gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
