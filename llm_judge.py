@@ -21,7 +21,7 @@ tokenizer.padding_side = 'left'
 
 def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
     def qa_format(a):
-        return str(json.loads((a)))
+        return str({k: v for k,v in json.loads((a)).items() if k == "q"})
     
     def list_format(a):
         return list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a)))
@@ -30,7 +30,9 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 Context:
     - Endoscopic Image Question: {question}
     - Model’s Generated Response: {model_response}
-    - Original Atomic QA Pairs: {qa_format(atomic_pairs)}
+    - Ground-Truth Answer: {ground_truth}
+    - Evaluation Aspects (Clinical Categories): {list_format(eval_aspects)}
+    - Original Question: {qa_format(atomic_pairs)}
 """
     return prompt
 
@@ -40,8 +42,8 @@ You are a medical examiner grading an exam response.
 Following these instructions:
     1. Compare the model's response against the ground-truth based on the given context.
     2. Assign a binary score:
-        - 1 = Similar to the orignal atomic pairs
-        - 0 = Conflict with the original atomic pairs
+        - 1 = Correctly address the all the main ideas in the question
+        - 0 = Inacurrectly or partially address the main ideas in the question
     3. Provide a brief justification for your score.
 
 Return your evaluation strictly as structured JSON with the following format:
@@ -95,6 +97,7 @@ def judge_batch(prompts):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         outs.append(parse_json_safe(text))
+        tqdm.write(f"{results['score'][-1]} {results['justification'][-1]}")
     return outs
 
 
@@ -130,7 +133,6 @@ for start in pbar:
     for res in batch_res:
         results["score"].append(int(res["score"]))
         results["justification"].append(res["justification"])
-        tqdm.write(f"{results['score'][-1]} {results['justification'][-1]}")
 
     pbar.set_postfix(
         accuracy = round(float(np.mean(results["score"])), 4),
