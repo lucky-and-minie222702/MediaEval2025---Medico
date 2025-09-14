@@ -97,7 +97,6 @@ def judge_batch(prompts):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
         outs.append(parse_json_safe(text))
-        tqdm.write(f"{results['score'][-1]} {results['justification'][-1]}")
     return outs
 
 
@@ -133,6 +132,7 @@ for start in pbar:
     for res in batch_res:
         results["score"].append(int(res["score"]))
         results["justification"].append(res["justification"])
+        tqdm.write(f"{results['score'][-1]} {results['justification'][-1]}")
 
     pbar.set_postfix(
         accuracy = round(float(np.mean(results["score"])), 4),
