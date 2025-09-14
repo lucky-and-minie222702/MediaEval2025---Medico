@@ -28,8 +28,6 @@ def build_adjudicator_prompt(question, model_response, ground_truth, eval_aspect
 - Evaluation Aspects (Clinical Categories): {eval_aspects}
 - Complexity Level: {complexity}
 - Original Atomic QA Pairs: {atomic_pairs}
-
-### Output
 """
     return prompt
 
@@ -39,7 +37,7 @@ You are a medical examiner grading an exam response.
 Your task is to systematically evaluate the model's answer with respect to the specified aspects of clinical reasoning.
 
 ### Instructions
-1. Compare the model's response against the ground-truth.
+1. Compare the model's response against the ground-truth based on the given context.
 2. Assign a binary score:
    - 1 = Correct and complete
    - 0 = Incorrect, incomplete, or not addressed
