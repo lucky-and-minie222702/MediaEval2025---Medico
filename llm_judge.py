@@ -88,6 +88,7 @@ def judge_batch(prompts):
         **inputs,
         max_new_tokens = 512,
     )
+    gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
     for i in range(len(gen_ids)):
