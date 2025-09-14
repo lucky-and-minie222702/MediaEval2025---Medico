@@ -19,19 +19,16 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer.padding_side = 'left'
 
-def build_adjudicator_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs):
+def build_adjudicator_prompt(question, prediction, label, pairs):
     def qa_format(a):
         return str(json.loads((a)))
-    
-    def list_format(a):
-        return str(list(map(lambda s: s.replace("_", " "), re.findall(r"'(.*?)'", a))))
 
     prompt = f"""
 Context:
     - Endoscopic Image Question: {question}
-    - Ground-Truth Answer: {ground_truth}
-    - Model’s Generated Prediction: {model_prediction}
-    - Original Atomic QA Pair: {qa_format(atomic_pairs)}
+    - Ground-Truth Answer: {label}
+    - Model’s Generated Prediction: {prediction}
+    - Original Atomic QA Pair: {qa_format(pairs)}
 """
     return prompt
 
@@ -59,10 +56,10 @@ Return your evaluation strictly as structured JSON with the following format:
     }}
 """
 
-def build_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs):
+def build_prompt(*args, **kwargs):
     messages = [
         {"role": "system", "content": INSTRUCTION},
-        {"role": "user", "content": build_adjudicator_prompt(question, model_prediction, ground_truth, eval_aspects, complexity, atomic_pairs)},
+        {"role": "user", "content": build_adjudicator_prompt(*args, **kwargs)},
     ]
     return tokenizer.apply_chat_template(messages, tokenize = False, add_generation_prompt = True)
 
@@ -127,8 +124,6 @@ for start in pbar:
         df["question"][start:end:], 
         preds[start:end:], 
         labels[start:end:], 
-        df["question_class"][start:end:],
-        df["complexity"][start:end:],
         df["original"][start:end:],
     ))
 
