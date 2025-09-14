@@ -44,12 +44,8 @@ Your task is to systematically evaluate the model's answer with respect to the s
 3. Provide a brief justification for your score.
 
 ### Output Format
-Return your evaluation strictly as structured JSON with the following format:
-{{
-    "score": 0 or 1,
-    "justification": "<short explanation>"
-}}
-No extra text.
+Output STRICT JSON with keys:
+score (0 or 1), justification <short explanation>
 """
 
 def build_prompt(question, model_response, ground_truth, eval_aspects, complexity, atomic_pairs):
@@ -86,7 +82,7 @@ def judge_batch(prompts):
 
     gen_ids = model.generate(
         **inputs,
-        max_new_tokens = 768,
+        max_new_tokens = 1024,
     )
     print(gen_ids.shape)
     # gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
