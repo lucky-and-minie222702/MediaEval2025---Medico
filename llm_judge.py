@@ -88,12 +88,15 @@ def judge_batch(prompts):
         **inputs,
         max_new_tokens = 768,
     )
-    gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
+    print(gen_ids.shape)
+    # gen_ids = gen_ids[::, inputs["input_ids"].shape[-1]::]
 
     outs = []
     for i in range(len(gen_ids)):
         gen_slice = gen_ids[i]
         text = tokenizer.decode(gen_slice, skip_special_tokens = True).strip()
+        print(text)
+        exit()
         outs.append(parse_json_safe(text))
     return outs
 
