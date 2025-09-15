@@ -10,3 +10,4 @@ results*
 *_temp*
 *_config.json
 predictions_1.json
+test_results.joblib
