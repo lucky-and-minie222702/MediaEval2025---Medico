@@ -27,7 +27,7 @@ def build_adjudicator_prompt(question, prediction, label, pairs):
 Context:
     - Endoscopic Image Question: {question}
     - Ground-Truth Answer: {label}
-    - Model’s Generated Prediction: {prediction}
+    - Model's Generated Prediction: {prediction}
     - Original Atomic QA Pair: {qa_format(pairs)}
 """
     return prompt
@@ -37,10 +37,10 @@ INSTRUCTION = f"""
 You are given:
     1. A question.
     2. The correct answer to the question.
-    3. A model’s prediction (which was merged and derived from an original set of QA pairs).
+    3. A model's prediction (which was merged and derived from an original set of QA pairs).
     4. The original QA pair set.
     
-Your task: Judge how similar the model’s prediction is to the correct answer.
+Your task: Judge how similar the model's prediction is to the correct answer.
 
 Guidelines:
     - Consider similar credit if the prediction captures the main meanings or intents, addresses all parts of the question.
