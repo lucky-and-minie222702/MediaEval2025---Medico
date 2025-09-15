@@ -10,8 +10,8 @@ from sklearn.model_selection import train_test_split
 
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
-        brightness = 0.2,
-        contrast = 0.2,
+        brightness = 0.1,
+        contrast = 0.1,
     ),
     transforms.RandomRotation(12),
 ])
@@ -55,7 +55,7 @@ def preprocess(
         quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
 
     if caption_prompt:
-        ans = norm_text(d["caption"])
+        ans = norm_text(np.random.choice(d["caption"]))
     else:
         ans = norm_text(d["answer"])
 
@@ -115,29 +115,7 @@ class MyDataset(Dataset):
         question_dict.update({v: k for k, v in question_dict.items()})
         to_ids  = lambda o: sorted([question_dict[p["q"]] for p in o])
         df["qid"] = org.apply(to_ids)
-        
-        def to_caption(d):
-            ids = d["qid"]
-            df_ =df.reset_index(drop = True)
-            ans = []
-            for i in range(n_captions):
-                df_ = df_[df_["qid"].apply(lambda x: set(x).isdisjoint(ids))].reset_index(drop = True)
-                idx = np.random.randint(len(df_))
-                
-                cap = df_["answer"][idx]
-                if cap[-1] != ".":
-                    cap += "."
-                if i != n_captions - 1:
-                    cap += " "
 
-                ans.append(cap)
-                ids = df_["qid"][idx]
-            ans = " ".join(ans)
-            return ans
-        
-        if n_captions is not None:
-            np.random.seed(seed)
-            df["caption"] = [to_caption(d) for d in tqdm(df.iloc, desc = "Generating caption", total = len(df))]
         self.raw_data = df
         self.data = df.to_dict(orient = 'records')
         self.question_dict = question_dict
@@ -197,8 +175,7 @@ def load_data(
             processor, 
             caption_prompt = caption_prompt, 
             n_captions = n_captions, 
-            transform = None,
-            seed = seed)
+            transform = None)
         return test_ds
 
     # load df
@@ -216,8 +193,7 @@ def load_data(
         processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
-        transform = TRAIN_TRANSFORM if train_augment else None,
-        seed = seed)
+        transform = TRAIN_TRANSFORM if train_augment else None)
     val_ds = MyDataset(
         val_df, 
         max_question_length, 
@@ -225,8 +201,7 @@ def load_data(
         processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
-        transform = None,
-        seed = seed)
+        transform = None)
     
     return train_ds, val_ds
 
