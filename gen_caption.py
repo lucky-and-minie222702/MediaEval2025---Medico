@@ -38,7 +38,7 @@ N = len(answers)
 
 n_informative = int(config["n_informative"])
 n_caption = int(config["n_caption"])
-base_seed = int(config.get("seed", 42))
+base_seed = int(config.get("seed", 27022009))
 
 
 # build captions for one row
