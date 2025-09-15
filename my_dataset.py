@@ -98,8 +98,7 @@ class MyDataset(Dataset):
         caption_prompt = False, 
         n_captions = None, 
         transform = None,
-        mask_answer = -100,
-        seed = 27022009):
+        mask_answer = -100):
         super().__init__()
 
         self.max_length = [max_question_legnth, max_answer_length]
@@ -132,11 +131,11 @@ class MyDataset(Dataset):
         return preprocess(
             processor = self.processor, 
             d = self.data[index], 
+            max_length = self.max_length,
             caption_prompt = self.caption_prompt,
             include_answer = self.include_answer,
-            max_length = self.max_length,
-            img_dict = self.img_dict, 
             mask_answer = self.mask_answer,
+            img_dict = self.img_dict,
             transform = self.transform,
         )
     
@@ -189,18 +188,18 @@ def load_data(
     train_df, val_df = train_test_split(df, train_size = train_ratio, shuffle = True, random_state = seed)
 
     train_ds = MyDataset(
-        train_df, 
-        max_question_length, 
-        max_answer_length, 
-        processor, 
+        df = train_df, 
+        max_question_length = max_question_length, 
+        max_answer_length = max_answer_length, 
+        processor = processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
         transform = TRAIN_TRANSFORM if train_augment else None)
     val_ds = MyDataset(
-        val_df, 
-        max_question_length, 
-        max_answer_length, 
-        processor, 
+        df = val_df,
+        max_question_length = max_question_length, 
+        max_answer_length = max_answer_length, 
+        processor = processor, 
         caption_prompt = caption_prompt, 
         n_captions = n_captions, 
         transform = None)
