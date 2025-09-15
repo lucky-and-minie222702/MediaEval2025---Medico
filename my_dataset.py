@@ -91,7 +91,7 @@ class MyDataset(Dataset):
     def __init__(
         self, 
         df, 
-        max_question_legnth, 
+        max_question_length, 
         max_answer_length, 
         processor,
         include_answer = True, 
@@ -101,7 +101,7 @@ class MyDataset(Dataset):
         mask_answer = -100):
         super().__init__()
 
-        self.max_length = [max_question_legnth, max_answer_length]
+        self.max_length = [max_question_length, max_answer_length]
         self.processor = processor
         self.transform = transform
         
