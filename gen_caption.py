@@ -94,7 +94,7 @@ def main():
         n_caption = n_caption, 
         base_seed = base_seed)
 
-    with ProcessPoolExecutor(max_worker = workers) as ex:
+    with ProcessPoolExecutor(max_workers = workers) as ex:
         futures = {ex.submit(fn, i): i for i in range(N)}
         for f in tqdm(as_completed(futures), total = N, desc = "Generating caption (parallel)"):
             i = futures[f]

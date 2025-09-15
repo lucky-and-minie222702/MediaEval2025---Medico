@@ -153,7 +153,9 @@ def load_data(
     caption_prompt = False,
     n_captions = None,
     seed = 27022009):
+    
     np.random.seed(seed)
+
     def invalid_char(texts):
         not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
         invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
