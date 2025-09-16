@@ -96,7 +96,6 @@ class MyDataset(Dataset):
         processor,
         include_answer = True, 
         caption_prompt = False, 
-        n_captions = None, 
         transform = None,
         mask_answer = -100):
         super().__init__()
@@ -122,7 +121,6 @@ class MyDataset(Dataset):
         self.mask_answer = mask_answer
         self.include_answer = include_answer
         self.caption_prompt = caption_prompt
-        self.n_captions = n_captions
         
     def __len__(self):
         return len(self.data)
@@ -150,7 +148,6 @@ def load_data(
     test_complexities = [1, 2, 3], 
     test_only = False, 
     caption_prompt = False,
-    n_captions = None,
     seed = 27022009):
     
     np.random.seed(seed)
@@ -175,12 +172,15 @@ def load_data(
             max_answer_length, 
             processor, 
             caption_prompt = caption_prompt, 
-            n_captions = n_captions, 
             transform = None)
         return test_ds
 
     # load df
-    df = pd.read_csv("data/train.csv")
+    df = None
+    if not caption_prompt:
+        df = pd.read_csv("data/train.csv")
+    else:
+        df = pd.read_csv("data/train_with_caption.csv")
     drop_invalid_char_df(df)
     mask = df["complexity"].map(lambda x: x in train_complexities)
     df = df[mask]
@@ -193,7 +193,6 @@ def load_data(
         max_answer_length = max_answer_length, 
         processor = processor, 
         caption_prompt = caption_prompt, 
-        n_captions = n_captions, 
         transform = TRAIN_TRANSFORM if train_augment else None)
     val_ds = MyDataset(
         df = val_df,
@@ -201,7 +200,6 @@ def load_data(
         max_answer_length = max_answer_length, 
         processor = processor, 
         caption_prompt = caption_prompt, 
-        n_captions = n_captions, 
         transform = None)
     
     return train_ds, val_ds
