@@ -6,6 +6,7 @@ from my_tools import *
 import os
 from os import path
 from sklearn.model_selection import train_test_split
+import ast
 
 
 TRAIN_TRANSFORM = transforms.Compose([
@@ -55,7 +56,7 @@ def preprocess(
         quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
 
     if caption_prompt:
-        ans = norm_text(np.random.choice(d["caption"].flatten()))
+        ans = norm_text(np.random.choice(ast.literal_eval(d["caption"])))
     else:
         ans = norm_text(d["answer"])
 
