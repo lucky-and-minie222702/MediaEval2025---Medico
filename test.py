@@ -35,7 +35,6 @@ test_ds = load_data(
     test_complexities = config["dataset"]["complexities"],
     test_only = True,
     caption_prompt = config["dataset"]["caption_prompt"],
-    n_captions = config["dataset"].get("n_captions", None),
 )
 test_dl = MyUtils.get_dataloader(test_ds, batch_size = config["batch_size"], shuffle = False)
 
