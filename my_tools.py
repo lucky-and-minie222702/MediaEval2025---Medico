@@ -14,7 +14,6 @@ import joblib
 from tqdm import tqdm
 from transformers import BitsAndBytesConfig
 from os import path
-from my_dataset import QUESTION_INSTRUCTION
 
 
 class TrainerSaveLossCallback(TrainerCallback):
@@ -122,14 +121,14 @@ class MyUtils:
                 "labels": [],
             }
             
-        def log_per_step(self, quest, pred, label, loss, n_returns):
+        def log_per_step(self, quest, pred, label, loss, n_returns, instruct):
             self.loss.append(loss)
             
             quest = MyUtils.get_sentences_from_ids(self.processor, quest, to_numpy = True)
             pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            extract_quest = lambda a: a[a.find(QUESTION_INSTRUCTION) + len(QUESTION_INSTRUCTION)::]
+            extract_quest = lambda a: a[a.find(instruct) + len(instruct)::]
             quest = np.array([extract_quest(a) for a in quest])
             
             self.outputs["questions"].append(quest)

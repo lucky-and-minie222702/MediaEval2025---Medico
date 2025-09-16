@@ -70,6 +70,7 @@ with torch.no_grad():
             label = labels,
             loss = loss,
             n_returns = config["gen"].get("n_returns", 1),
+            instruct = QUESTION_INSTRUCTION,
         )
         
         pbar.set_postfix(loss = round(np.mean(logger.loss), 3), **{k: round(v, 3) for k, v in logger.cur_scores.items()})

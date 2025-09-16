@@ -3,7 +3,6 @@ from torch.utils.data import Dataset
 from PIL import Image
 import pandas as pd
 from my_tools import *
-from my_tools import MyImage
 import os
 from os import path
 from sklearn.model_selection import train_test_split
