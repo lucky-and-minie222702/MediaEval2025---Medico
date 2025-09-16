@@ -55,7 +55,7 @@ def preprocess(
         quest = QUESTION_PROMPT.format(q = norm_text(d['question']))    
 
     if caption_prompt:
-        ans = norm_text(np.random.choice(d["caption"]))
+        ans = norm_text(np.random.choice(d["caption"].flatten()))
     else:
         ans = norm_text(d["answer"])
 
