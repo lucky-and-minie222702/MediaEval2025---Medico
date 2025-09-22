@@ -8,7 +8,7 @@ from os import path
 from sklearn.model_selection import train_test_split
 import ast
 
-IMG_SIZE = (448, 448)
+IMG_SIZE = 448
 
 
 TRAIN_TRANSFORM = transforms.Compose([
@@ -47,7 +47,7 @@ def preprocess(
         img_dict = MyImage.get_img_dict()
 
     image = Image.open(img_dict[d["img_id"]]).convert("RGB")
-    image = MyImage.change_size(image, IMG_SIZE)
+    image = MyImage.change_size(image, (IMG_SIZE, IMG_SIZE))
 
     if transform is not None:
         image = transform(image)

@@ -27,7 +27,16 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-processor.image_processor.size = {"height": IMG_SIZE[0], "width": IMG_SIZE[1]}
+cfg = VisionSwapConfig(
+    vision_model_id = "openai/clip-vit-large-patch14",
+    vision_hidden_size = 1024,
+    image_size = IMG_SIZE,
+    freeze_vision = False,
+    gradient_checkpointing_vision = False,
+)
+
+model, processor = swap_vision_encoder(model, processor, cfg, device = model.device)
+
 
 lora_config = LoraConfig(
     r = config["lora"]["r"],
