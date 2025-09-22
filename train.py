@@ -27,15 +27,8 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-cfg = VisionSwapConfig(
-    vision_model_id = "google/vit-large-patch16-384",
-    vision_hidden_size = 1024,
-    image_size = IMG_SIZE,
-    freeze_vision = False,
-    gradient_checkpointing_vision = False,
-)
-
-model, processor = swap_vision_encoder(model, processor, cfg, device = model.device)
+print(model.vision_encoder)
+exit()
 
 
 lora_config = LoraConfig(
