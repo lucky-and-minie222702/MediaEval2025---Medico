@@ -29,34 +29,6 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-
-# mod vision encoder
-# assert IMG_SIZE % 16 == 0
-# NEW_PATCH = IMG_SIZE // 16
-
-# old_conv = model.vision_model.embeddings.patch_embedding
-# W_old = old_conv.weight.data
-# b_old = old_conv.bias.data if old_conv.bias is not None else None
-
-# new_conv = nn.Conv2d(
-#     3, 
-#     W_old.shape[0], 
-#     kernel_size = NEW_PATCH, 
-#     stride = NEW_PATCH, 
-#     bias = b_old is not None,
-# )
-
-# W_resized = F.interpolate(
-#     W_old, size = (NEW_PATCH, NEW_PATCH), mode = "bicubic", align_corners = False
-# )
-# scale = (14.0 * 14.0 / (NEW_PATCH * NEW_PATCH)) ** 0.5
-# new_conv.weight.data.copy_(W_resized * scale)
-# if b_old is not None:
-#     new_conv.bias.data.copy_(b_old) 
-
-# model.vision_model.embeddings.patch_embedding = new_conv
-
-
 lora_config = LoraConfig(
     r = config["lora"]["r"],
     lora_alpha = config["lora"]["alpha"],
