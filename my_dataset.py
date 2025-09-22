@@ -8,6 +8,8 @@ from os import path
 from sklearn.model_selection import train_test_split
 import ast
 
+IMG_SIZE = (448, 448)
+
 
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.ColorJitter(
@@ -45,7 +47,7 @@ def preprocess(
         img_dict = MyImage.get_img_dict()
 
     image = Image.open(img_dict[d["img_id"]]).convert("RGB")
-    image = MyImage.change_size(image, (224, 224))
+    image = MyImage.change_size(image, IMG_SIZE)
 
     if transform is not None:
         image = transform(image)
@@ -57,6 +59,8 @@ def preprocess(
 
     if caption_prompt:
         ans = norm_text(np.random.choice(ast.literal_eval(d["caption"])))
+        print(ans)
+        exit()
     else:
         ans = norm_text(d["answer"])
 
