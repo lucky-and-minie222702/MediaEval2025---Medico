@@ -29,6 +29,9 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
+print(model.qformer)
+exit()
+
 
 # mod vision encoder
 assert IMG_SIZE % 16 == 0
