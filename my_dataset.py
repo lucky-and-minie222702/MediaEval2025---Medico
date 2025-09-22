@@ -16,7 +16,7 @@ TRAIN_TRANSFORM = transforms.Compose([
         brightness = 0.1,
         contrast = 0.1,
     ),
-    transforms.RandomRotation(12),
+    transforms.RandomRotation(8),
 ])
 
 QUESTION_INSTRUCTION = "Answer the question: "
