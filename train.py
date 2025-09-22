@@ -28,7 +28,7 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
 )
 
 cfg = VisionSwapConfig(
-    vision_model_id = "openai/clip-vit-large-patch14",
+    vision_model_id = "google/vit-large-patch16-384",
     vision_hidden_size = 1024,
     image_size = IMG_SIZE,
     freeze_vision = False,

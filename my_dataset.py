@@ -8,7 +8,7 @@ from os import path
 from sklearn.model_selection import train_test_split
 import ast
 
-IMG_SIZE = 448
+IMG_SIZE = 384
 
 
 TRAIN_TRANSFORM = transforms.Compose([
