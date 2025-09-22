@@ -27,8 +27,10 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-print(model.vision_model)
+for p in model.vision_model.parameters():
+    print(p.requires_grad)
 exit()
+
 
 
 lora_config = LoraConfig(
