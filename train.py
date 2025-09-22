@@ -21,30 +21,30 @@ model_name = config["model"]
 model_path = f"results/{config['dir']}"
 
 processor = InstructBlipProcessor.from_pretrained(model_name)
-# model = InstructBlipForConditionalGeneration.from_pretrained(
-#     model_name,
-#     trust_remote_code = True,
-#     dtype = torch.bfloat16,
-# )
+model = InstructBlipForConditionalGeneration.from_pretrained(
+    model_name,
+    trust_remote_code = True,
+    dtype = torch.bfloat16,
+)
 
-# processor.image_processor.size = {"height": IMG_SIZE[0], "width": IMG_SIZE[1]}
+processor.image_processor.size = {"height": IMG_SIZE[0], "width": IMG_SIZE[1]}
 
-# lora_config = LoraConfig(
-#     r = config["lora"]["r"],
-#     lora_alpha = config["lora"]["alpha"],
-#     target_modules = [
-#         "q",
-#         "k",
-#         "v",
-#         "o",
-#     ],
-#     lora_dropout = config["lora"].get("dropout", 0.0),
-#     bias = "none",
-#     task_type = TaskType.SEQ_2_SEQ_LM
-# )
-# model.enable_input_require_grads()
-# model = get_peft_model(model, lora_config)
-# MyUtils.print_trainable_params(model)
+lora_config = LoraConfig(
+    r = config["lora"]["r"],
+    lora_alpha = config["lora"]["alpha"],
+    target_modules = [
+        "q",
+        "k",
+        "v",
+        "o",
+    ],
+    lora_dropout = config["lora"].get("dropout", 0.0),
+    bias = "none",
+    task_type = TaskType.SEQ_2_SEQ_LM
+)
+model.enable_input_require_grads()
+model = get_peft_model(model, lora_config)
+MyUtils.print_trainable_params(model)
 
 
 # load dataset
@@ -57,9 +57,6 @@ train_ds, val_ds = load_data(
     train_augment = config["dataset"]["augment"],
     caption_prompt = config["dataset"]["caption_prompt"],
 )
-
-for i in train_ds:
-    break
 
 
 # train

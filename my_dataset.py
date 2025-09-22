@@ -59,8 +59,6 @@ def preprocess(
 
     if caption_prompt:
         ans = norm_text(np.random.choice(ast.literal_eval(d["caption"])))
-        print(ans)
-        exit()
     else:
         ans = norm_text(d["answer"])
 
