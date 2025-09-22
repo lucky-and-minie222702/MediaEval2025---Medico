@@ -27,7 +27,7 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-print(model.vision_encoder)
+print(model.vision_model)
 exit()
 
 
