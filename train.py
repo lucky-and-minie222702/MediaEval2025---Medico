@@ -4,6 +4,7 @@ import torch
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
 from my_tools import *
 from my_dataset import *
+from torch import nn
 from transformers import logging
 
 os.makedirs("results", exist_ok = True)
@@ -27,9 +28,16 @@ model = InstructBlipForConditionalGeneration.from_pretrained(
     dtype = torch.bfloat16,
 )
 
-print(model.vision_model.embeddings.patch_embedding)
-exit()
+assert IMG_SIZE % 16 == 0
+NEW_PATCH = IMG_SIZE // 16
 
+model.vision_model.embeddings.patch_embedding = nn.Conv2d(
+    in_channels = 3,
+    out_channels = 1408,
+    kernel_size = (NEW_PATCH, NEW_PATCH),
+    stride = (NEW_PATCH, NEW_PATCH),
+    bias = True
+)
 
 lora_config = LoraConfig(
     r = config["lora"]["r"],
