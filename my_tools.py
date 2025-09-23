@@ -128,8 +128,6 @@ class MyUtils:
             pred = MyUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = MyUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            tqdm.write(f"{pred[-1]} - {label[-1]}")
-            
             extract_quest = lambda a: a[a.find(instruct) + len(instruct)::]
             quest = np.array([extract_quest(a) for a in quest])
             
