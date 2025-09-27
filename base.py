@@ -233,10 +233,12 @@ class CausalDataset(BaseDataset):
             truncation = False,
             return_tensors = "pt"
         )
-        
+
         merge = inp
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         out = {k: v.squeeze(0) for k, v in out.items()}
+        print(merge)
+        print(out)
         if self.mode == "train":
             inp_len = merge["input_ids"].shape[0]
 
@@ -258,7 +260,7 @@ class CausalDataset(BaseDataset):
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
             
-        print(merge)
+        print(merge, self.processor.tokenizer.pad_token_id)
         exit()
         
         return merge

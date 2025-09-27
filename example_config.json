@@ -35,8 +35,8 @@
 
 		"report_to": "none",
 
-		"dataloader_num_workers": 4,
-		"dataloader_persistent_workers": true,
+		"dataloader_num_workers": 0,
+		"dataloader_persistent_workers": false,
 		"dataloader_pin_memory": false,
 
 		"logging_first_step": true
