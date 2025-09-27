@@ -182,7 +182,7 @@ class CausalDataset(BaseDataset):
             final_char = ".",
         )
         
-        img = Image.open(self.img_dict[self.data["img_id"]]).convert("RGB")
+        img = Image.open(self.img_dict[self.data[index]["img_id"]]).convert("RGB")
         img = ImageUtils.change_size(img, self.img_size)
         
         inp_mes = [
