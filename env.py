@@ -51,6 +51,7 @@ class TrainingEnvironment:
         self, 
         fold_idx, 
         
+        do_train = True,
         do_test = True,
         
         train_ds_args = {},
@@ -63,32 +64,34 @@ class TrainingEnvironment:
         format_data_fn = None,
         generation_conf = None,
     ):
-        if val_ds_args is None:
-            val_ds_args = train_ds_args
-        if test_ds_args is None:
-            test_ds_args = train_ds_args
+        if do_train:
+            if val_ds_args is None:
+                val_ds_args = train_ds_args
 
-        train_ds = self.get_train(fold_idx, **train_ds_args)
-        val_ds = self.get_val(fold_idx, **val_ds_args)
-        
-        self.model_interface.to_lora(**lora_args)
-        
-        self.trainer = Trainer(
-            model = self.model_interface.model,
-            args = self.training_arguments,
-            processing_class = self.model_interface.processor,
+            train_ds = self.get_train(fold_idx, **train_ds_args)
+            val_ds = self.get_val(fold_idx, **val_ds_args)
             
-            train_dataset = train_ds,
-            eval_dataset = val_ds,
+            self.model_interface.to_lora(**lora_args)
             
-            callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
-        )
-        self.trainer.model_accepts_loss_kwargs = False
-        
-        self.trainer.model_accepts_loss_kwargs = False
-        self.trainer.train()
+            self.trainer = Trainer(
+                model = self.model_interface.model,
+                args = self.training_arguments,
+                processing_class = self.model_interface.processor,
+                
+                train_dataset = train_ds,
+                eval_dataset = val_ds,
+                
+                callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
+            )
+            self.trainer.model_accepts_loss_kwargs = False
+            
+            self.trainer.model_accepts_loss_kwargs = False
+            self.trainer.train()
         
         if do_test:
+            if test_ds_args is None:
+                test_ds_args = train_ds_args
+
             test_ds = self.get_test(**test_ds_args)
             test_dl = get_dataloader(
                 test_ds,
