@@ -74,9 +74,9 @@ class ModelInterface:
                     
                 if "label" in batch:
                     if "label" in returns:
-                        labels.append(batch["label"])
+                        labels.append(batch["labels"])
                     
-                label = batch["label"]   
+                label = batch["labels"]   
                 label[label == -100] == self.processor.tokenizer.pad_token_id
         
         return inputs, outputs, labels
@@ -109,7 +109,7 @@ class ModelInterface:
                 
                 input = batch["input_ids"]
                 
-                label = batch["label"]   
+                label = batch["labels"]   
                 label[label == -100] == self.processor.tokenizer.pad_token_id
                 
                 if format_data_fn is not None:
@@ -238,17 +238,25 @@ class CausalDataset(BaseDataset):
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         out = {k: v.squeeze(0) for k, v in out.items()}
         if self.mode == "train":
-            # cat label
+            inp_len = merge["input_ids"].shape[0]
+
             merge["input_ids"] = torch.cat((merge["input_ids"], out["input_ids"]), dim = 0)
             merge["attention_mask"] = torch.cat((merge["attention_mask"], out["attention_mask"]), dim = 0)
+    
+            label = merge["input_ids"].clone()
+            label[merge["attention_mask"]] = -100
+            label[:inp_len:] = -100
 
+            merge["labels"] = label
+    
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
+            merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         elif self.mode == "infer":
-            # no cat label
+            merge["labels"] = out["input_ids"]
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
-            merge["label"] = ModelUtils.pad_and_trunc(merge["label"], self.max_length, -100)
+            merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         
         return merge
     
