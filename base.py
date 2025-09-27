@@ -237,26 +237,15 @@ class CausalDataset(BaseDataset):
         merge = inp
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         out = {k: v.squeeze(0) for k, v in out.items()}
-        print(merge)
-        print(out)
-        exit()
         if self.mode == "train":
-            inp_len = merge["input_ids"].shape[0]
-
+            # cat label
             merge["input_ids"] = torch.cat((merge["input_ids"], out["input_ids"]), dim = 0)
             merge["attention_mask"] = torch.cat((merge["attention_mask"], out["attention_mask"]), dim = 0)
-    
-            label = merge["input_ids"].clone()
-            label[merge["attention_mask"]] = -100
-            label[:inp_len:] = -100
 
-            merge["label"] = label
-    
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
-            merge["label"] = ModelUtils.pad_and_trunc(merge["label"], self.max_length, -100)
         elif self.mode == "infer":
-            merge["label"] = out["input_ids"]
+            # no cat label
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["label"] = ModelUtils.pad_and_trunc(merge["label"], self.max_length, -100)
