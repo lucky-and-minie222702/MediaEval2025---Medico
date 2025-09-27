@@ -21,7 +21,6 @@ class TrainingEnvironment:
         self.model_interface = model_interface
         
         self.training_arguments = TrainingArguments(**training_args)
-        print(training_args)
         self.trainer = None
     
     def get_train(self, fold_idx, **kwargs):
@@ -76,6 +75,7 @@ class TrainingEnvironment:
         
         self.trainer = Trainer(
             model = self.model_interface.model,
+            args = self.training_arguments,
             processing_class = self.model_interface.processor,
             
             train_dataset = train_ds,
