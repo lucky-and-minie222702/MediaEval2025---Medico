@@ -127,6 +127,10 @@ class ModelInterface:
 
         if output_dir is not None:
             joblib.dump(logger.results, f"{output_dir}/test.results")
+            
+        print(f"loss: {logger.loss:.4f}")
+        for k, v in logger.scores.items():
+            print(f"{k}: {v:.4f}")
 
         return logger
 
