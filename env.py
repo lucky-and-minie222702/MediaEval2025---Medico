@@ -22,9 +22,6 @@ class TrainingEnvironment:
         
         self.training_arguments = TrainingArguments(**training_args)
         self.trainer = None
-        
-        self.model_interface.model.config.use_cache = False
-        self.trainer.model_accepts_loss_kwargs = False
     
     def get_train(self, fold_idx, **kwargs):
         return self.dataset_class(
@@ -83,6 +80,7 @@ class TrainingEnvironment:
             
             callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
         )
+        self.trainer.model_accepts_loss_kwargs = False
         
         self.trainer.model_accepts_loss_kwargs = False
         self.trainer.train()
