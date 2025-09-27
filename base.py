@@ -37,16 +37,16 @@ class ModelInterface:
         self, 
         r, 
         alpha, 
-        task_type, 
         target_modules = ["q", "k", "v", "o"],
-        dropout = 0.0):
+        lora_dropout = 0.0,
+        **kwargs):
         lora_config = LoraConfig(
             r = r,
             lora_alpha = alpha,
             target_modules = target_modules,
-            lora_dropout = dropout,
-            task_type = task_type,
+            lora_dropout = lora_dropout,
             bias = "none",
+            **kwargs,
         )
         
         self.model = get_peft_model(self.model, lora_config)

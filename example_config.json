@@ -46,5 +46,10 @@
 		"is_qwen": true,
 		"max_length": 120,
 		"img_size": 224
+	},
+
+	"lora_args": {
+		"r": 16,
+		"alpha": 48
 	}
 }

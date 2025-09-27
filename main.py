@@ -9,6 +9,8 @@ env.train(
     do_test = conf.get("do_test", True),
     format_data_fn = class_conf["format_data_fn"],
     
+    lora_args = conf["lora_args"],
+    
     train_ds_args = conf["train_ds_args"],
     val_ds_args = conf.get("val_ds_args"),
     test_ds_args = conf.get("test_ds_args"),
