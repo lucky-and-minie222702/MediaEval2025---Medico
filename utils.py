@@ -62,13 +62,13 @@ def load_json(p):
 
 class ImageUtils:
     @staticmethod
-    def get_transform(brightness, contrast, degree):
+    def get_transform(brightness, contrast, rotation_degree):
         return transforms.Compose([
             transforms.ColorJitter( 
                 brightness = brightness,
                 contrast = contrast,
             ),
-            transforms.RandomRotation(degree),
+            transforms.RandomRotation(rotation_degree),
         ])
     
     @staticmethod

@@ -45,7 +45,12 @@
 	"train_ds_args": {
 		"is_qwen": true,
 		"max_length": 180,
-		"img_size": [224, 224]
+		"img_size": [224, 224],
+		"transform": {
+			"brighness": 0.1,
+			"contrast": 0.1,
+			"rotation_degree": 8
+		}
 	},
 
 	"lora_args": {

@@ -139,7 +139,11 @@ class BaseDataset(Dataset):
         self.processor = processor
         self.mode = mode
         self.img_size = img_size
+        
         self.transform = transform
+        if self.transform is None:
+            self.transform = {}
+        self.transform = ImageUtils.get_transform(**transform)
 
         self.data = df.to_dict(orient = 'records')
         self.img_dict = ImageUtils.get_img_dict()
