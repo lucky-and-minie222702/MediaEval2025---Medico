@@ -189,6 +189,12 @@ class ModelUtils:
             print(f"Losses saved to {p}")
     
     @staticmethod
+    def pad_and_trunc(t, max_len, pad_id):
+        pad_l = [pad_id] * max(0, max_len - len(t))
+        pad_l = torch.tensor(pad_l, dtype = t.dtype)
+        return torch.cat((t[:max_len:], pad_l), dim = 0)
+    
+    @staticmethod
     def get_sentences_from_ids(processor, s, to_numpy = False):
         s = s.detach().cpu().numpy().tolist()
         s = processor.tokenizer.batch_decode(s, skip_special_tokens = True)    
