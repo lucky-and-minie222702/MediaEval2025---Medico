@@ -50,6 +50,7 @@
 
 	"lora_args": {
 		"r": 16,
-		"alpha": 48
+		"alpha": 48,
+		"target_modules": ["c_attn", "c_proj"]
 	}
 }

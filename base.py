@@ -37,7 +37,7 @@ class ModelInterface:
         self, 
         r, 
         alpha, 
-        target_modules = ["q", "k", "v", "o"],
+        target_modules,
         lora_dropout = 0.0,
         **kwargs):
         lora_config = LoraConfig(
