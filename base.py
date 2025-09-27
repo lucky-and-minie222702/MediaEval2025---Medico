@@ -84,7 +84,7 @@ class ModelInterface:
     def test(
         self, 
         dl,
-        output_dir = ".", 
+        output_dir = None, 
         generation_config = None, 
         format_data_fn = None,
     ):

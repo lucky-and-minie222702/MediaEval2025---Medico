@@ -39,7 +39,7 @@ def get_env(conf):
         n_splits = conf["n_splits"],
         dataset_class = class_conf["dataset_class"],
         model_interface = model_interface,
-        training_args = conf["training_args"],
+        training_args = conf.get("training_args"),
         seed = conf["seed"],
     )
     

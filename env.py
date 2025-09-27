@@ -9,9 +9,11 @@ class TrainingEnvironment:
         n_splits, 
         model_interface: ModelInterface,
         dataset_class = None,
-        training_args = {},
-        seed = 27022009,
+        training_args = None,
+        seed = None,
     ):
+        if seed is None:
+            seed = 27022009
         seed_everything(seed)
 
         self.distributor = DFDistributor(train_df, test_df, n_splits, seed)
@@ -20,6 +22,8 @@ class TrainingEnvironment:
             self.dataset_class = BaseDataset
         self.model_interface = model_interface
         
+        if training_args is None:
+            training_args = {}
         self.training_arguments = TrainingArguments(**training_args)
         self.trainer = None
     
