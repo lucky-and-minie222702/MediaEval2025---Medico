@@ -85,7 +85,6 @@ class ModelInterface:
         self, 
         dl,
         output_dir = ".", 
-        disable_tqdm = True, 
         generation_config = None, 
         format_data_fn = None,
     ):
@@ -97,7 +96,7 @@ class ModelInterface:
         logger = ModelUtils.TestLogger(self.processor)
         
         with torch.no_grad():
-            pbar = tqdm(dl, disable = disable_tqdm)
+            pbar = tqdm(dl)
             for batch in pbar:
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
                 loss = self.model(**batch).loss.item()
