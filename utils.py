@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 
 
 class DFDistributor:
-    def __init__(self, train_df, test_df, seed, n_splits):
+    def __init__(self, train_df, test_df, n_splits, seed):
         self.train_df = train_df
         self.test_df = test_df
         self.kfold = KFold(n_splits = n_splits, shuffle = True, random_state = seed)
