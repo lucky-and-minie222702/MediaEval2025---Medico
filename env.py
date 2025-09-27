@@ -27,6 +27,7 @@ class TrainingEnvironment:
         return self.dataset_class(
             df = self.distributor.fold[fold_idx][0],
             processor = self.model_interface.processor,
+            mode = "train",
             **kwargs
         )
         
@@ -34,6 +35,7 @@ class TrainingEnvironment:
         return self.dataset_class(
             df = self.distributor.fold[fold_idx][1],
             processor = self.model_interface.processor,
+            mode = "train",
             **kwargs
         )
         
