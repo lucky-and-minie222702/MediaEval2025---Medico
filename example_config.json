@@ -11,7 +11,7 @@
 	"training_args": {
 		"output_dir": "results/models",
 		"max_steps": 10000,
-		"learning_rate": 3e-5,
+		"learning_rate": 5e-5,
 
 		"per_device_train_batch_size": 16,
 		"gradient_accumulation_steps": 4,
@@ -29,7 +29,7 @@
 		"logging_steps": 100,
 
 		"lr_scheduler_type": "linear",
-		"warmup_steps": 200,
+		"warmup_steps": 100,
 
 		"bf16": true,
 
