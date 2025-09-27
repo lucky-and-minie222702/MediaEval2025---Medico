@@ -236,6 +236,7 @@ class CausalDataset(BaseDataset):
         
         merge = inp
         merge = {k: v.squeeze(0) for k, v in merge.items()}
+        out = {k: v.squeeze(0) for k, v in out.items()}
         if self.mode == "train":
             inp_len = merge["input_ids"].shape[0]
 
