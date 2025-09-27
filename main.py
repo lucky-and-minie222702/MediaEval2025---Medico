@@ -6,7 +6,7 @@ conf = load_json(sys.argv[1])
 env, model_interface, class_conf = get_env(conf)
 env.train(
     fold_idx = conf["fold_idx"],
-    do_test = conf["do_test"],
+    do_test = conf.get("do_test", True),
     format_data_fn = class_conf["format_data_fn"],
     
     train_ds_args = conf["train_ds_args"],
