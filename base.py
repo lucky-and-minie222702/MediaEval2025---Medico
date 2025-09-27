@@ -262,9 +262,6 @@ class CausalDataset(BaseDataset):
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
             
-        print(merge, quest, ans)
-        exit()
-        
         return merge
     
     
