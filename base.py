@@ -239,8 +239,8 @@ class CausalDataset(BaseDataset):
         if self.mode == "train":
             inp_len = merge["input_ids"].shape[0]
 
-            merge["input_ids"] = torch.cat(merge["input_ids"], out["input_ids"], dim = 0)
-            merge["attention_mask"] = torch.cat(merge["attention_mask"], out["attention_mask"], dim = 0)
+            merge["input_ids"] = torch.cat((merge["input_ids"], out["input_ids"]), dim = 0)
+            merge["attention_mask"] = torch.cat((merge["attention_mask"], out["attention_mask"]), dim = 0)
     
             label = merge["input_ids"].clone()
             label[merge["attention_mask"]] = -100
