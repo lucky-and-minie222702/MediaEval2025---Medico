@@ -45,7 +45,7 @@
 	"train_ds_args": {
 		"is_qwen": true,
 		"max_length": 120,
-		"img_size": 224
+		"img_size": [224, 224]
 	},
 
 	"lora_args": {
