@@ -126,7 +126,7 @@ class ModelInterface:
             joblib.dump(logger.results, f"{output_dir}/test.results")
             
         for k, v in logger.scores.items():
-            print(f"{k}: {v:.4f}")
+            print(f"{k}: {np.mean(v):.4f}")
 
         return logger
 
