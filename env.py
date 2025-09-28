@@ -99,6 +99,9 @@ class TrainingEnvironment:
 
             if is_causal:
                 self.model_interface.processor.tokenizer.padding_side = 'left'
+                
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model_interface.model.to(device)
 
             test_ds = self.get_test(**test_ds_args)
             test_dl = get_dataloader(
