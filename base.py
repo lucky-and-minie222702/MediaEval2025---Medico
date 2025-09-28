@@ -267,6 +267,7 @@ class CausalDataset(BaseDataset):
         elif self.mode == "infer":
             label = merge["input_ids"].clone()
             print(label, inp_len)
+            print(inp["input_ids"])
             exit()
             merge = inp
             merge["labels"] = label
