@@ -100,7 +100,7 @@ class ModelInterface:
                 
                 if format_data_fn is not None:
                     input, output, label = format_data_fn(self.processor, batch, input, output, label)
-                
+                print(label)
                 logger.log_per_step(
                     quest = input,
                     pred = output,
