@@ -2,6 +2,8 @@ from base import *
 from env import *
 import pandas as pd
 
+CAUSAL_SETTINGS = ["qwen"]
+
 DEFAULT_CLASS_CONFIG = {
     "model_class": None,
     "processor_class": None,
@@ -19,7 +21,7 @@ def get_config(setting):
             "model_class": Qwen2_5_VLForConditionalGeneration,
             "processor_class": Qwen2_5_VLProcessor,
             "dataset_class": CausalDataset,
-            "format_data_fn": BaseDataFormatter,
+            "format_data_fn": BaseDataFormatter(),
         })
         
     return conf

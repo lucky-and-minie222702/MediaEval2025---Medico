@@ -67,6 +67,8 @@ class TrainingEnvironment:
         test_batch_size = 16,
         format_data_fn = None,
         generation_conf = None,
+        
+        is_causal = True,
     ):
         if do_train:
             if val_ds_args is None:
@@ -107,4 +109,5 @@ class TrainingEnvironment:
                 output_dir = self.training_arguments.output_dir,
                 generation_config = generation_conf,
                 format_data_fn = format_data_fn,
+                is_causal = is_causal,
             )

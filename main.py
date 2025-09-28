@@ -21,5 +21,7 @@ env.train(
     test_batch_size = conf["test_batch_size"],
     
     generation_conf = conf.get("generation_conf"),
+    
+    is_causal = conf["setting"] in CAUSAL_SETTINGS,
 )
 

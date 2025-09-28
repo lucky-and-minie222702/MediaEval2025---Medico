@@ -74,6 +74,7 @@ class ModelInterface:
         output_dir = None, 
         generation_config = None, 
         format_data_fn = None,
+        is_causal = True,
     ):
         if generation_config is None:
             generation_config = {
@@ -81,6 +82,9 @@ class ModelInterface:
             }
 
         logger = ModelUtils.TestLogger(self.processor)
+
+        if is_causal:
+            self.processor.tokenizer.padding_side='left'
         
         with torch.no_grad():
             pbar = tqdm(dl)
