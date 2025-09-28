@@ -86,9 +86,6 @@ class ModelInterface:
             pbar = tqdm(dl)
             for batch in pbar:
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
-                print(batch)
-                exit()
-                loss = self.model(**batch).loss.item()
                 
                 input = batch["input_ids"]
                 
@@ -107,17 +104,15 @@ class ModelInterface:
                     quest = input,
                     pred = output,
                     label = label,
-                    loss = loss,
                     n_returns = generation_config.get("num_return_sequences", 1),
                 )
-                pbar.set_postfix(loss = round(np.mean(logger.loss), 3), **{k: round(v, 3) for k, v in logger.cur_scores.items()})
+                pbar.set_postfix(**{k: round(v, 3) for k, v in logger.cur_scores.items()})
         
         logger.end()
 
         if output_dir is not None:
             joblib.dump(logger.results, f"{output_dir}/test.results")
             
-        print(f"loss: {logger.loss:.4f}")
         for k, v in logger.scores.items():
             print(f"{k}: {v:.4f}")
 
@@ -223,7 +218,7 @@ class CausalDataset(BaseDataset):
         merge_mes = inp_mes + out_mes
         
         if self.is_qwen:
-            img, _ = process_vision_info(inp_mes)
+            img, _ = process_vision_info(merge_mes)
         
         inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = self.mode == "infer")
         merge_text = self.processor.apply_chat_template(merge_mes, tokenize = False, add_generation_prompt = False)
@@ -260,6 +255,7 @@ class CausalDataset(BaseDataset):
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         elif self.mode == "infer":
             merge["labels"] = merge["input_ids"].clone()[inp_len::]
+            merge = inp
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id, side = "left")
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0, side = "left")
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100, side = "left")
