@@ -86,6 +86,8 @@ class ModelInterface:
             pbar = tqdm(dl)
             for batch in pbar:
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
+                print(batch)
+                exit()
                 loss = self.model(**batch).loss.item()
                 
                 input = batch["input_ids"]

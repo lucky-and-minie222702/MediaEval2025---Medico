@@ -98,9 +98,7 @@ class TrainingEnvironment:
                 test_ds_args = train_ds_args
 
             if is_causal:
-                print(self.model_interface.processor.tokenizer.padding_side)
                 self.model_interface.processor.tokenizer.padding_side = 'left'
-                print(self.model_interface.processor.tokenizer.padding_side)
 
             test_ds = self.get_test(**test_ds_args)
             test_dl = get_dataloader(
