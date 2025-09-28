@@ -122,7 +122,7 @@ class ModelInterface:
         return logger
 
 
-INSTRUCTION = "You are a medical vision assistant about gastroIntestinal images."
+INSTRUCTION = "You are a medical vision assistant about gastrointestinal images."
 
 # dataset	     
 class BaseDataset(Dataset):
@@ -261,10 +261,6 @@ class CausalDataset(BaseDataset):
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
-            
-        print(self.processor.decode(merge["input_ids"], skip_special_tokens = True))
-        print(self.processor.decode(merge["labels"], skip_special_tokens = True))
-        exit()
             
         return merge
     
