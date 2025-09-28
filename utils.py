@@ -25,14 +25,13 @@ class DFDistributor:
             self.fold[i] = (train_df.iloc[train_idx], train_df.iloc[test_idx])
 
 
-def get_dataloader(dataset, batch_size, shuffle = True):
+def get_dataloader(dataset, batch_size, cpu_count = None, shuffle = True):
     def collate_fn(batch):
         return {
             key: torch.stack([item[key] for item in batch], dim = 0)
             for key in batch[0]
         }
         
-    cpu_count = os.cpu_count()
     if cpu_count is None:
         cpu_count = 1
 

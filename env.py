@@ -67,6 +67,8 @@ class TrainingEnvironment:
         test_batch_size = 16,
         format_data_fn = None,
         generation_conf = None,
+        
+        cpu_count = None,
     ):
         if do_train:
             if val_ds_args is None:
@@ -99,8 +101,9 @@ class TrainingEnvironment:
             test_ds = self.get_test(**test_ds_args)
             test_dl = get_dataloader(
                 test_ds,
-                shuffle = False,
                 batch_size = test_batch_size,
+                cpu_count = cpu_count,
+                shuffle = False,
             )
             self.model_interface.test(
                 dl = test_dl,
