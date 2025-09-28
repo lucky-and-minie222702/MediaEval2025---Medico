@@ -74,7 +74,6 @@ class ModelInterface:
         output_dir = None, 
         generation_config = None, 
         format_data_fn = None,
-        is_causal = True,
     ):
         if generation_config is None:
             generation_config = {
@@ -82,9 +81,6 @@ class ModelInterface:
             }
 
         logger = ModelUtils.TestLogger(self.processor)
-
-        if is_causal:
-            self.processor.tokenizer.padding_side='left'
         
         with torch.no_grad():
             pbar = tqdm(dl)
@@ -92,15 +88,15 @@ class ModelInterface:
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
                 loss = self.model(**batch).loss.item()
                 
-                output = self.model.generate(
-                    **batch,
-                    **generation_config
-                )
-                
                 input = batch["input_ids"]
                 
                 label = batch["labels"]   
                 label[label == -100] == self.processor.tokenizer.pad_token_id
+                
+                output = self.model.generate(
+                    **batch,
+                    **generation_config
+                )
                 
                 if format_data_fn is not None:
                     input, output, label = format_data_fn(self.processor, batch, input, output, label)
