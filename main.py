@@ -3,6 +3,8 @@ import sys
 
 conf = load_json(sys.argv[1])
 
+print(conf["setting"] in CAUSAL_SETTINGS)
+
 env, model_interface, class_conf = get_env(conf)
 env.train(
     fold_idx = conf["fold_idx"],
