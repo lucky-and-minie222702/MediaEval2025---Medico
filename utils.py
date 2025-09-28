@@ -25,21 +25,26 @@ class DFDistributor:
             self.fold[i] = (train_df.iloc[train_idx], train_df.iloc[test_idx])
 
 
-def get_dataloader(dataset, batch_size, cpu_count = None, shuffle = True):
+def get_dataloader(dataset, batch_size, shuffle = True):
     def collate_fn(batch):
         return {
             key: torch.stack([item[key] for item in batch], dim = 0)
             for key in batch[0]
         }
         
-    if cpu_count is None:
-        cpu_count = 1
+    def get_num_workers():
+        if "SLURM_CPUS_PER_TASK" in os.environ:
+            return int(os.environ["SLURM_CPUS_PER_TASK"])
+        elif "SLURM_CPUS_ON_NODE" in os.environ:
+            return int(os.environ["SLURM_CPUS_ON_NODE"])
+        else:
+            return 0
 
     return DataLoader(
         dataset = dataset, 
         batch_size = batch_size, 
         shuffle = shuffle, 
-        num_workers = cpu_count, 
+        num_workers = get_num_workers(), 
         persistent_workers = True, 
         pin_memory = False, 
         collate_fn = collate_fn

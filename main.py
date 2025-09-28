@@ -21,7 +21,5 @@ env.train(
     test_batch_size = conf["test_batch_size"],
     
     generation_conf = conf.get("generation_conf"),
-    
-    cpu_count = conf.get("cpu_count"),
 )
 
