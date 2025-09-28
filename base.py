@@ -251,6 +251,10 @@ class CausalDataset(BaseDataset):
 
         inp = {k: v.squeeze(0) for k, v in inp.items()}
         merge = {k: v.squeeze(0) for k, v in merge.items()}
+            
+        print(merge["input_ids"].shape, inp["input_ids"].shape)
+        print(inp_text, merge_text)
+        exit()
         
         inp_len = inp["input_ids"].shape[0]
         
@@ -266,9 +270,6 @@ class CausalDataset(BaseDataset):
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         elif self.mode == "infer":
             label = merge["input_ids"].clone()
-            print(label, inp_len)
-            print(inp["input_ids"])
-            exit()
             merge = inp
             merge["labels"] = label
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id, side = "left")
