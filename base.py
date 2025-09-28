@@ -72,10 +72,11 @@ class ModelInterface:
         losses = []
         
         with torch.no_grad():
-            for batch in tqdm(dl):
+            pbar = tqdm(dl)
+            for batch in pbar:
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
-                
                 losses.append(self.model(**batch).loss.item())
+                pbar.set_postfix(loss = np.mean(losses))
         
         return np.mean(losses)
             
@@ -288,10 +289,6 @@ class BaseDataFormatter():
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
         self.output = self.output[::, self.input.shape[-1]::]
-        print("label", self.processor.tokenizer.decode(self.label[0], skip_special_tokens = True))
-        print("input", self.processor.tokenizer.decode(self.input[0], skip_special_tokens = True))
-        print("output", self.processor.tokenizer.decode(self.output[0], skip_special_tokens = True))
-        exit()
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
