@@ -100,7 +100,7 @@ class ModelInterface:
                 
                 if format_data_fn is not None:
                     input, output, label = format_data_fn(self.processor, batch, input, output, label)
-                print(label)
+
                 logger.log_per_step(
                     quest = input,
                     pred = output,
@@ -267,6 +267,8 @@ class BaseDataFormatter():
     def fn(self):
         self.label[self.label == -100] == self.processor.tokenizer.pad_token_id
         self.output = self.output[::, :self.input.shape[-1]:]
+        
+        print(self.label)
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
