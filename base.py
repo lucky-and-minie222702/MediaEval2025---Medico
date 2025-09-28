@@ -207,11 +207,13 @@ class CausalDataset(BaseDataset):
             }
         ]
         
+        merge_mes = inp_mes + out_mes
+        
         if self.is_qwen:
             img, _ = process_vision_info(inp_mes)
         
         inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = self.mode == "infer")
-        out_text = self.processor.apply_chat_template(out_mes, tokenize = False, add_generation_prompt = False)
+        merge_text = self.processor.apply_chat_template(merge_mes, tokenize = False, add_generation_prompt = False)
         
         inp = self.processor(
             text = inp_text,
@@ -221,22 +223,19 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         
-        out = self.processor.tokenizer(
-            text = out_text,
+        merge = self.processor.tokenizer(
+            text = merge_text,
             padding = False,
             truncation = False,
             return_tensors = "pt"
         )
 
-        merge = inp
+        inp = {k: v.squeeze(0) for k, v in inp.items()}
         merge = {k: v.squeeze(0) for k, v in merge.items()}
-        out = {k: v.squeeze(0) for k, v in out.items()}
+        
+        inp_len = inp["input_ids"].shape[0]
+        
         if self.mode == "train":
-            inp_len = merge["input_ids"].shape[0]
-
-            merge["input_ids"] = torch.cat((merge["input_ids"], out["input_ids"]), dim = 0)
-            merge["attention_mask"] = torch.cat((merge["attention_mask"], out["attention_mask"]), dim = 0)
-    
             label = merge["input_ids"].clone()
             label[merge["attention_mask"]] = -100
             label[:inp_len:] = -100
@@ -247,10 +246,14 @@ class CausalDataset(BaseDataset):
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         elif self.mode == "infer":
-            merge["labels"] = out["input_ids"]
+            merge["labels"] = merge["input_ids"].clone()[inp_len::]
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
+            
+        print(self.processor.decode(merge["input_ids"], skip_special_tokens = True))
+        print(self.processor.decode(merge["labels"], skip_special_tokens = True))
+        exit()
             
         return merge
     
@@ -267,9 +270,6 @@ class BaseDataFormatter():
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
         self.output = self.output[::, :self.input.shape[-1]:]
-        
-        print(self.processor.tokenizer.batch_decode(self.label, skip_special_tokens = True))
-        exit()
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor

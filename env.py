@@ -89,7 +89,6 @@ class TrainingEnvironment:
                 
                 callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
             )
-            self.trainer.model_accepts_loss_kwargs = False
             
             self.trainer.model_accepts_loss_kwargs = False
             self.trainer.train()
