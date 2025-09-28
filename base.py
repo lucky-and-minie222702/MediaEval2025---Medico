@@ -33,21 +33,8 @@ class ModelInterface:
 
         self.processor = processor_class.from_pretrained(self.pretrained_name)
         
-    def to_lora(
-        self, 
-        r, 
-        alpha, 
-        target_modules,
-        lora_dropout = 0.0,
-        **kwargs):
-        lora_config = LoraConfig(
-            r = r,
-            lora_alpha = alpha,
-            target_modules = target_modules,
-            lora_dropout = lora_dropout,
-            bias = "none",
-            **kwargs,
-        )
+    def to_lora(self, **kwargs):
+        lora_config = LoraConfig(**kwargs)
         
         self.model = get_peft_model(self.model, lora_config)
         
