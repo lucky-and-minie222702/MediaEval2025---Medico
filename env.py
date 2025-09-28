@@ -27,27 +27,27 @@ class TrainingEnvironment:
         self.training_arguments = TrainingArguments(**training_args)
         self.trainer = None
     
-    def get_train(self, fold_idx, **kwargs):
+    def get_train(self, fold_idx, mode = "train", **kwargs):
         return self.dataset_class(
             df = self.distributor.fold[fold_idx][0],
             processor = self.model_interface.processor,
-            mode = "train",
+            mode = mode,
             **kwargs
         )
         
-    def get_val(self, fold_idx, **kwargs):
+    def get_val(self, fold_idx, mode = "train", **kwargs):
         return self.dataset_class(
             df = self.distributor.fold[fold_idx][1],
             processor = self.model_interface.processor,
-            mode = "train",
+            mode = mode,
             **kwargs
         )
         
-    def get_test(self, **kwargs):
+    def get_test(self, mode = "infer", **kwargs):
         return self.dataset_class(
             df = self.distributor.test_df,
             processor = self.model_interface.processor,
-            mode = "infer",
+            mode = mode,
             **kwargs
         )
         
@@ -106,9 +106,18 @@ class TrainingEnvironment:
                 shuffle = False,
                 batch_size = test_batch_size,
             )
-            self.model_interface.test(
+            
+            res = self.model_interface.test(
                 dl = test_dl,
-                output_dir = self.training_arguments.output_dir,
+                output_dir = None,
                 generation_config = generation_conf,
                 format_data_fn = format_data_fn,
+            ).results
+            
+            test_ds = self.get_test(mode = "train",**test_ds_args)
+            test_dl = get_dataloader(
+                test_ds,
+                shuffle = False,
+                batch_size = test_batch_size,
             )
+            res["loss"] = self.model_interface.get_loss(test_dl)

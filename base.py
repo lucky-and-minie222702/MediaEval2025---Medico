@@ -38,13 +38,13 @@ class ModelInterface:
         
         self.model = get_peft_model(self.model, lora_config)
         
-    def infer(self, dl, returns =  ["output"], disable_tqdm = True, generation_config = {}):
+    def infer(self, dl, returns =  ["output"], generation_config = {}):
         inputs = []
         outputs = []
         labels = []
         
         with torch.no_grad():
-            for batch in tqdm(dl, disable = disable_tqdm):
+            for batch in tqdm(dl):
                 batch = {k: v.to(self.model.device) for k, v in batch.items()}
                 
                 output = self.model.generate(
@@ -67,6 +67,17 @@ class ModelInterface:
                 label[label == -100] == self.processor.tokenizer.pad_token_id
         
         return inputs, outputs, labels
+    
+    def get_loss(self, dl):
+        losses = []
+        
+        with torch.no_grad():
+            for batch in tqdm(dl):
+                batch = {k: v.to(self.model.device) for k, v in batch.items()}
+                
+                losses.append(self.model(**batch).loss.item())
+        
+        return np.mean(losses)
             
     def test(
         self, 
@@ -275,10 +286,10 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
-        self.label = self.label[:self.input.shape[0]:]
-        print(self.processor.tokenizer.decode(self.label[0], skip_special_tokens = True))
-        print(self.processor.tokenizer.decode(self.input[0], skip_special_tokens = True))
-        print(self.processor.tokenizer.decode(self.output[0], skip_special_tokens = True))
+        self.output = self.output[:self.input.shape[0]:]
+        print("label", self.processor.tokenizer.decode(self.label[0], skip_special_tokens = True))
+        print("input", self.processor.tokenizer.decode(self.input[0], skip_special_tokens = True))
+        print("output", self.processor.tokenizer.decode(self.output[0], skip_special_tokens = True))
         exit()
     
     def __call__(self, processor, batch, input, output, label):
