@@ -275,6 +275,7 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
+        self.label = self.label[:self.input.shape[0]:]
         print(self.processor.tokenizer.decode(self.label[0], skip_special_tokens = True))
         print(self.processor.tokenizer.decode(self.input[0], skip_special_tokens = True))
         print(self.processor.tokenizer.decode(self.output[0], skip_special_tokens = True))
