@@ -265,7 +265,7 @@ class CausalDataset(BaseDataset):
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
         elif self.mode == "infer":
-            # label = merge["input_ids"].clone()[inp_len::]
+            label = merge["input_ids"].clone()
             print(label, inp_len)
             exit()
             merge = inp
