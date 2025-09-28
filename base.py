@@ -122,6 +122,8 @@ class ModelInterface:
         return logger
 
 
+INSTRUCTION = "You are a medical vision assistant about gastroIntestinal images."
+
 # dataset	     
 class BaseDataset(Dataset):
     def __init__(self, df, processor, mode, img_size, transform = None):
@@ -180,6 +182,15 @@ class CausalDataset(BaseDataset):
         img = ImageUtils.change_size(img, self.img_size)
         
         inp_mes = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": INSTRUCTION,
+                    }
+                ]
+            },
             {
                 "role": "user",
                 "content": [

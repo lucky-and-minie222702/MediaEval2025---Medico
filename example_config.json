@@ -44,7 +44,7 @@
 
 	"train_ds_args": {
 		"is_qwen": true,
-		"max_length": 180,
+		"max_length": 200,
 		"img_size": [224, 224],
 		"transform": {
 			"brightness": 0.1,
