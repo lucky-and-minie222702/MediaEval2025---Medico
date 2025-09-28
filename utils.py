@@ -193,10 +193,13 @@ class ModelUtils:
             print(f"Losses saved to {p}")
     
     @staticmethod
-    def pad_and_trunc(t, max_len, pad_id):
+    def pad_and_trunc(t, max_len, pad_id, side = "right"):
         pad_l = [pad_id] * max(0, max_len - len(t))
         pad_l = torch.tensor(pad_l, dtype = t.dtype)
-        return torch.cat((t[:max_len:], pad_l), dim = 0)
+        if side == "right":
+            return torch.cat((t[:max_len:], pad_l), dim = 0)
+        else:
+            return torch.cat((pad_l, t[:max_len:]), dim = 0)
     
     @staticmethod
     def get_sentences_from_ids(processor, s, to_numpy = False):
