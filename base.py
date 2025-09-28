@@ -242,8 +242,9 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         
-        merge = self.processor.tokenizer(
+        merge = self.processor(
             text = merge_text,
+            images = img,
             padding = False,
             truncation = False,
             return_tensors = "pt"
