@@ -278,6 +278,10 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
+        print(self.processor.tokenizer.decode(self.label[0], skip_special_tokens = True))
+        print(self.processor.tokenizer.decode(self.input[0], skip_special_tokens = True))
+        print(self.processor.tokenizer.decode(self.output[0], skip_special_tokens = True))
+        exit()
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
