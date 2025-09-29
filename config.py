@@ -21,7 +21,16 @@ def get_config(setting):
             "model_class": Qwen2_5_VLForConditionalGeneration,
             "processor_class": Qwen2_5_VLProcessor,
             "dataset_class": CausalDataset,
-            "format_data_fn": BaseDataFormatter(),
+            "format_data_fn": CausalDataFormatter(),
+        })
+
+    elif setting == "instructblip":
+        from transformers import InstructBlipForConditionalGeneration, InstructBlipProcessor
+        conf.update({
+            "model_class": InstructBlipForConditionalGeneration,
+            "processor_class": InstructBlipProcessor,
+            "dataset_class": Seq2seqDataset,
+            "format_data_fn": Seq2seqDataFormatter(),
         })
         
     return conf

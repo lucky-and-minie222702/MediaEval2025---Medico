@@ -2,6 +2,7 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModel, AutoProcessor
 from tqdm import tqdm
+from yaml import Node
 from utils import *
 from torch.utils.data import Dataset
 from qwen_vl_utils import process_vision_info
@@ -135,7 +136,16 @@ INSTRUCTION = "You are a medical vision assistant about gastrointestinal images.
 
 # dataset	     
 class BaseDataset(Dataset):
-    def __init__(self, df, processor, mode, img_size, transform = None):
+    # mode = "train" or "infer"
+    def __init__(
+        self, 
+        df, 
+        processor, 
+        mode, 
+        img_size, 
+        contain_label = True, 
+        transform = None
+    ):
         super().__init__()
         self.processor = processor
         self.mode = mode
@@ -148,48 +158,55 @@ class BaseDataset(Dataset):
 
         self.data = df.to_dict(orient = 'records')
         self.img_dict = ImageUtils.get_img_dict()
+        self.contain_label = contain_label
         
-    def process(self, index):
-        pass
+        self.index = None
+        self.quest = None
+        self.ans = None
+        self.img = None
+        
+    def process(self):
+        self.quest = self.data[self.index]["question"].strip()
+        self.quest = TextUtils.norm_text(
+            self.quest,
+            final_char = self.quest[-1] if self.quest[-1] in [".", "?"] else "?"
+        )
+
+        if self.contain_label:
+            self.ans = self.data[self.index]["answer"].strip()    
+            self.ans = TextUtils.norm_text(
+                self.ans,
+                final_char = ".",
+            )
+        
+        self.img = Image.open(self.img_dict[self.data[self.index]["img_id"]]).convert("RGB")
+        self.img = ImageUtils.change_size(self.img, self.img_size)
         
     def __len__(self):
         return len(self.data)
         
     def __getitem__(self, index):
-        return self.process(index)
+        self.index = index
+        return self.process()
     
 class CausalDataset(BaseDataset):
     def __init__(
         self, 
         df, 
         processor, 
-        mode,  # "train" or "infer"
+        mode,  
         img_size, 
         max_length,
         is_qwen = False,
+        contain_label = True,
         transform = None
     ):
-        super().__init__(df, processor, mode, img_size, transform)
+        super().__init__(df, processor, mode, img_size, contain_label, transform)
         self.max_length = max_length
         self.is_qwen = is_qwen
     
-    def process(self, index):
-        quest = self.data[index]["question"].strip()
-        ans = self.data[index]["answer"].strip()
-        
-        quest = TextUtils.norm_text(
-            quest,
-            final_char = quest[-1] if quest[-1] in [".", "?"] else "?"
-        )
-        
-        ans = TextUtils.norm_text(
-            ans,
-            final_char = ".",
-        )
-        
-        img = Image.open(self.img_dict[self.data[index]["img_id"]]).convert("RGB")
-        img = ImageUtils.change_size(img, self.img_size)
-        
+    def process(self):
+        super().process()
         inp_mes = [
             {
                 "role": "system",
@@ -205,11 +222,11 @@ class CausalDataset(BaseDataset):
                 "content": [
                     {
                         "type": "image",
-                        "image": img,
+                        "image": self.img,
                     },
                     {
                         "type": "text",
-                        "text": quest,
+                        "text": self.quest,
                     }
                 ]
             }
@@ -221,7 +238,7 @@ class CausalDataset(BaseDataset):
                 "content": [
                     {
                         "type": "text",
-                        "text": ans,
+                        "text": self.ans,
                     }
                 ]
             }
@@ -242,6 +259,10 @@ class CausalDataset(BaseDataset):
             truncation = False,
             return_tensors = "pt"
         )
+        inp = {k: v.squeeze(0) for k, v in inp.items()}
+        
+        if not self.contain_label:
+            return inp
         
         merge = self.processor(
             text = merge_text,
@@ -250,8 +271,6 @@ class CausalDataset(BaseDataset):
             truncation = False,
             return_tensors = "pt"
         )
-
-        inp = {k: v.squeeze(0) for k, v in inp.items()}
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         
         inp_len = inp["input_ids"].shape[0]
@@ -276,6 +295,48 @@ class CausalDataset(BaseDataset):
             
         return merge
     
+class Seq2seqDataset(BaseDataset):
+    def __init__(
+        self, 
+        df, 
+        processor, 
+        mode,  
+        img_size, 
+        q_max_length,
+        a_max_length,
+        contain_label = True,
+        transform = None
+    ):
+        super().__init__(df, processor, mode, img_size, contain_label, transform)
+        self.q_max_length = q_max_length
+        self.a_max_length = a_max_length
+
+    def process(self):
+        super().process()
+        
+        self.quest = f"{INSTRUCTION} {self.quest}"
+        
+        inp = self.processor(
+            text = self.quest,
+            images = self.img,
+            max_length = self.q_max_length,
+            padding = "max_length",
+            truncation = True,
+        )
+        
+        if self.contain_label:
+            label = self.processor.tokenizer(
+                text = self.ans,
+                max_length = self.a_max_length,
+                padding = "max_length",
+                truncation = True,
+            )["input_ids"]
+            label[label == self.processor.tokenizer.pad_token_id] = -100
+            inp["labels"] = label
+        
+        inp = {k: v.squeeze(0) for k, v in inp.items()}
+        return inp
+    
     
 # format data for test
 class BaseDataFormatter():
@@ -288,7 +349,6 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
-        self.output = self.output[::, self.input.shape[-1]::]
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
@@ -300,3 +360,11 @@ class BaseDataFormatter():
         self.fn()
         
         return self.input, self.output, self.label
+    
+class CausalDataFormatter(BaseDataFormatter):
+    def fn(self):
+        super().fn()
+        self.output = self.output[::, self.input.shape[-1]::]
+    
+class Seq2seqDataFormatter(BaseDataFormatter):
+    pass
