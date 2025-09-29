@@ -2,7 +2,7 @@ from base import *
 from env import *
 import pandas as pd
 
-CAUSAL_SETTINGS = ["qwen"]
+CAUSAL_SETTINGS = ["qwen", "llava"]
 
 DEFAULT_CLASS_CONFIG = {
     "model_class": None,
@@ -24,13 +24,13 @@ def get_config(setting):
             "format_data_fn": CausalDataFormatter(),
         })
 
-    elif setting == "instructblip":
-        from transformers import InstructBlipForConditionalGeneration, InstructBlipProcessor
+    elif setting == "llava":
+        from transformers import LlavaForConditionalGeneration, LlavaProcessor
         conf.update({
-            "model_class": InstructBlipForConditionalGeneration,
-            "processor_class": InstructBlipProcessor,
-            "dataset_class": Seq2seqDataset,
-            "format_data_fn": Seq2seqDataFormatter(),
+            "model_class": LlavaForConditionalGeneration,
+            "processor_class": LlavaProcessor,
+            "dataset_class": CausalDataset,
+            "format_data_fn": CausalDataFormatter(),
         })
         
     return conf
