@@ -2,7 +2,7 @@ from base import *
 from env import *
 import pandas as pd
 
-CAUSAL_SETTINGS = ["qwen", "llava"]
+CAUSAL_SETTINGS = ["qwen", "pixtral"]
 
 DEFAULT_CLASS_CONFIG = {
     "model_class": None,
@@ -24,7 +24,7 @@ def get_config(setting):
             "format_data_fn": CausalDataFormatter(),
         })
 
-    elif setting == "llava":
+    elif setting == "pixtral":
         from transformers import LlavaForConditionalGeneration, LlavaProcessor
         conf.update({
             "model_class": LlavaForConditionalGeneration,
