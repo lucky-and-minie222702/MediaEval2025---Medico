@@ -25,10 +25,9 @@ def get_config(setting):
         })
 
     elif setting == "llava":
-        from transformers import AutoModelForCausalLM, AutoProcessor
-        conf.update({
-            "model_class": AutoModelForCausalLM,
-            "processor_class": AutoProcessor,
+        from transformers import LlavaForConditionalGeneration, LlavaProcessor
+            "model_class": LlavaForConditionalGeneration,
+            "processor_class": LlavaProcessor,
             "dataset_class": CausalDataset,
             "format_data_fn": CausalDataFormatter(),
         })
