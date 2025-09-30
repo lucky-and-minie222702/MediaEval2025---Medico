@@ -26,6 +26,7 @@ def get_config(setting):
 
     elif setting == "llava":
         from transformers import LlavaForConditionalGeneration, LlavaProcessor
+        conf.update({
             "model_class": LlavaForConditionalGeneration,
             "processor_class": LlavaProcessor,
             "dataset_class": CausalDataset,
