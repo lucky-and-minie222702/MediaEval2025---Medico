@@ -1,0 +1,16 @@
+{
+	"dir": "model",
+	"dataset": {
+		"max_answer_length": 55,
+		"max_question_length": 55,
+		"complexities": [1, 2, 3],
+		"caption_prompt": false
+	},
+	"batch_size": 16,
+	"gen": {
+		"do_sample": false,
+		"n_beams": 10,
+		"n_returns": 3,
+		"early_stopping": true
+	}
+}
