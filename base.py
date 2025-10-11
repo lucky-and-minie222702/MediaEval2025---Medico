@@ -153,7 +153,8 @@ class BaseDataset(Dataset):
         
         self.transform = transform
         if self.transform is not None:
-            self.transform = ImageUtils.get_transform(**self.transform)
+            self.transform = {}
+        self.transform = ImageUtils.get_transform(**self.transform)
 
         self.data = df.to_dict(orient = 'records')
         self.img_dict = ImageUtils.get_img_dict()
@@ -180,7 +181,7 @@ class BaseDataset(Dataset):
         
         self.img = Image.open(self.img_dict[self.data[self.index]["img_id"]]).convert("RGB")
         self.img = ImageUtils.change_size(self.img, self.img_size)
-        if self.mode == "train" and self.transform is not None:
+        if self.mode == "train":
             self.img = self.transform(self.img)
         
     def __len__(self):
