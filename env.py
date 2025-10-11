@@ -69,6 +69,7 @@ class TrainingEnvironment:
         generation_conf = None,
         
         is_causal = True,
+        test_output_dir = None,
     ):
         if do_train:
             if val_ds_args is None:
@@ -124,3 +125,5 @@ class TrainingEnvironment:
                 batch_size = test_batch_size,
             )
             res["loss"] = self.model_interface.get_loss(test_dl)
+            
+            joblib.dump(res, f"{test_output_dir}/test.results")
