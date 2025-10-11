@@ -23,5 +23,7 @@ env.train(
     generation_conf = conf.get("generation_conf"),
     
     is_causal = conf["setting"] in CAUSAL_SETTINGS,
+    
+    test_output_dir = conf.get("test_output_dir"),
 )
 
