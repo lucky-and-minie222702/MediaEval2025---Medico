@@ -109,10 +109,9 @@ class ModelInterface:
                 output = self.model.generate(
                     **batch,
                     **generation_config,
-                    pad_token_id = self.processor.tokenizer.eos_token_id,
                 )
                 
-                i = 10
+                i = 5
                 print(output[i], self.processor.tokenizer.decode(output[i]))
                 print()
                 print(label[i], self.processor.tokenizer.decode(label[i]))
