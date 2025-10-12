@@ -113,9 +113,9 @@ class ModelInterface:
                 )
                 
                 i = 10
-                print(output[i], self.processor.tokenizer.decodee(output[i]))
+                print(output[i], self.processor.tokenizer.decode(output[i]))
                 print()
-                print(label[i], self.processor.tokenizer.decodee(label[i]))
+                print(label[i], self.processor.tokenizer.decode(label[i]))
                 exit()
                 
                 if format_data_fn is not None:
