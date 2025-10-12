@@ -121,7 +121,6 @@ class TextUtils:
         clean_data = [
             (pred.strip().replace("\n", ""), ref.strip().replace("\n", ""))
             for pred, ref in zip(predictions, references)
-            if pred.strip().replace("\n", "") and ref.strip().replace("\n", "")
         ]
 
         if len(clean_data) == 0:
