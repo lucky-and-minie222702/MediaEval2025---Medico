@@ -109,6 +109,7 @@ class ImageUtils:
 class TextUtils:
     def norm_text(text, final_char = None):
         text = text.strip()
+        text = text.replace("\n", "")
         text = text[0].upper() + text[1::]
         if final_char is not None:
             if text[-1] != final_char:
@@ -267,12 +268,12 @@ class ModelUtils:
             pred = ModelUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = ModelUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            # print(quest)
-            # print()
-            # print(pred)
-            # print()
-            # print(label)
-            # exit()
+            print(quest)
+            print()
+            print(pred)
+            print()
+            print(label)
+            exit()
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)

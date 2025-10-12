@@ -380,7 +380,7 @@ class BaseDataFormatter():
 class CausalDataFormatter(BaseDataFormatter):
     def fn(self):
         super().fn()
-        self.output = self.output[::, self.input.shape[-1]::]
+        # self.output = self.output[::, self.input.shape[-1]::]
     
 class Seq2seqDataFormatter(BaseDataFormatter):
     pass
