@@ -255,8 +255,6 @@ class CausalDataset(BaseDataset):
         
         merge_mes = inp_mes + out_mes
         
-        print(merge_mes)
-        
         if self.is_qwen:
             img, _ = process_vision_info(merge_mes)
         
@@ -283,6 +281,8 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         merge = {k: v.squeeze(0) for k, v in merge.items()}
+        
+        print(merge["input_ids"].shape)
         
         inp_len = inp["input_ids"].shape[0]
         
