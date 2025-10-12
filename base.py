@@ -112,9 +112,10 @@ class ModelInterface:
                     pad_token_id = self.processor.tokenizer.eos_token_id,
                 )
                 
-                print(output[8])
+                i = 10
+                print(output[i], self.processor.tokenizer.decodee(output[i]))
                 print()
-                print(label[8])
+                print(label[i], self.processor.tokenizer.decodee(label[i]))
                 exit()
                 
                 if format_data_fn is not None:
