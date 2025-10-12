@@ -111,7 +111,7 @@ class ModelInterface:
                     **generation_config,
                 )
                 
-                i = 5
+                i = 6
                 print(output[i], self.processor.tokenizer.decode(output[i]))
                 print()
                 print(label[i], self.processor.tokenizer.decode(label[i]))
