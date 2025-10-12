@@ -131,9 +131,6 @@ class TextUtils:
                 "rougeL": 0.0,
                 "meteor": 0.0,
             }
-            
-        print(clean_data)
-        exit()
 
         clean_preds, clean_refs = zip(*clean_data)
 
@@ -269,6 +266,13 @@ class ModelUtils:
             quest = ModelUtils.get_sentences_from_ids(self.processor, quest, to_numpy = True)
             pred = ModelUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = ModelUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
+            
+            print(quest)
+            print()
+            print(pred)
+            print()
+            print(label)
+            exit()
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)
