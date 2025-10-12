@@ -111,6 +111,8 @@ class TrainingEnvironment:
                 batch_size = test_batch_size,
             )
             
+            self.model_interface.get_loss(test_dl)
+            
             res = self.model_interface.test(
                 dl = test_dl,
                 output_dir = None,
