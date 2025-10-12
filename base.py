@@ -103,7 +103,7 @@ class ModelInterface:
                 
                 input = batch["input_ids"]
                 
-                label = batch["labels"]   
+                label = batch.pop("labels")
                 label[label == -100] == self.processor.tokenizer.pad_token_id
                 
                 output = self.model.generate(
