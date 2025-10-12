@@ -108,7 +108,8 @@ class ModelInterface:
                 
                 output = self.model.generate(
                     **batch,
-                    **generation_config
+                    **generation_config,
+                    pad_token_id = self.processor.tokenizer.eos_token_id,
                 )
                 
                 if format_data_fn is not None:
@@ -253,6 +254,8 @@ class CausalDataset(BaseDataset):
         ]
         
         merge_mes = inp_mes + out_mes
+        
+        print(merge_mes)
         
         if self.is_qwen:
             img, _ = process_vision_info(merge_mes)
