@@ -158,7 +158,7 @@ class BaseDataset(Dataset):
         self.img_size = img_size
         
         self.transform = transform
-        if self.transform is not None:
+        if self.transform is None:
             self.transform = {}
         self.transform = ImageUtils.get_transform(**self.transform)
 
