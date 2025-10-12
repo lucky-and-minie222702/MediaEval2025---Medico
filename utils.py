@@ -119,9 +119,9 @@ class TextUtils:
     @staticmethod
     def get_scores(predictions, references):
         clean_data = [
-            (pred.strip(), ref.strip())
+            (pred.strip().replace("\n", ""), ref.strip().replace("\n", ""))
             for pred, ref in zip(predictions, references)
-            if pred.strip() and ref.strip()
+            if pred.strip().replace("\n", "") and ref.strip().replace("\n", "")
         ]
 
         if len(clean_data) == 0:
@@ -267,13 +267,6 @@ class ModelUtils:
             quest = ModelUtils.get_sentences_from_ids(self.processor, quest, to_numpy = True)
             pred = ModelUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = ModelUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
-            
-            def norm(x):
-                return np.array([i.strip().replace("\n", "") for i in x])
-            
-            quest = norm(quest)
-            pred = norm(quest)
-            label = norm(label)
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)
