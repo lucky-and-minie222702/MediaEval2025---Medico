@@ -241,17 +241,19 @@ class CausalDataset(BaseDataset):
             }
         ]
         
-        out_mes = [
-            {
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": self.ans,
-                    }
-                ]
-            }
-        ]
+        out_mes = []
+        if self.contain_label:
+            out_mes = [
+                {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": self.ans,
+                        }
+                    ]
+                }
+            ]
         
         merge_mes = inp_mes + out_mes
         
@@ -281,8 +283,6 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         merge = {k: v.squeeze(0) for k, v in merge.items()}
-        
-        print(merge["input_ids"].shape)
         
         inp_len = inp["input_ids"].shape[0]
         
