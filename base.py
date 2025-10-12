@@ -185,10 +185,6 @@ class BaseDataset(Dataset):
                 self.ans,
                 final_char = ".",
             )
-            
-        print(self.quest)
-        print(self.ans)
-        print()
         
         self.img = Image.open(self.img_dict[self.data[self.index]["img_id"]]).convert("RGB")
         self.img = ImageUtils.change_size(self.img, self.img_size)
