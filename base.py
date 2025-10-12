@@ -38,7 +38,7 @@ class ModelInterface:
     def to_lora(self, **kwargs):
         lora_config = LoraConfig(**kwargs)
         
-        self.model = get_peft_model(self.model, lora_config)
+        self.model.language_model = get_peft_model(self.language_model, lora_config)
         
     def infer(self, dl, returns =  ["output"], generation_config = {}):
         inputs = []
