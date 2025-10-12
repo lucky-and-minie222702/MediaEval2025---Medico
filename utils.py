@@ -269,7 +269,7 @@ class ModelUtils:
             label = ModelUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
             def norm(x):
-                return [i.strip().replace("\n", "") for i in x]
+                return np.array([i.strip().replace("\n", "") for i in x])
             
             quest = norm(quest)
             pred = norm(quest)
