@@ -111,12 +111,6 @@ class ModelInterface:
                     **generation_config,
                 )
                 
-                i = 6
-                print(output[i], self.processor.tokenizer.decode(output[i]))
-                print()
-                print(label[i], self.processor.tokenizer.decode(label[i]))
-                exit()
-                
                 if format_data_fn is not None:
                     input, output, label = format_data_fn(self.processor, batch, input, output, label)
 
@@ -293,6 +287,8 @@ class CausalDataset(BaseDataset):
         
         if self.mode == "train":
             label = merge["input_ids"].clone()
+            print(self.processor.tokenizer.decode(merge['input_ids']))
+            exit()
             label[:inp_len:] = -100
 
             merge["labels"] = label
