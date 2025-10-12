@@ -30,7 +30,8 @@ class ModelInterface:
             device_map = "auto",
             trust_remote_code = True
         )
-        self.model.enable_input_require_grads()
+        for name, param in self.model.named_parameters():
+            param.requires_grad = False
 
         self.processor = self.processor_class.from_pretrained(self.pretrained_name)
         
