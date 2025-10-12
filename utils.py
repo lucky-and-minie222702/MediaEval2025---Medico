@@ -132,6 +132,9 @@ class TextUtils:
                 "rougeL": 0.0,
                 "meteor": 0.0,
             }
+            
+        print(clean_data)
+        exit()
 
         clean_preds, clean_refs = zip(*clean_data)
 
