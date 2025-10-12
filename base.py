@@ -360,7 +360,6 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
-        self.label = self.label[:-1:]
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
@@ -376,7 +375,7 @@ class BaseDataFormatter():
 class CausalDataFormatter(BaseDataFormatter):
     def fn(self):
         super().fn()
-        # self.output = self.output[::, self.input.shape[-1]::]
+        self.output = self.output[::, self.input.shape[-1]::]
     
 class Seq2seqDataFormatter(BaseDataFormatter):
     pass

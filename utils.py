@@ -268,12 +268,12 @@ class ModelUtils:
             pred = ModelUtils.get_sentences_from_ids(self.processor, pred, to_numpy = True).reshape(-1, n_returns)
             label = ModelUtils.get_sentences_from_ids(self.processor, label, to_numpy = True)
             
-            print(quest)
-            print()
-            print(pred)
-            print()
-            print(label)
-            exit()
+            def norm(x):
+                return [i.strip().replace("\n", "") for i in x]
+            
+            quest = norm(quest)
+            pred = norm(quest)
+            label = norm(label)
             
             self.outputs["questions"].append(quest)
             self.outputs["predictions"].append(pred)
