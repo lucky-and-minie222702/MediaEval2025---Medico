@@ -132,7 +132,12 @@ class ModelInterface:
         return logger
 
 
-INSTRUCTION = "You are a medical vision assistant about gastrointestinal images."
+INSTRUCTION = (
+    "You are a medical vision-language assistant; given an endoscopic image and a clinical"
+    "question that may ask about one or more findings, provide a concise, clinically accurate"
+    "response addressing all parts of the question in natural-sounding medical language as if"
+    "spoken by a doctor in a single sentence."
+)
 
 # dataset	     
 class BaseDataset(Dataset):
@@ -279,7 +284,6 @@ class CausalDataset(BaseDataset):
         
         if self.mode == "train":
             label = merge["input_ids"].clone()
-            label[merge["attention_mask"] == 0] = -100
             label[:inp_len:] = -100
 
             merge["labels"] = label
@@ -352,6 +356,7 @@ class BaseDataFormatter():
         
     def fn(self):
         self.label[self.label == -100] = self.processor.tokenizer.pad_token_id
+        self.label = self.label[:-1:]
     
     def __call__(self, processor, batch, input, output, label):
         self.processor = processor
