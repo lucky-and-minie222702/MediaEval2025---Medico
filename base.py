@@ -188,6 +188,8 @@ class BaseDataset(Dataset):
         self.img = Image.open(self.img_dict[self.data[self.index]["img_id"]]).convert("RGB")
         self.img = ImageUtils.change_size(self.img, self.img_size)
         if self.mode == "train":
+            print("a")
+            exit()
             self.img = self.transform(self.img)
         
     def __len__(self):
