@@ -295,8 +295,6 @@ class CausalDataset(BaseDataset):
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
-            print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True))
-            exit()
         elif self.mode == "infer":
             label = merge["input_ids"].clone()[inp_len::]
             merge = inp
