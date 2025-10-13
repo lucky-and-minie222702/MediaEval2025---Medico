@@ -288,8 +288,9 @@ class CausalDataset(BaseDataset):
         if self.mode == "train":
             label = merge["input_ids"].clone()
             label[:inp_len:] = -100
-            print(self.processor.tokenizer.decode(label[inp_len::], skip_special_tokens = True))
-            print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True))
+
+            print(f'label {self.index} |{self.processor.tokenizer.decode(label[inp_len::], skip_special_tokens = True)}|')
+            print(f'input {self.index} |{self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True)}|')
             exit()
 
             merge["labels"] = label
