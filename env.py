@@ -104,7 +104,7 @@ class TrainingEnvironment:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.model_interface.model.to(device)
 
-            test_ds = self.get_test(**test_ds_args)
+            test_ds = self.get_train(mode = "infer", **test_ds_args)
             test_dl = get_dataloader(
                 test_ds,
                 shuffle = False,

@@ -289,10 +289,6 @@ class CausalDataset(BaseDataset):
             label = merge["input_ids"].clone()
             label[:inp_len:] = -100
 
-            print(f'label {self.index} |{self.processor.tokenizer.decode(label[inp_len::], skip_special_tokens = True)}|')
-            print(f'input {self.index} |{self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True)}|')
-            exit()
-
             merge["labels"] = label
     
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
