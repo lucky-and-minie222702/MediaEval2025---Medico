@@ -111,14 +111,6 @@ class TrainingEnvironment:
                 batch_size = test_batch_size,
             )
             
-            test_ds = self.get_test(mode = "train",**test_ds_args)
-            test_dl = get_dataloader(
-                test_ds,
-                shuffle = False,
-                batch_size = test_batch_size,
-            )
-            self.model_interface.get_loss(test_dl)
-            
             res = self.model_interface.test(
                 dl = test_dl,
                 output_dir = None,
