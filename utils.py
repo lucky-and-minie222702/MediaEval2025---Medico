@@ -15,7 +15,6 @@ import torch
 from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
 
-
 class DFDistributor:
     def __init__(self, train_df, test_df, n_splits, seed):
         self.train_df = train_df
@@ -107,6 +106,7 @@ class ImageUtils:
         
 
 class TextUtils:
+    @staticmethod
     def norm_text(text, final_char = None):
         text = text.strip()
         text = text.replace("\n", "")
