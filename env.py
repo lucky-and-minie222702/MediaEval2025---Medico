@@ -72,6 +72,8 @@ class TrainingEnvironment:
         test_output_dir = None,
     ):
         if do_train:
+            self.model_interface.processor.tokenizer.padding_side = 'right'
+
             if val_ds_args is None:
                 val_ds_args = train_ds_args
 
