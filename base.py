@@ -312,9 +312,6 @@ class CausalDataset(BaseDataset):
         label[label == self.processor.tokenizer.pad_token_id] = -100
 
         merge["labels"] = label
-        
-        print(merge)
-        exit()
             
         return merge
     
