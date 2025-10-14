@@ -300,6 +300,11 @@ class CausalDataset(BaseDataset):
             return merge
         
         assistant_token_id = self.processor.tokenizer.convert_tokens_to_ids(ASSISTANT_TEXT[self.setting])
+        
+        print(merge["input_ids"])
+        print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True))
+        print(assistant_token_id)
+        
         assistant_idx = find_first_token_position(merge["input_ids"], assistant_token_id)
         inp_len = assistant_idx + 1
         
