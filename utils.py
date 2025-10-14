@@ -354,9 +354,8 @@ class TokenWiseAccuracyTrainer(Trainer):
             model, inputs, prediction_loss_only=False, ignore_keys=ignore_keys
         )
 
-        if prediction_loss_only:
-            print("lmao")
-            return (loss, None, None)
+        # if prediction_loss_only:
+        #     return (loss, None, None)
 
         if labels is None:
             return (loss, logits, None)
