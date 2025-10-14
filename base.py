@@ -257,7 +257,7 @@ class CausalDataset(BaseDataset):
         merge_mes = inp_mes + out_mes
         
         if self.is_qwen:
-            img, _ = process_vision_info(merge_mes)
+            img, vid = process_vision_info(merge_mes)
         
         inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = True)
         merge_text = self.processor.apply_chat_template(merge_mes, tokenize = False, add_generation_prompt = False)
@@ -265,6 +265,7 @@ class CausalDataset(BaseDataset):
         inp = self.processor(
             text = inp_text,
             images = img,
+            videos = vid,
             padding = False,
             truncation = False,
             return_tensors = "pt"
