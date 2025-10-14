@@ -385,7 +385,6 @@ class TokenWiseAccuracyTrainer(Trainer):
         if self.total_tokens > 0:
             final_accuracy = self.total_correct_tokens / self.total_tokens
         else:
-            print("lmao")
             final_accuracy = 0.0
 
         metrics[f"{metric_key_prefix}_token_accuracy"] = final_accuracy
