@@ -355,6 +355,7 @@ class TokenWiseAccuracyTrainer(Trainer):
         )
 
         if prediction_loss_only:
+            print("lmao")
             return (loss, None, None)
 
         if labels is None:
@@ -373,7 +374,6 @@ class TokenWiseAccuracyTrainer(Trainer):
 
         self.total_correct_tokens += correct_tokens
         self.total_tokens += total_tokens
-        print(self.total_tokens)
 
         return (loss, logits, labels)
 
