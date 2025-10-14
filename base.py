@@ -260,22 +260,27 @@ class CausalDataset(BaseDataset):
         
         if self.setting == "qwen":
             self.img, _ = process_vision_info(merge_mes)
-        
-        inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = True)
-        merge_text = self.processor.apply_chat_template(merge_mes, tokenize = False, add_generation_prompt = False)
-        
-        inp = self.processor(
-            text = inp_text,
-            images = self.img,
-            padding = False,
-            truncation = True,
-            max_length = self.max_length,
-            return_tensors = "pt"
-        )
-        inp = {k: v.squeeze(0) for k, v in inp.items()}
-        
-        if not self.contain_label:
+            
+        if self.mode == "infer":
+            inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = True)
+            inp = self.processor(
+                text = inp_text,
+                images = self.img,
+                padding = "max_length",
+                truncation = True,
+                max_length = self.max_length,
+                return_tensors = "pt"
+            )
+            inp["label"] = self.processor.tokenizer(
+                text = self.ans,
+                padding = "max_length",
+                truncation = True,
+                max_length = 60,
+                return_tensors = "pt"
+            )
             return inp
+        
+        merge_text = self.processor.apply_chat_template(merge_mes, tokenize = False, add_generation_prompt = False)
         
         merge = self.processor(
             text = merge_text,
@@ -287,25 +292,17 @@ class CausalDataset(BaseDataset):
         )
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         
-        inp_len = inp["input_ids"].shape[0]
+        if not self.contain_label:
+            return merge
         
-        if self.mode == "train":
-            label = merge["input_ids"].clone()
-            label[:inp_len:] = -100
+        assistant_token_id = self.processor.tokenizer.convert_tokens_to_ids("<assistant>")
+        assistant_idx = find_first_token_position(merge["input_ids"], assistant_token_id)
+        inp_len = assistant_idx + 1
+        
+        label = merge["input_ids"].clone()
+        label[:inp_len:] = -100
 
-            merge["labels"] = label
-        elif self.mode == "infer":
-            label = merge["input_ids"].clone()[inp_len::]
-            
-            merge = self.processor(
-                text = inp_text,
-                images = self.img,
-                padding = "max_length",
-                truncation = True,
-                max_length = self.max_length,
-                return_tensors = "pt"
-            )
-            merge["labels"] = label
+        merge["labels"] = label
             
         return merge
     

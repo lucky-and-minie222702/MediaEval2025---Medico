@@ -1,6 +1,7 @@
 from base import *
 from transformers import Trainer, TrainingArguments
 from transformers import TrainerCallback
+from tqdm import tqdm
 
 class TrainingEnvironment:
     def __init__(
@@ -128,7 +129,7 @@ class TrainingEnvironment:
                     logs = {"step_token_accuracy": acc}
                     state.log_history.append({"step": state.global_step, **logs})
 
-                    print(f"Step {state.global_step} - token_acc: {acc:.4f}")
+                    tqdm.write(f"Step {state.global_step} - token_acc: {acc:.4f}")
 
                     return control
             
@@ -144,7 +145,7 @@ class TrainingEnvironment:
                     ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir),
                     TokenAccuracyCallback(1),
                 ],
-                compute_metrics = compute_token_accuracy_,
+                # compute_metrics = compute_token_accuracy_,
             )
             
             self.trainer.model_accepts_loss_kwargs = False
