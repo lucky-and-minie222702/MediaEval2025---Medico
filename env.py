@@ -128,8 +128,7 @@ class TrainingEnvironment:
                     logs = {"step_token_accuracy": acc}
                     state.log_history.append({"step": state.global_step, **logs})
 
-                    if args.logging_dir:
-                        print(f"Step {state.global_step} - token_acc: {acc:.4f}")
+                    print(f"Step {state.global_step} - token_acc: {acc:.4f}")
 
                     return control
             
