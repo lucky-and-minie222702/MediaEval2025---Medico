@@ -97,7 +97,6 @@ class TrainingEnvironment:
                 ],
             )
             
-            self.trainer.model_accepts_loss_kwargs = False
             self.trainer.train()
         
         if do_test:

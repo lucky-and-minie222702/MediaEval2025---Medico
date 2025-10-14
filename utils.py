@@ -15,6 +15,8 @@ import torch
 from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
 from transformers import Trainer
+from tqdm import tqdm
+
 
 class DFDistributor:
     def __init__(self, train_df, test_df, n_splits, seed):
@@ -360,12 +362,8 @@ class TokenWiseAccuracyTrainer(Trainer):
 
         predictions = torch.argmax(logits, dim=-1)
 
-        # Create a mask for tokens that are NOT padding/ignored (-100)
         mask = labels != self.ignore_index
 
-        # Apply the mask to both predictions and labels
-        # Note: We move them to CPU only for the final aggregation steps
-        # The main tensors (predictions, labels, mask) are still on the device (GPU/CPU)
         masked_predictions = predictions[mask]
         masked_labels = labels[mask]
 
@@ -390,10 +388,9 @@ class TokenWiseAccuracyTrainer(Trainer):
             final_accuracy = 0.0
 
         metrics[f"{metric_key_prefix}_token_accuracy"] = final_accuracy
+        tqdm.write(f"Token-wise accuracy: {final_accuracy:.4f}")
 
         self.total_correct_tokens = 0
         self.total_tokens = 0
-        
-        print(final_accuracy)
         
         return metrics
