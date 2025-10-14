@@ -141,7 +141,7 @@ INSTRUCTION = (
 )
 
 ASSISTANT_TEXT = {
-    "qwen": "<|im_start|>assistant",
+    "qwen": "<|im_start|>assistant\n",
 }
 
 # dataset	     
@@ -304,6 +304,7 @@ class CausalDataset(BaseDataset):
         print(merge["input_ids"])
         print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = False))
         print(assistant_token_id)
+        exit()
         
         assistant_idx = find_first_token_position(merge["input_ids"], assistant_token_id)
         inp_len = assistant_idx + 1
