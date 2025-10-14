@@ -26,7 +26,6 @@ class DFDistributor:
 
 def find_subsequence(input_ids, pattern):
     n, m = len(input_ids), len(pattern)
-    print(n, m)
     for i in range(n - m + 1):
         if input_ids[i:i+m] == pattern:
             return i
