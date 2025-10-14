@@ -304,9 +304,6 @@ class CausalDataset(BaseDataset):
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0, side = "left")
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100, side = "left")
             
-        print(merge)
-        exit()
-            
         return merge
     
 class Seq2seqDataset(BaseDataset):
