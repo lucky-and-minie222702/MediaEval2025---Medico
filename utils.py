@@ -344,8 +344,7 @@ class TokenWiseAccuracyTrainer(Trainer):
         self,
         model,
         inputs,
-        predictio
-        n_loss_only,
+        prediction_loss_only,
         ignore_keys = None,
     ):
         loss, logits, labels = super().prediction_step(
