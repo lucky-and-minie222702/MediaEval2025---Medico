@@ -286,10 +286,6 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         merge = {k: v.squeeze(0) for k, v in merge.items()}
-        print(merge)
-        for k, v in merge.items():
-            print(k, v.shape)
-        exit()
         
         inp_len = inp["input_ids"].shape[0]
         
@@ -302,6 +298,11 @@ class CausalDataset(BaseDataset):
             label = merge["input_ids"].clone()[inp_len::]
             merge = inp
             merge["labels"] = label
+            
+        print(merge)
+        for k, v in merge.items():
+            print(k, v.shape)
+        exit()
             
         return merge
     
