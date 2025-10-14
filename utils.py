@@ -374,7 +374,7 @@ class TokenWiseAccuracyTrainer(Trainer):
         self.total_correct_tokens += correct_tokens
         self.total_tokens += total_tokens
 
-        return (loss, logits, labels)
+        return (loss, None, None)
 
     def evaluate(self, eval_dataset = None, ignore_keys = None, metric_key_prefix: str = "eval"):
         self.total_correct_tokens = 0
