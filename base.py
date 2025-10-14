@@ -291,7 +291,6 @@ class CausalDataset(BaseDataset):
 
             merge["labels"] = label
 
-            merge["input_ids"] = merge["input_ids"][:inp_len:]
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id)
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0)
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100)
@@ -303,6 +302,9 @@ class CausalDataset(BaseDataset):
             merge["input_ids"] = ModelUtils.pad_and_trunc(merge["input_ids"], self.max_length, self.processor.tokenizer.pad_token_id, side = "left")
             merge["attention_mask"] = ModelUtils.pad_and_trunc(merge["attention_mask"], self.max_length, 0, side = "left")
             merge["labels"] = ModelUtils.pad_and_trunc(merge["labels"], self.max_length, -100, side = "left")
+            
+        print(merge)
+        exit()
             
         return merge
     
