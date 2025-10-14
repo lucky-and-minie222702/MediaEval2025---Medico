@@ -307,11 +307,6 @@ class CausalDataset(BaseDataset):
             )
             merge["labels"] = label
             
-        print(merge)
-        for k, v in merge.items():
-            print(k, v.shape)
-        exit()
-            
         return merge
     
 class Seq2seqDataset(BaseDataset):
