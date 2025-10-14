@@ -101,7 +101,7 @@ class TrainingEnvironment:
                 train_dataset = train_ds,
                 eval_dataset = val_ds,
                 
-                callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
+                callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)],
                 compute_metrics = compute_token_accuracy,
             )
             
