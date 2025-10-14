@@ -309,6 +309,7 @@ class CausalDataset(BaseDataset):
         
         label = merge["input_ids"].clone()
         label[:inp_len:] = -100
+        label[label == self.processor.tokenizer.pad_token_id] = -100
 
         merge["labels"] = label
         
