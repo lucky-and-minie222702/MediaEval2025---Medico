@@ -301,7 +301,7 @@ class CausalDataset(BaseDataset):
         
         assistant_pattern = self.processor.tokenizer.encode(ASSISTANT_TEXT[self.setting])
         
-        assistant_idx = find_subsequence(merge["input_ids"], assistant_pattern)
+        assistant_idx = find_subsequence(merge["input_ids"].tolist(), assistant_pattern)
         inp_len = assistant_idx + len(assistant_pattern)
         
         label = merge["input_ids"].clone()

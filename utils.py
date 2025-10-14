@@ -29,9 +29,7 @@ def find_subsequence(input_ids, pattern):
     print(n, m)
     for i in range(n - m + 1):
         if input_ids[i:i+m] == pattern:
-            print(input_ids[i:i+m], pattern)
             return i
-    exit()
     return None
 
 def get_dataloader(dataset, batch_size, shuffle = True):
