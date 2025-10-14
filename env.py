@@ -145,7 +145,7 @@ class TrainingEnvironment:
                     ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir),
                     TokenAccuracyCallback(1),
                 ],
-                # compute_metrics = compute_token_accuracy_,
+                compute_metrics = compute_token_accuracy_,
             )
             
             self.trainer.model_accepts_loss_kwargs = False
