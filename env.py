@@ -84,7 +84,7 @@ class TrainingEnvironment:
             
             self.model_interface.to_lora(**lora_args)
             
-            self.trainer = Trainer(
+            self.trainer = TokenWiseAccuracyTrainer(
                 model = self.model_interface.model,
                 args = self.training_arguments,
                 processing_class = self.model_interface.processor,

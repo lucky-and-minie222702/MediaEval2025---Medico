@@ -14,6 +14,7 @@ import random
 import torch
 from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
+from transformers import Trainer
 
 class DFDistributor:
     def __init__(self, train_df, test_df, n_splits, seed):
@@ -368,20 +369,13 @@ class TokenWiseAccuracyTrainer(Trainer):
         masked_predictions = predictions[mask]
         masked_labels = labels[mask]
 
-        # Calculate the number of correctly predicted, non-ignored tokens
         correct_tokens = (masked_predictions == masked_labels).sum().item()
         
-        # Calculate the total number of non-ignored tokens
         total_tokens = mask.sum().item()
 
-        # Update the running totals (aggregation)
-        # These are simple integers, preventing the memory ballooning issue.
         self.total_correct_tokens += correct_tokens
         self.total_tokens += total_tokens
 
-        # Return the original tensors needed by the Trainer's evaluation_loop 
-        # (even though we don't *use* the full tensors later for accuracy, 
-        # the Trainer still expects them for standard output)
         return (loss, logits, labels)
 
     def evaluate(self, eval_dataset = None, ignore_keys = None, metric_key_prefix: str = "eval"):
