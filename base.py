@@ -133,12 +133,14 @@ class ModelInterface:
         return logger
 
 
-INSTRUCTION = (
-    "You are a medical vision-language assistant; given an endoscopic image and a clinical "
-    "question that may ask about one or more findings, provide a concise, clinically accurate "
-    "response addressing all parts of the question in natural-sounding medical language as if "
-    "spoken by a doctor in a single sentence."
-)
+# INSTRUCTION = (
+#     "You are a medical vision-language assistant; given an endoscopic image and a clinical "
+#     "question that may ask about one or more findings, provide a concise, clinically accurate "
+#     "response addressing all parts of the question in natural-sounding medical language as if "
+#     "spoken by a doctor in a single sentence."
+# )
+
+INSTRUCTION = "You are a medical vision assistant about gastroIntestinal image"
 
 ASSISTANT_TEXT = {
     "qwen": "<|im_start|>assistant\n",
