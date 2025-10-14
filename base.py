@@ -284,6 +284,7 @@ class CausalDataset(BaseDataset):
         merge = {k: v.squeeze(0) for k, v in merge.items()}
         for k, v in merge.items():
             print(k, v.shape)
+        exit()
         
         inp_len = inp["input_ids"].shape[0]
         
