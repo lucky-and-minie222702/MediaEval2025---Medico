@@ -276,7 +276,7 @@ class CausalDataset(BaseDataset):
         
         merge = self.processor(
             text = merge_text,
-            images = img,
+            images = self.img,
             padding = False,
             truncation = False,
             return_tensors = "pt"
