@@ -300,6 +300,8 @@ class CausalDataset(BaseDataset):
             return merge
         
         assistant_pattern = self.processor.tokenizer.encode(ASSISTANT_TEXT[self.setting])
+        print(assistant_pattern)
+        print(merge["input_ids"])
         
         assistant_idx = find_subsequence(merge["input_ids"], assistant_pattern)
         inp_len = assistant_idx + len(assistant_pattern)
