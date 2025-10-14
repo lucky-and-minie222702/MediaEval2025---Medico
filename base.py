@@ -149,6 +149,7 @@ class BaseDataset(Dataset):
         processor, 
         mode, 
         img_size, 
+        setting = None,
         contain_label = True, 
         transform = None
     ):
@@ -170,6 +171,8 @@ class BaseDataset(Dataset):
         self.quest = None
         self.ans = None
         self.img = None
+        
+        self.setting = setting
         
     def process(self):
         self.quest = self.data[self.index]["question"].strip()
@@ -205,13 +208,12 @@ class CausalDataset(BaseDataset):
         mode,  
         img_size, 
         max_length,
-        is_qwen = False,
+        setting = None,
         contain_label = True,
         transform = None
     ):
-        super().__init__(df, processor, mode, img_size, contain_label, transform)
+        super().__init__(df, processor, mode, img_size, setting, contain_label, transform)
         self.max_length = max_length
-        self.is_qwen = is_qwen
     
     def process(self):
         super().process()
@@ -256,7 +258,7 @@ class CausalDataset(BaseDataset):
         
         merge_mes = inp_mes + out_mes
         
-        if self.is_qwen:
+        if self.setting == "qwen":
             self.img, _ = process_vision_info(merge_mes)
         
         inp_text = self.processor.apply_chat_template(inp_mes, tokenize = False, add_generation_prompt = True)
@@ -282,8 +284,7 @@ class CausalDataset(BaseDataset):
             return_tensors = "pt"
         )
         merge = {k: v.squeeze(0) for k, v in merge.items()}
-        for k, v in merge.items():
-            print(k, v.shape)
+        print(merge)
         exit()
         
         inp_len = inp["input_ids"].shape[0]
