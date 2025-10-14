@@ -1,5 +1,6 @@
 from base import *
 from transformers import Trainer, TrainingArguments
+from transformers import TrainerCallback
 
 class TrainingEnvironment:
     def __init__(
@@ -82,7 +83,7 @@ class TrainingEnvironment:
             
             self.model_interface.to_lora(**lora_args)
             
-            def compute_token_accuracy(eval_pred):
+            def compute_token_accuracy_(eval_pred):
                 logits, labels = eval_pred
                 preds = np.argmax(logits, axis=-1)
 
@@ -93,6 +94,45 @@ class TrainingEnvironment:
 
                 return {"token_accuracy": accuracy.item() if isinstance(accuracy, torch.Tensor) else accuracy}
             
+            
+            def compute_token_accuracy(logits, labels):
+                preds = torch.argmax(logits, dim=-1)
+                mask = labels != -100
+                correct = (preds == labels) & mask
+                acc = correct.sum().float() / mask.sum().float()
+                return acc.item()
+            
+            class TokenAccuracyCallback(TrainerCallback):
+                def __init__(self, log_every):
+                    self.log_every = log_every
+                    self.step = 0
+
+                def on_step_end(self, args, state, control, model=None, **kwargs):
+                    self.step += 1
+                    if self.step % self.log_every != 0:
+                        return control
+
+                    if "outputs" not in kwargs or "inputs" not in kwargs:
+                        return control
+                    outputs = kwargs["outputs"]
+                    inputs = kwargs["inputs"]
+
+                    if not hasattr(outputs, "logits"):
+                        return control
+
+                    logits = outputs.logits.detach()
+                    labels = inputs["labels"]
+
+                    acc = compute_token_accuracy(logits, labels)
+
+                    logs = {"step_token_accuracy": acc}
+                    state.log_history.append({"step": state.global_step, **logs})
+
+                    if args.logging_dir:
+                        print(f"Step {state.global_step} - token_acc: {acc:.4f}")
+
+                    return control
+            
             self.trainer = Trainer(
                 model = self.model_interface.model,
                 args = self.training_arguments,
@@ -101,8 +141,11 @@ class TrainingEnvironment:
                 train_dataset = train_ds,
                 eval_dataset = val_ds,
                 
-                callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)],
-                compute_metrics = compute_token_accuracy,
+                callbacks = [
+                    ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir),
+                    TokenAccuracyCallback(1),
+                ],
+                compute_metrics = compute_token_accuracy_,
             )
             
             self.trainer.model_accepts_loss_kwargs = False
