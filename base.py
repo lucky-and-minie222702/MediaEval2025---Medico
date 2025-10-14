@@ -299,20 +299,19 @@ class CausalDataset(BaseDataset):
         if not self.contain_label:
             return merge
         
-        assistant_token_id = self.processor.tokenizer.convert_tokens_to_ids(ASSISTANT_TEXT[self.setting])
+        assistant_pattern = self.processor.tokenizer.encode(ASSISTANT_TEXT[self.setting])
         
-        print(merge["input_ids"])
-        print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = False))
-        print(assistant_token_id)
-        exit()
-        
-        assistant_idx = find_first_token_position(merge["input_ids"], assistant_token_id)
-        inp_len = assistant_idx + 1
+        assistant_idx = find_subsequence(merge["input_ids"], assistant_pattern)
+        inp_len = assistant_idx + len(assistant_pattern)
         
         label = merge["input_ids"].clone()
-        label[:inp_len:] = -100
+        label[:inp_len:] = self.processor.tokenizer.pad_token_id
 
         merge["labels"] = label
+        
+        print(self.processor.tokenizer.decode(merge["labels"], skip_special_tokens = True))
+        print(self.processor.tokenizer.decode(merge["input_ids"], skip_special_tokens = True))
+        exit()
             
         return merge
     

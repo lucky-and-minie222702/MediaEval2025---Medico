@@ -24,13 +24,12 @@ class DFDistributor:
         for i, (train_idx, test_idx) in enumerate(self.kfold.split(train_df), 1):
             self.fold[i] = (train_df.iloc[train_idx], train_df.iloc[test_idx])
 
-def find_first_token_position(input_ids, token_id):
-    if isinstance(input_ids, torch.Tensor):
-        input_ids = input_ids.tolist()
-    for i, tok in enumerate(input_ids):
-        if tok == token_id:
+def find_subsequence(input_ids, pattern):
+    n, m = len(input_ids), len(pattern)
+    for i in range(n - m + 1):
+        if input_ids[i:i+m] == pattern:
             return i
-    return None 
+    return None
 
 def get_dataloader(dataset, batch_size, shuffle = True):
     def collate_fn(batch):
