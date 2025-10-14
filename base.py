@@ -140,6 +140,10 @@ INSTRUCTION = (
     "spoken by a doctor in a single sentence."
 )
 
+ASSISTANT_TEXT = {
+    "qwen": "<|im_start|>assistant",
+}
+
 # dataset	     
 class BaseDataset(Dataset):
     # mode = "train" or "infer"
@@ -295,7 +299,7 @@ class CausalDataset(BaseDataset):
         if not self.contain_label:
             return merge
         
-        assistant_token_id = self.processor.tokenizer.convert_tokens_to_ids("<assistant>")
+        assistant_token_id = self.processor.tokenizer.convert_tokens_to_ids(ASSISTANT_TEXT[self.setting])
         assistant_idx = find_first_token_position(merge["input_ids"], assistant_token_id)
         inp_len = assistant_idx + 1
         
