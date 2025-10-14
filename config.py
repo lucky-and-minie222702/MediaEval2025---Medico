@@ -2,7 +2,7 @@ from base import *
 from env import *
 import pandas as pd
 
-CAUSAL_SETTINGS = ["qwen"]
+CAUSAL_SETTINGS = ["qwen", "medgemma"]
 
 DEFAULT_CLASS_CONFIG = {
     "model_class": None,
@@ -20,6 +20,14 @@ def get_config(setting):
         conf.update({
             "model_class": Qwen2_5_VLForConditionalGeneration,
             "processor_class": Qwen2_5_VLProcessor,
+            "dataset_class": CausalDataset,
+            "format_data_fn": CausalDataFormatter(),
+        })
+    elif setting == "medgemma":
+        from transformers import AutoModelForImageTextToText, AutoProcessor
+        conf.update({
+            "model_class": AutoModelForImageTextToText,
+            "processor_class": AutoProcessor,
             "dataset_class": CausalDataset,
             "format_data_fn": CausalDataFormatter(),
         })
