@@ -331,3 +331,74 @@ class ModelUtils:
                 self.questions = norm_map(self.questions)
                 self.labels = norm_map(self.labels)
                 self.predictions = norm_map(self.predictions)
+                
+                
+class TokenWiseAccuracyTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.total_correct_tokens = 0
+        self.total_tokens = 0
+        self.ignore_index = -100
+
+    def prediction_step(
+        self,
+        model,
+        inputs,
+        predictio
+        n_loss_only,
+        ignore_keys = None,
+    ):
+        loss, logits, labels = super().prediction_step(
+            model, inputs, prediction_loss_only=False, ignore_keys=ignore_keys
+        )
+
+        if prediction_loss_only:
+            return (loss, None, None)
+
+        if labels is None:
+            return (loss, logits, None)
+
+        predictions = torch.argmax(logits, dim=-1)
+
+        # Create a mask for tokens that are NOT padding/ignored (-100)
+        mask = labels != self.ignore_index
+
+        # Apply the mask to both predictions and labels
+        # Note: We move them to CPU only for the final aggregation steps
+        # The main tensors (predictions, labels, mask) are still on the device (GPU/CPU)
+        masked_predictions = predictions[mask]
+        masked_labels = labels[mask]
+
+        # Calculate the number of correctly predicted, non-ignored tokens
+        correct_tokens = (masked_predictions == masked_labels).sum().item()
+        
+        # Calculate the total number of non-ignored tokens
+        total_tokens = mask.sum().item()
+
+        # Update the running totals (aggregation)
+        # These are simple integers, preventing the memory ballooning issue.
+        self.total_correct_tokens += correct_tokens
+        self.total_tokens += total_tokens
+
+        # Return the original tensors needed by the Trainer's evaluation_loop 
+        # (even though we don't *use* the full tensors later for accuracy, 
+        # the Trainer still expects them for standard output)
+        return (loss, logits, labels)
+
+    def evaluate(self, eval_dataset = None, ignore_keys = None, metric_key_prefix: str = "eval"):
+        self.total_correct_tokens = 0
+        self.total_tokens = 0
+
+        metrics = super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+
+        if self.total_tokens > 0:
+            final_accuracy = self.total_correct_tokens / self.total_tokens
+        else:
+            final_accuracy = 0.0
+
+        metrics[f"{metric_key_prefix}_token_accuracy"] = final_accuracy
+
+        self.total_correct_tokens = 0
+        self.total_tokens = 0
+        
+        return metrics
