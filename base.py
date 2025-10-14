@@ -280,7 +280,7 @@ class CausalDataset(BaseDataset):
         merge = self.processor(
             text = merge_text,
             images = self.img,
-            padding = "max_length",
+            padding = False,
             truncation = True,
             max_length = self.max_length,
             return_tensors = "pt"
@@ -296,7 +296,15 @@ class CausalDataset(BaseDataset):
             merge["labels"] = label
         elif self.mode == "infer":
             label = merge["input_ids"].clone()[inp_len::]
-            merge = inp
+            
+            merge = self.processor(
+                text = inp_text,
+                images = self.img,
+                padding = "max_length",
+                truncation = True,
+                max_length = self.max_length,
+                return_tensors = "pt"
+            )
             merge["labels"] = label
             
         print(merge)
