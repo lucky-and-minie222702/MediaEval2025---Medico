@@ -311,6 +311,9 @@ class CausalDataset(BaseDataset):
         label[:inp_len:] = -100
 
         merge["labels"] = label
+        
+        print(merge)
+        exit()
             
         return merge
     
