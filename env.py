@@ -82,6 +82,17 @@ class TrainingEnvironment:
             
             self.model_interface.to_lora(**lora_args)
             
+            def compute_token_accuracy(eval_pred):
+                logits, labels = eval_pred
+                preds = np.argmax(logits, axis=-1)
+
+                mask = labels != -100
+
+                correct = (preds == labels) & mask
+                accuracy = correct.sum() / mask.sum()
+
+                return {"token_accuracy": accuracy.item() if isinstance(accuracy, torch.Tensor) else accuracy}
+            
             self.trainer = Trainer(
                 model = self.model_interface.model,
                 args = self.training_arguments,
@@ -91,6 +102,7 @@ class TrainingEnvironment:
                 eval_dataset = val_ds,
                 
                 callbacks = [ModelUtils.TrainerSaveLossCallback(self.training_arguments.output_dir)]
+                compute_metrics = compute_token_accuracy,
             )
             
             self.trainer.model_accepts_loss_kwargs = False
