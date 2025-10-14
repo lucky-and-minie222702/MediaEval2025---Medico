@@ -359,7 +359,7 @@ class TokenWiseAccuracyTrainer(Trainer):
 
         if labels is None:
             return (loss, logits, None)
-
+        print(logits)
         predictions = torch.argmax(logits, dim=-1)
 
         mask = labels != self.ignore_index
