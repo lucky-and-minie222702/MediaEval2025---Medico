@@ -394,4 +394,6 @@ class TokenWiseAccuracyTrainer(Trainer):
         self.total_correct_tokens = 0
         self.total_tokens = 0
         
+        print(final_accuracy)
+        
         return metrics
