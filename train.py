@@ -138,6 +138,5 @@ for step, batch in train_pbar:
         
    
     # save_model_checkpoint(model, config["save_dir"], step, config["save_limit"])
-    
 
 torch.cuda.empty_cache()
