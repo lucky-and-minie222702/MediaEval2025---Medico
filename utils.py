@@ -16,6 +16,47 @@ from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
 from transformers import Trainer
 from tqdm import tqdm
+import shutil
+from torch.optim.lr_scheduler import LambdaLR
+
+def compute_token_accuracy(logits, labels):
+    logits = logits.detach().cpu().numpy()
+    labels = labels.cpu().numpy()
+    preds = np.argmax(logits, axis = -1)
+
+    mask = labels != -100
+
+    correct = (preds == labels) & mask
+    accuracy = correct.sum() / mask.sum()
+
+    return accuracy
+
+
+def get_linear_schedule_with_end(optimizer, num_training_steps, lr_start, lr_end):
+    def lr_lambda(current_step):
+        if current_step >= num_training_steps:
+            return lr_end / lr_start
+        progress = current_step / num_training_steps
+        return (1 - progress) * (1 - lr_end / lr_start) + lr_end / lr_start
+
+    return LambdaLR(optimizer, lr_lambda)
+
+
+def save_model_checkpoint(model, save_dir, current_step, max_checkpoints):
+    os.makedirs(save_dir, exist_ok=True)
+
+    ckpt_path = os.path.join(save_dir, f"checkpoint-{current_step}")
+    model.save_pretrained(ckpt_path)
+
+    checkpoints = sorted(
+        [os.path.join(save_dir, d) for d in os.listdir(save_dir) if d.startswith("checkpoint-")],
+        key=os.path.getmtime,
+    )
+
+    if len(checkpoints) > max_checkpoints:
+        to_delete = checkpoints[:-max_checkpoints]
+        for ckpt in to_delete:
+            shutil.rmtree(ckpt, ignore_errors = True)
 
 
 class DFDistributor:
@@ -24,8 +65,12 @@ class DFDistributor:
         self.test_df = test_df
         self.kfold = KFold(n_splits = n_splits, shuffle = True, random_state = seed)
         self.fold = {}
-        for i, (train_idx, test_idx) in enumerate(self.kfold.split(train_df), 1):
-            self.fold[i] = (train_df.iloc[train_idx], train_df.iloc[test_idx])
+        for i, (train_idx, val_idx) in enumerate(self.kfold.split(train_df), 1):
+            self.fold[i] = {
+                "train": train_df.iloc[train_idx], 
+                "val": train_df.iloc[val_idx],
+            }
+
 
 def find_subsequence(input_ids, pattern):
     n, m = len(input_ids), len(pattern)
@@ -33,6 +78,7 @@ def find_subsequence(input_ids, pattern):
         if input_ids[i:i+m] == pattern:
             return i
     return None
+
 
 def get_dataloader(dataset, batch_size, shuffle = True):
     def collate_fn(batch):
@@ -59,6 +105,17 @@ def get_dataloader(dataset, batch_size, shuffle = True):
         collate_fn = collate_fn
     )
 
+
+def invalid_char(texts):
+    not_good = lambda x: sum([ord(c) > 255 for c in x]) > 0
+    invalid_idx = [i for i, s in enumerate(texts) if not_good(s)]
+    return invalid_idx
+
+def drop_invalid_char_df(df):
+    df.drop(index = invalid_char(df["question"].tolist()), inplace = True)
+    df.drop(index = invalid_char(df["answer"].tolist()), inplace = True)
+
+
 def seed_everything(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -72,6 +129,7 @@ def load_json(p):
     with open(p, "r", encoding="utf-8") as file:
         data = json.load(file)
     return data
+
 
 class ImageUtils:
     @staticmethod
@@ -126,7 +184,7 @@ class TextUtils:
         return text
     
     @staticmethod
-    def get_scores(predictions, references):
+    def get_scores(predictions, references, exclude_metrics = []):
         clean_data = [
             (pred.strip().replace("\n", ""), ref.strip().replace("\n", ""))
             for pred, ref in zip(predictions, references)
@@ -142,8 +200,13 @@ class TextUtils:
             }
 
         clean_preds, clean_refs = zip(*clean_data)
-
         clean_refs_list = [[ref] for ref in clean_refs]
+        
+        bleu = 0.0
+        rouge1 = 0.0
+        rouge2 = 0.0
+        rougeL = 0.0
+        meteor = 0.0
 
         def compute_bleu_batch(preds, refs):
             scores = []
@@ -153,30 +216,33 @@ class TextUtils:
             mean_score = sum(scores) / len(scores)
             return mean_score / 100
 
-        bleu = compute_bleu_batch(clean_preds, clean_refs)
+        if "bleu" not in exclude_metrics:
+            bleu = compute_bleu_batch(clean_preds, clean_refs)
 
-        # rouge
-        r1_total, r2_total, rl_total = 0, 0, 0
-        for pred, refs in zip(clean_preds, clean_refs_list):
-            ref = refs[0]
-            rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
-            scores = rouge.score(ref, pred)
-            r1_total += scores["rouge1"].fmeasure
-            r2_total += scores["rouge2"].fmeasure
-            rl_total += scores["rougeL"].fmeasure
-        n = len(clean_preds)
-        rouge1 = r1_total / n
-        rouge2 = r2_total / n
-        rougeL = rl_total / n
 
-        # meteor
-        meteor_total = 0
-        for pred, refs in zip(clean_preds, clean_refs_list):
-            meteor_total += meteor_score(
-                [ref.split() for ref in refs],
-                pred.split()
-            )
-        meteor = meteor_total / n
+        if "rouge" not in exclude_metrics:        
+            r1_total, r2_total, rl_total = 0, 0, 0
+            for pred, refs in zip(clean_preds, clean_refs_list):
+                ref = refs[0]
+                rouge = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer = True)
+                scores = rouge.score(ref, pred)
+                r1_total += scores["rouge1"].fmeasure
+                r2_total += scores["rouge2"].fmeasure
+                rl_total += scores["rougeL"].fmeasure
+            n = len(clean_preds)
+            rouge1 = r1_total / n
+            rouge2 = r2_total / n
+            rougeL = rl_total / n
+
+
+        if "meteor" not in exclude_metrics:
+            meteor_total = 0
+            for pred, refs in zip(clean_preds, clean_refs_list):
+                meteor_total += meteor_score(
+                    [ref.split() for ref in refs],
+                    pred.split()
+                )
+            meteor = meteor_total / n
 
         return {
             "bleu": bleu,
@@ -335,62 +401,3 @@ class ModelUtils:
                 self.labels = norm_map(self.labels)
                 self.predictions = norm_map(self.predictions)
                 
-                
-class TokenWiseAccuracyTrainer(Trainer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.total_correct_tokens = 0
-        self.total_tokens = 0
-        self.ignore_index = -100
-
-    def prediction_step(
-        self,
-        model,
-        inputs,
-        prediction_loss_only,
-        ignore_keys = None,
-    ):
-        loss, logits, labels = super().prediction_step(
-            model, inputs, prediction_loss_only=False, ignore_keys=ignore_keys
-        )
-
-        # if prediction_loss_only:
-        #     return (loss, None, None)
-
-        if labels is None:
-            return (loss, logits, None)
-
-        predictions = torch.argmax(logits[0], dim=-1)
-
-        mask = labels != self.ignore_index
-
-        masked_predictions = predictions[mask]
-        masked_labels = labels[mask]
-
-        correct_tokens = (masked_predictions == masked_labels).sum().item()
-        
-        total_tokens = mask.sum().item()
-
-        self.total_correct_tokens += correct_tokens
-        self.total_tokens += total_tokens
-
-        return (loss, None, None)
-
-    def evaluate(self, eval_dataset = None, ignore_keys = None, metric_key_prefix: str = "eval"):
-        self.total_correct_tokens = 0
-        self.total_tokens = 0
-
-        metrics = super().evaluate(eval_dataset, ignore_keys, metric_key_prefix)
-
-        if self.total_tokens > 0:
-            final_accuracy = self.total_correct_tokens / self.total_tokens
-        else:
-            final_accuracy = 0.0
-
-        metrics[f"{metric_key_prefix}_token_accuracy"] = final_accuracy
-        tqdm.write(f"Token-wise accuracy: {final_accuracy:.4f}")
-
-        self.total_correct_tokens = 0
-        self.total_tokens = 0
-        
-        return metrics
